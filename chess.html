@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Repertoire Trainer</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessground@9.0.5/assets/chessground.base.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessground@9.0.5/assets/chessground.cburnett.css">
+
+    <style>
+        :root {
+            --light-sq: #f0d9b5;
+            --dark-sq: #b58863;
+            --highlight-color: rgba(155, 199, 0, 0.41);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0; padding: 20px;
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #121212; color: #e0e0e0;
+            display: flex; justify-content: center; align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .app-container { display: flex; flex-direction: row; gap: 30px; max-width: 1000px; width: 100%; }
+
+        .sidebar { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 320px; }
+
+        /* --- Nouveau style pour le sélecteur --- */
+        select {
+            width: 100%;
+            background: #1e1e1e;
+            color: #fff;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        select:focus { outline: 1px solid #4caf50; }
+
+        .active-line {
+            width: 100%; min-height: 120px; max-height: 150px;
+            background: #1e1e1e; color: #ccc;
+            border: 1px solid #333; border-radius: 8px; padding: 10px;
+            font-family: monospace; line-height: 1.8; overflow-y: auto;
+            white-space: normal; word-wrap: break-word;
+        }
+
+        .pgn-move { cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: background 0.2s, color 0.2s; display: inline-block; }
+        .pgn-move:hover { background: #333; color: #fff; }
+        .pgn-move.active-move { background: #4caf50; color: #fff; font-weight: bold; }
+        .move-number { color: #777; margin-left: 4px; }
+
+        .hidden { display: none !important; }
+
+        .controls, .stats-panel, .options-group {
+            background: #1e1e1e; padding: 15px; border-radius: 8px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+
+        .row-buttons { display: flex; gap: 6px; flex-wrap: nowrap; }
+        .row-buttons button, .row-buttons .btn-link {
+            flex: 1; text-decoration: none; display: inline-flex;
+            justify-content: center; align-items: center;
+            padding: 8px 4px; font-size: 12.5px; white-space: nowrap;
+        }
+        .row-buttons .nav-btn { flex: 0 0 32px; padding: 8px 0; }
+        .radio-row { display: flex; gap: 15px; align-items: center; font-size: 14px; }
+        .radio-row strong { min-width: 70px; }
+
+        button, .btn-link {
+            background: #4caf50; color: white; border: none; padding: 10px;
+            border-radius: 6px; font-weight: bold; cursor: pointer;
+            transition: background 0.2s, opacity 0.2s; text-align: center;
+        }
+        button:hover:not(:disabled), .btn-link:hover:not(:disabled) { background: #45a049; }
+        button.secondary, .btn-link.secondary { background: #333; color: #ccc; }
+        button.secondary:hover:not(:disabled), .btn-link.secondary:hover:not(:disabled) { background: #444; color: #fff; }
+        button:disabled, .btn-link:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .stat-row { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 0.95rem; }
+        .stat-value { color: #4caf50; }
+        .stat-error-val { color: #e57373; }
+
+        .feedback {
+            padding: 15px; border-radius: 8px; font-weight: bold; text-align: center;
+            transition: all 0.3s; min-height: 50px; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .feedback.waiting { background: #2c3e50; color: #ecf0f1; }
+        .feedback.success { background: #1e4620; color: #81c784; }
+        .feedback.error { background: #5c1616; color: #e57373; }
+        .feedback.warning { background: #b9770e; color: #fdf2e9; } 
+
+        .board-wrapper { flex: 1.5; display: flex; flex-direction: column; position: relative; }
+        .cg-wrap { width: 100%; aspect-ratio: 1 / 1; height: auto; }
+        .cg-wrap cg-board {
+            background-image: conic-gradient(var(--dark-sq) 90deg, var(--light-sq) 90deg 180deg, var(--dark-sq) 180deg 270deg, var(--light-sq) 270deg) !important;
+            background-size: 25% 25% !important; 
+        }
+        .cg-wrap square.last-move { background-color: var(--highlight-color) !important; }
+        .cg-wrap piece.movable { cursor: grab !important; }
+        .cg-wrap piece.dragging { cursor: grabbing !important; }
+        cg-board square.move-dest { background: radial-gradient(rgba(0, 0, 0, 0.15) 20%, transparent 20%); }
+
+        @media (max-width: 768px) { .app-container { flex-direction: column-reverse; } }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="sidebar">
+            <div id="feedback" class="feedback waiting">Choisissez un répertoire</div>
+            
+            <div class="stats-panel">
+                <div class="stat-row"><span>Coups à apprendre :</span><span id="statMoves" class="stat-value">0 / 0</span></div>
+                <div class="stat-row"><span>Variantes :</span><span id="statVars" class="stat-value">0 / 0</span></div>
+                <div class="stat-row" id="errorStatRow"><span>Erreurs :</span><span id="statErrors" class="stat-error-val">0</span></div>
+            </div>
+
+            <select id="repertoireSelect">
+                <option value="" disabled selected>-- Sélectionner un répertoire --</option>
+            </select>
+            
+            <div id="activeLineDisplay" class="active-line hidden">Position initiale</div>
+            
+            <div class="controls">
+                <div class="row-buttons">
+                    <button id="prevBtn" class="secondary nav-btn" disabled>◀</button>
+                    <button id="nextBtn" class="secondary nav-btn" disabled>▶</button>
+                    <button id="togglePgnBtn" class="secondary" disabled>Afficher PGN</button>
+                    <button id="hintBtn" class="secondary">Aide</button>
+                    <a id="analysisLink" href="#" target="_blank" class="secondary btn-link">Analyse ↗</a>
+                </div>
+            </div>
+
+            <div class="options-group">
+                <div class="radio-row">
+                    <strong>Mode :</strong>
+                    <label><input type="radio" name="mode" value="decouverte" checked> Découverte</label>
+                    <label><input type="radio" name="mode" value="revision"> Révision</label>
+                </div>
+                <div class="radio-row">
+                    <strong>Couleur :</strong>
+                    <label><input type="radio" name="color" value="white" checked> Blancs</label>
+                    <label><input type="radio" name="color" value="black"> Noirs</label>
+                </div>
+                <button id="startBtn" style="margin-top: 5px;">Démarrer l'entraînement</button>
+            </div>
+        </div>
+
+        <div class="board-wrapper">
+            <div id="board" class="cg-wrap"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.0.0-beta.8/+esm';
+        import { Chessground } from 'https://cdn.jsdelivr.net/npm/chessground@9.0.5/+esm';
+        
+        // Import database
+        import { repertoireDatabase } from './data.js';
+
+        const game = new Chess();
+        let cg, rootNode = null, currentNode = null, playerColor = 'white', trainingMode = 'decouverte', isTraining = false;
+        let currentPath = [], viewIndex = 0;
+        let totalMoves = 0, learnedMoves = 0, totalVariations = 0, learnedVariations = 0, errorCount = 0, currentMoveErrorLogged = false;
+
+        const repSelect = document.getElementById('repertoireSelect');
+        const activeLineDisplay = document.getElementById('activeLineDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const togglePgnBtn = document.getElementById('togglePgnBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const analysisLink = document.getElementById('analysisLink');
+        const feedbackEl = document.getElementById('feedback');
+        const statMovesEl = document.getElementById('statMoves');
+        const statVarsEl = document.getElementById('statVars');
+        const statErrorsEl = document.getElementById('statErrors');
+        const errorStatRow = document.getElementById('errorStatRow');
+        const boardWrapper = document.querySelector('.board-wrapper');
+        const boardEl = document.getElementById('board');
+
+        // Populate Database Dropdown
+        repertoireDatabase.forEach(rep => {
+            const option = document.createElement('option');
+            option.value = rep.id;
+            option.textContent = rep.title;
+            repSelect.appendChild(option);
+        });
+
+        // Auto-select color when choosing a repertoire
+        repSelect.addEventListener('change', (e) => {
+            const selectedRep = repertoireDatabase.find(r => r.id === e.target.value);
+            if (selectedRep) {
+                document.querySelector(`input[name="color"][value="${selectedRep.defaultColor}"]`).checked = true;
+            }
+        });
+
+        cg = Chessground(boardEl, { coordinates: true, movable: { color: undefined, dests: new Map() } });
+
+        togglePgnBtn.addEventListener('click', () => {
+            if (!isTraining) return;
+            activeLineDisplay.classList.toggle('hidden');
+            togglePgnBtn.textContent = activeLineDisplay.classList.contains('hidden') ? "Afficher PGN" : "Masquer PGN";
+        });
+
+        const setFeedback = (msg, state) => { feedbackEl.textContent = msg; feedbackEl.className = `feedback ${state}`; };
+        const updateStatsUI = () => { statMovesEl.textContent = `${learnedMoves} / ${totalMoves}`; statVarsEl.textContent = `${learnedVariations} / ${totalVariations}`; statErrorsEl.textContent = errorCount; };
+        const updateAnalysisLink = () => { analysisLink.href = `https://lichess.org/analysis/standard/${game.fen().replace(/ /g, '_')}`; };
+        const updateNavButtons = () => { prevBtn.disabled = (viewIndex === 0); nextBtn.disabled = (currentPath.length === 0 || viewIndex === currentPath.length - 1); };
+
+        const renderPgnHtml = () => {
+            if (currentPath.length <= 1) { activeLineDisplay.innerHTML = "Position initiale"; return; }
+            const startFenParts = rootNode.fen.split(' ');
+            let fullMoveNum = parseInt(startFenParts[5]) || 1;
+            let currentTurn = startFenParts[1] === 'w' ? 'white' : 'black';
+            let html = '';
+            
+            for (let i = 1; i < currentPath.length; i++) {
+                const node = currentPath[i];
+                if (currentTurn === 'white') html += `<span class="move-number">${fullMoveNum}.</span> `;
+                else if (i === 1) html += `<span class="move-number">${fullMoveNum}...</span> `;
+                const activeClass = (i === viewIndex) ? 'active-move' : '';
+                html += `<span class="pgn-move ${activeClass}" data-index="${i}">${node.san}</span> `;
+                if (currentTurn === 'black') { fullMoveNum++; currentTurn = 'white'; } else { currentTurn = 'black'; }
+            }
+            activeLineDisplay.innerHTML = html.trim();
+            const activeElement = activeLineDisplay.querySelector('.active-move');
+            if (activeElement) activeElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        };
+
+        const navigateView = (step) => {
+            if (!isTraining || currentPath.length === 0) return;
+            const newIndex = viewIndex + step;
+            if (newIndex < 0 || newIndex >= currentPath.length || newIndex === viewIndex) return;
+            viewIndex = newIndex; updateNavButtons(); renderPgnHtml();
+            const node = currentPath[viewIndex]; game.load(node.fen);
+            cg.set({ fen: game.fen(), lastMove: node.id !== 'root' ? [node.from, node.to] : null });
+            updateAnalysisLink();
+            if (viewIndex < currentPath.length - 1) { lockBoard(); clearHints(); } 
+            else { if (!node.isCompleted && game.turn() === playerColor[0]) preparePlayerTurn(); else lockBoard(); }
+        };
+
+        prevBtn.addEventListener('click', () => navigateView(-1));
+        nextBtn.addEventListener('click', () => navigateView(1));
+        document.addEventListener('keydown', (e) => {
+            if (!isTraining || currentPath.length === 0) return;
+            if (e.key === 'ArrowLeft') { e.preventDefault(); navigateView(-1); }
+            else if (e.key === 'ArrowRight') { e.preventDefault(); navigateView(1); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); navigateView(-viewIndex); }
+            else if (e.key === 'ArrowDown') { e.preventDefault(); navigateView((currentPath.length - 1) - viewIndex); }
+        });
+        boardWrapper.addEventListener('wheel', (e) => {
+            if (!isTraining || currentPath.length === 0) return;
+            e.preventDefault(); e.deltaY < 0 ? navigateView(-1) : navigateView(1);
+        }, { passive: false });
+        activeLineDisplay.addEventListener('click', (e) => {
+            if (e.target.classList.contains('pgn-move')) {
+                const step = parseInt(e.target.getAttribute('data-index')) - viewIndex;
+                if (step !== 0) navigateView(step);
+            }
+        });
+
+        const updateActiveLineDisplay = () => {
+            if (!currentNode || !isTraining) return;
+            let path = [], curr = currentNode;
+            while (curr) { path.unshift(curr); curr = curr.parent; }
+            currentPath = path; viewIndex = currentPath.length - 1;
+            updateNavButtons(); renderPgnHtml(); updateAnalysisLink();
+        };
+
+        const clearHints = () => cg.set({ drawable: { autoShapes: [] } });
+
+        hintBtn.addEventListener('click', () => {
+            if (!currentNode || game.turn() !== playerColor[0] || viewIndex < currentPath.length - 1) return;
+            const uncompleted = currentNode.children.filter(c => !c.isCompleted);
+            if (uncompleted.length > 0) cg.set({ drawable: { autoShapes: [{ orig: uncompleted[0].from, brush: 'green' }] } });
+        });
+
+        const buildRepertoireTree = (pgnText) => {
+            const fenMatch = pgnText.match(/\[FEN\s+"([^"]+)"\]/i);
+            const startFen = fenMatch ? fenMatch[1] : new Chess().fen();
+            const cleanPgn = pgnText.replace(/\[.*?\]/g, '').replace(/\{.*?\}/g, '').replace(/\$\d+/g, '').replace(/\d+\.+/g, ' ').trim();
+            const tokens = cleanPgn.match(/[a-zA-Z0-9\-+=#KQRBN]+|\(|\)/g) || [];
+            const root = { id: 'root', san: 'root', fen: startFen, children: [], parent: null, isCompleted: false, isVisited: true, isLeaf: false };
+            let current = root, tempGame = new Chess(startFen), nodeStack = [], idCounter = 0;
+
+            for (let token of tokens) {
+                if (token === '(') { nodeStack.push(current); current = current.parent; tempGame.load(current.fen); } 
+                else if (token === ')') { current = nodeStack.pop(); tempGame.load(current.fen); } 
+                else {
+                    try {
+                        const moveObj = tempGame.move(token);
+                        if (moveObj) {
+                            const newNode = { id: 'node_'+(idCounter++), san: moveObj.san, from: moveObj.from, to: moveObj.to, fen: tempGame.fen(), color: moveObj.color === 'w' ? 'white' : 'black', children: [], parent: current, isCompleted: false, isVisited: false, isLeaf: false };
+                            current.children.push(newNode); current = newNode;
+                        }
+                    } catch (e) {}
+                }
+            }
+            return root;
+        };
+
+        const initializeStats = (node) => {
+            totalMoves = 0; learnedMoves = 0; totalVariations = 0; learnedVariations = 0; errorCount = 0; currentMoveErrorLogged = false;
+            const traverse = (n) => {
+                if (n.id !== 'root' && n.color === playerColor) totalMoves++;
+                if (n.children.length === 0 && n.id !== 'root') { n.isLeaf = true; totalVariations++; }
+                n.children.forEach(traverse);
+            };
+            traverse(node); updateStatsUI();
+        };
+
+        const markNodeCompleted = (node) => {
+            node.isCompleted = true; if (node.isLeaf) learnedVariations++;
+            let parent = node.parent;
+            while (parent && parent.id !== 'root') { if (parent.children.every(c => c.isCompleted)) parent.isCompleted = true; parent = parent.parent; }
+            if (rootNode.children.every(c => c.isCompleted)) rootNode.isCompleted = true;
+            updateStatsUI();
+        };
+
+        const getNextPath = (node) => {
+            if (!node) return null;
+            if (node.isLeaf && !node.isCompleted) return [node];
+            const uncompleted = node.children.find(c => !c.isCompleted);
+            if (!uncompleted) return null;
+            const rest = getNextPath(uncompleted);
+            return rest ? [node, ...rest] : null;
+        };
+
+        const getDests = () => {
+            const dests = new Map();
+            game.moves({ verbose: true }).forEach(m => {
+                if (!dests.has(m.from)) dests.set(m.from, []);
+                dests.get(m.from).push(m.to);
+            });
+            return dests;
+        };
+
+        const lockBoard = () => cg.set({ movable: { dests: new Map() } });
+        const unlockBoard = () => cg.set({ turnColor: playerColor, movable: { color: playerColor, free: false, showDests: true, dests: getDests(), events: { after: onUserMove } } });
+
+        const onUserMove = (orig, dest) => {
+            lockBoard(); clearHints();
+            const moveObj = game.moves({ verbose: true }).find(m => m.from === orig && m.to === dest && (m.promotion ? m.promotion === 'q' : true));
+            const chosenChild = currentNode.children.find(c => c.san === (moveObj ? moveObj.san : null));
+
+            if (!moveObj || !chosenChild) {
+                if (trainingMode === 'revision') {
+                    if (!currentMoveErrorLogged) { errorCount++; currentMoveErrorLogged = true; updateStatsUI(); }
+                    snapBack("Incorrect", "error");
+                } else {
+                    snapBack("Suivez la flèche !", "warning");
+                }
+                return;
+            }
+
+            if (chosenChild.isCompleted) { snapBack("Déjà couvert", "warning"); return; }
+
+            currentMoveErrorLogged = false; 
+            setFeedback("Correct", "success");
+            game.move({ from: orig, to: dest, promotion: 'q' });
+            cg.set({ fen: game.fen(), lastMove: [orig, dest] }); 
+            currentNode = chosenChild;
+            updateActiveLineDisplay();
+
+            if (!currentNode.isVisited) { currentNode.isVisited = true; learnedMoves++; updateStatsUI(); }
+            if (currentNode.isLeaf) { markNodeCompleted(currentNode); handleVariationEnd(); } 
+            else setTimeout(() => playOpponentMove(), 250);
+        };
+
+        const snapBack = (msg, state) => { setFeedback(msg, state); setTimeout(() => { cg.set({ fen: game.fen() }); preparePlayerTurn(); }, 600); };
+
+        const playOpponentMove = (targetNode = null) => {
+            clearHints();
+            let nodeToPlay = targetNode || currentNode.children.find(c => !c.isCompleted);
+            if (nodeToPlay) {
+                game.move({ from: nodeToPlay.from, to: nodeToPlay.to, promotion: 'q' });
+                cg.set({ fen: game.fen(), lastMove: [nodeToPlay.from, nodeToPlay.to] });
+                currentNode = nodeToPlay; currentNode.isVisited = true; updateActiveLineDisplay();
+                if (currentNode.isLeaf) { markNodeCompleted(currentNode); handleVariationEnd(); } 
+                else preparePlayerTurn();
+            }
+        };
+
+        const preparePlayerTurn = () => {
+            setFeedback("À vous de jouer", "waiting");
+            unlockBoard();
+            if (trainingMode === 'decouverte') {
+                const uncompleted = currentNode.children.filter(c => !c.isCompleted);
+                if (uncompleted.length > 0) cg.set({ drawable: { autoShapes: [{ orig: uncompleted[0].from, dest: uncompleted[0].to, brush: 'green' }] } });
+            }
+        };
+
+        const handleVariationEnd = () => {
+            if (rootNode.isCompleted) {
+                if (trainingMode === 'revision') {
+                    const errorRate = totalMoves > 0 ? ((errorCount / totalMoves) * 100).toFixed(1) : 0;
+                    setFeedback(`Répertoire complété ! Erreurs : ${errorCount} (${errorRate}%)`, "success");
+                } else setFeedback(`Répertoire complété (Mode Découverte)`, "success");
+            } else {
+                setFeedback("Correct", "success");
+                setTimeout(startNextVariation, 1000);
+            }
+        };
+
+        const startNextVariation = () => {
+            clearHints(); currentMoveErrorLogged = false; 
+            const path = getNextPath(rootNode);
+            if (!path) return;
+
+            let commonNode = path[0]; 
+            for (let i = 1; i < path.length; i++) if (path[i].isVisited) commonNode = path[i]; else break;
+
+            const proceedFromCommonNode = () => {
+                const nextNodeIndex = path.indexOf(commonNode) + 1;
+                if (nextNodeIndex < path.length) {
+                    const nextNode = path[nextNodeIndex];
+                    if (nextNode.color !== playerColor) setTimeout(() => playOpponentMove(nextNode), 400);
+                    else preparePlayerTurn();
+                }
+            };
+
+            if (commonNode.id !== 'root') {
+                setFeedback("Nouvelle variante...", "warning");
+                currentNode = commonNode.parent; updateActiveLineDisplay(); 
+                game.load(currentNode.fen); cg.set({ fen: game.fen(), lastMove: null }); lockBoard();
+                setTimeout(() => {
+                    game.move({ from: commonNode.from, to: commonNode.to, promotion: 'q' });
+                    cg.set({ fen: game.fen(), lastMove: [commonNode.from, commonNode.to] });
+                    currentNode = commonNode; updateActiveLineDisplay();
+                    setTimeout(proceedFromCommonNode, 600);
+                }, 800);
+            } else {
+                currentNode = commonNode; updateActiveLineDisplay();
+                game.load(currentNode.fen); cg.set({ fen: game.fen(), lastMove: null });
+                proceedFromCommonNode();
+            }
+        };
+
+        startBtn.addEventListener('click', () => {
+            const selectedRepId = repSelect.value;
+            if (!selectedRepId) { setFeedback("Veuillez choisir un répertoire", "error"); return; }
+            
+            const repData = repertoireDatabase.find(r => r.id === selectedRepId);
+            const rawPgn = repData.pgn;
+
+            playerColor = document.querySelector('input[name="color"]:checked').value;
+            trainingMode = document.querySelector('input[name="mode"]:checked').value;
+            
+            if (trainingMode === 'decouverte') { errorStatRow.classList.add('hidden'); hintBtn.classList.add('hidden'); } 
+            else { errorStatRow.classList.remove('hidden'); hintBtn.classList.remove('hidden'); }
+
+            clearHints();
+            
+            try { rootNode = buildRepertoireTree(rawPgn); } 
+            catch (err) { setFeedback("Erreur de parsing du PGN", "error"); return; }
+
+            initializeStats(rootNode);
+
+            if (totalMoves === 0) { setFeedback("Aucun coup trouvé pour votre couleur", "error"); return; }
+
+            isTraining = true;
+            activeLineDisplay.classList.remove('hidden');
+            togglePgnBtn.disabled = false;
+            togglePgnBtn.textContent = "Masquer PGN";
+            
+            cg.set({ orientation: playerColor });
+            game.load(rootNode.fen); 
+            updateAnalysisLink(); 
+            startNextVariation();
+        });
+        
+        updateAnalysisLink();
+    </script>
+</body>
+</html>
