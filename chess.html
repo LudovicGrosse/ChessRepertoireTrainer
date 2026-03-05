@@ -13,74 +13,93 @@
             --light-sq: #f0d9b5;
             --dark-sq: #b58863;
             --highlight-color: rgba(155, 199, 0, 0.41);
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --border-color: #333;
         }
 
         * { box-sizing: border-box; }
 
         body {
-            margin: 0; padding: 20px;
+            margin: 0;
+            padding: 20px;
             font-family: system-ui, -apple-system, sans-serif;
-            background: #121212; color: #e0e0e0;
-            display: flex; justify-content: center; align-items: flex-start;
+            background: var(--bg-color);
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
             min-height: 100vh;
         }
 
-        .app-container { display: flex; flex-direction: row; gap: 30px; max-width: 1000px; width: 100%; }
-
-        .sidebar { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 320px; }
-
-        /* --- Nouveau style pour le sélecteur --- */
-        select {
-            width: 100%;
-            background: #1e1e1e;
-            color: #fff;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 15px;
-            cursor: pointer;
-        }
-        select:focus { outline: 1px solid #4caf50; }
-
-        .active-line {
-            width: 100%; min-height: 120px; max-height: 150px;
-            background: #1e1e1e; color: #ccc;
-            border: 1px solid #333; border-radius: 8px; padding: 10px;
-            font-family: monospace; line-height: 1.8; overflow-y: auto;
-            white-space: normal; word-wrap: break-word;
-        }
-
-        .pgn-move { cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: background 0.2s, color 0.2s; display: inline-block; }
-        .pgn-move:hover { background: #333; color: #fff; }
-        .pgn-move.active-move { background: #4caf50; color: #fff; font-weight: bold; }
-        .move-number { color: #777; margin-left: 4px; }
-
+        /* =========================================
+           GLOBAL COMPONENTS
+        ========================================= */
         .hidden { display: none !important; }
 
-        .controls, .stats-panel, .options-group {
-            background: #1e1e1e; padding: 15px; border-radius: 8px;
-            display: flex; flex-direction: column; gap: 10px;
-        }
-
-        .row-buttons { display: flex; gap: 6px; flex-wrap: nowrap; }
-        .row-buttons button, .row-buttons .btn-link {
-            flex: 1; text-decoration: none; display: inline-flex;
-            justify-content: center; align-items: center;
-            padding: 8px 4px; font-size: 12.5px; white-space: nowrap;
-        }
-        .row-buttons .nav-btn { flex: 0 0 32px; padding: 8px 0; }
-        .radio-row { display: flex; gap: 15px; align-items: center; font-size: 14px; }
-        .radio-row strong { min-width: 70px; }
-
         button, .btn-link {
-            background: #4caf50; color: white; border: none; padding: 10px;
+            background: #4caf50; color: white; border: none; padding: 10px 15px;
             border-radius: 6px; font-weight: bold; cursor: pointer;
             transition: background 0.2s, opacity 0.2s; text-align: center;
+            font-size: 14px; text-decoration: none; display: inline-flex;
+            justify-content: center; align-items: center;
         }
         button:hover:not(:disabled), .btn-link:hover:not(:disabled) { background: #45a049; }
         button.secondary, .btn-link.secondary { background: #333; color: #ccc; }
         button.secondary:hover:not(:disabled), .btn-link.secondary:hover:not(:disabled) { background: #444; color: #fff; }
+        button.danger { background: #c62828; }
+        button.danger:hover:not(:disabled) { background: #d32f2f; }
         button:disabled, .btn-link:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        input[type="text"], select, textarea {
+            width: 100%; background: var(--bg-color); color: #fff;
+            border: 1px solid var(--border-color); border-radius: 6px;
+            padding: 10px; font-family: inherit; font-size: 14px;
+        }
+        select { cursor: pointer; font-size: 15px; padding: 12px; background: var(--card-bg); }
+        textarea { font-family: monospace; resize: vertical; min-height: 100px; }
+        input:focus, select:focus, textarea:focus { outline: 1px solid #4caf50; }
+
+        .radio-row { display: flex; gap: 15px; align-items: center; font-size: 14px; }
+        .radio-row strong { min-width: 80px; }
+
+        /* =========================================
+           SETUP VIEW (Dashboard)
+        ========================================= */
+        #setup-view {
+            width: 100%; max-width: 800px;
+            display: flex; flex-direction: column; gap: 20px;
+            margin-top: 20px;
+        }
+
+        .header-title { text-align: center; margin-bottom: 10px; color: #4caf50; }
+
+        .setup-card {
+            background: var(--card-bg);
+            padding: 25px; border-radius: 12px;
+            display: flex; flex-direction: column; gap: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        .setup-card h2 { margin: 0 0 10px 0; font-size: 1.2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 0.9rem; color: #aaa; }
+
+        /* =========================================
+           TRAINING VIEW (App Container)
+        ========================================= */
+        #training-view {
+            display: flex; flex-direction: row; gap: 30px;
+            max-width: 1100px; width: 100%;
+        }
+
+        .sidebar { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 320px; }
+
+        .stats-panel, .controls {
+            background: var(--card-bg); padding: 15px; border-radius: 8px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
 
         .stat-row { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 0.95rem; }
         .stat-value { color: #4caf50; }
@@ -96,6 +115,24 @@
         .feedback.error { background: #5c1616; color: #e57373; }
         .feedback.warning { background: #b9770e; color: #fdf2e9; } 
 
+        .active-line {
+            width: 100%; min-height: 120px; max-height: 180px;
+            background: var(--card-bg); color: #ccc;
+            border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;
+            font-family: monospace; line-height: 1.8; overflow-y: auto;
+            white-space: normal; word-wrap: break-word;
+        }
+
+        .pgn-move { cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: background 0.2s, color 0.2s; display: inline-block; }
+        .pgn-move:hover { background: #333; color: #fff; }
+        .pgn-move.active-move { background: #4caf50; color: #fff; font-weight: bold; }
+        .move-number { color: #777; margin-left: 4px; }
+
+        .row-buttons { display: flex; gap: 6px; flex-wrap: nowrap; }
+        .row-buttons button, .row-buttons .btn-link { flex: 1; padding: 8px 4px; font-size: 12.5px; white-space: nowrap; }
+        .row-buttons .nav-btn { flex: 0 0 32px; padding: 8px 0; }
+
+        /* Board Styling */
         .board-wrapper { flex: 1.5; display: flex; flex-direction: column; position: relative; }
         .cg-wrap { width: 100%; aspect-ratio: 1 / 1; height: auto; }
         .cg-wrap cg-board {
@@ -107,14 +144,56 @@
         .cg-wrap piece.dragging { cursor: grabbing !important; }
         cg-board square.move-dest { background: radial-gradient(rgba(0, 0, 0, 0.15) 20%, transparent 20%); }
 
-        @media (max-width: 768px) { .app-container { flex-direction: column-reverse; } }
+        @media (max-width: 768px) { #training-view { flex-direction: column-reverse; } }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
+    <div id="setup-view">
+        <h1 class="header-title">Chess Repertoire Trainer</h1>
+        
+        <div class="setup-card">
+            <h2>1. Configuration de l'entraînement</h2>
+            <div class="form-group">
+                <label>Sélectionner un répertoire :</label>
+                <select id="repertoireSelect"></select>
+            </div>
+            <div class="radio-row">
+                <strong>Couleur :</strong>
+                <label><input type="radio" name="trainColor" value="white" checked> Blancs</label>
+                <label><input type="radio" name="trainColor" value="black"> Noirs</label>
+            </div>
+            <div class="radio-row">
+                <strong>Mode :</strong>
+                <label><input type="radio" name="trainMode" value="decouverte" checked> Découverte (Flèches)</label>
+                <label><input type="radio" name="trainMode" value="revision"> Révision (Examen)</label>
+            </div>
+            <button id="startBtn" style="font-size: 16px; padding: 15px; margin-top: 10px;">Démarrer l'entraînement</button>
+        </div>
+
+        <div class="setup-card">
+            <h2>2. Ajouter un répertoire personnalisé</h2>
+            <div class="form-group">
+                <label>Titre :</label>
+                <input type="text" id="newRepTitle" placeholder="Ex: Variante d'Échange de la Française">
+            </div>
+            <div class="form-group">
+                <label>PGN (Les tags [FEN] sont supportés pour les positions personnalisées) :</label>
+                <textarea id="newRepPgn" placeholder="1. e4 e6 2. d4 d5 3. exd5 exd5..."></textarea>
+            </div>
+            <div class="radio-row">
+                <strong>Couleur par défaut :</strong>
+                <label><input type="radio" name="newRepColor" value="white" checked> Blancs</label>
+                <label><input type="radio" name="newRepColor" value="black"> Noirs</label>
+            </div>
+            <button id="saveRepBtn" class="secondary">Sauvegarder et Ajouter</button>
+            <div id="saveFeedback" style="color: #81c784; font-size: 14px; font-weight: bold; display: none;">Répertoire ajouté !</div>
+        </div>
+    </div>
+
+    <div id="training-view" class="hidden">
         <div class="sidebar">
-            <div id="feedback" class="feedback waiting">Choisissez un répertoire</div>
+            <div id="feedback" class="feedback waiting">Préparation...</div>
             
             <div class="stats-panel">
                 <div class="stat-row"><span>Coups à apprendre :</span><span id="statMoves" class="stat-value">0 / 0</span></div>
@@ -122,34 +201,16 @@
                 <div class="stat-row" id="errorStatRow"><span>Erreurs :</span><span id="statErrors" class="stat-error-val">0</span></div>
             </div>
 
-            <select id="repertoireSelect">
-                <option value="" disabled selected>-- Sélectionner un répertoire --</option>
-            </select>
-            
-            <div id="activeLineDisplay" class="active-line hidden">Position initiale</div>
+            <div id="activeLineDisplay" class="active-line">Position initiale</div>
             
             <div class="controls">
                 <div class="row-buttons">
                     <button id="prevBtn" class="secondary nav-btn" disabled>◀</button>
                     <button id="nextBtn" class="secondary nav-btn" disabled>▶</button>
-                    <button id="togglePgnBtn" class="secondary" disabled>Afficher PGN</button>
                     <button id="hintBtn" class="secondary">Aide</button>
                     <a id="analysisLink" href="#" target="_blank" class="secondary btn-link">Analyse ↗</a>
                 </div>
-            </div>
-
-            <div class="options-group">
-                <div class="radio-row">
-                    <strong>Mode :</strong>
-                    <label><input type="radio" name="mode" value="decouverte" checked> Découverte</label>
-                    <label><input type="radio" name="mode" value="revision"> Révision</label>
-                </div>
-                <div class="radio-row">
-                    <strong>Couleur :</strong>
-                    <label><input type="radio" name="color" value="white" checked> Blancs</label>
-                    <label><input type="radio" name="color" value="black"> Noirs</label>
-                </div>
-                <button id="startBtn" style="margin-top: 5px;">Démarrer l'entraînement</button>
+                <button id="stopBtn" class="danger" style="margin-top: 5px;">Quitter l'entraînement</button>
             </div>
         </div>
 
@@ -161,20 +222,105 @@
     <script type="module">
         import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.0.0-beta.8/+esm';
         import { Chessground } from 'https://cdn.jsdelivr.net/npm/chessground@9.0.5/+esm';
-        
-        // Import database
-        import { repertoireDatabase } from './data.js';
 
+        // =========================================
+        // DATA MANAGEMENT (Local DB + LocalStorage)
+        // =========================================
+        const defaultDatabase = [
+            {
+                id: "default_1",
+                title: "Italienne - Attaque Max Lange (Blancs)",
+                defaultColor: "white",
+                pgn: `1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. d4 exd4 5. O-O Bc5 6. e5 d5 7. exf6 dxc4 8. Re1+ Be6 9. Ng5 Qd5 (9... Qxf6 10. Nxe6 fxe6 11. Qh5+) 10. Nc3 Qf5 11. Nce4 *`
+            },
+            {
+                id: "default_2",
+                title: "Défense Sicilienne - Dragon (Noirs)",
+                defaultColor: "black",
+                pgn: `1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6 6. Be3 Bg7 7. f3 O-O 8. Qd2 Nc6 *`
+            },
+            {
+                id: "default_3",
+                title: "Finale de Pions (Position FEN personnalisée)",
+                defaultColor: "white",
+                pgn: `[FEN "8/8/8/8/4K3/5P2/8/4k3 w - - 0 1"]\n1. f4 Kd2 2. f5 *`
+            }
+        ];
+
+        let repertoireDatabase = [];
+
+        const loadDatabase = () => {
+            const localData = localStorage.getItem('custom_repertoires');
+            const customReps = localData ? JSON.parse(localData) : [];
+            repertoireDatabase = [...defaultDatabase, ...customReps];
+            
+            const repSelect = document.getElementById('repertoireSelect');
+            repSelect.innerHTML = '<option value="" disabled selected>-- Sélectionner un répertoire --</option>';
+            
+            repertoireDatabase.forEach(rep => {
+                const option = document.createElement('option');
+                option.value = rep.id;
+                option.textContent = rep.title;
+                repSelect.appendChild(option);
+            });
+        };
+
+        const saveCustomRepertoire = (title, pgn, color) => {
+            const localData = localStorage.getItem('custom_repertoires');
+            const customReps = localData ? JSON.parse(localData) : [];
+            
+            const newRep = {
+                id: 'custom_' + Date.now(),
+                title: title,
+                defaultColor: color,
+                pgn: pgn
+            };
+            
+            customReps.push(newRep);
+            localStorage.setItem('custom_repertoires', JSON.stringify(customReps));
+            loadDatabase();
+            
+            // Select the newly created repertoire
+            document.getElementById('repertoireSelect').value = newRep.id;
+            document.querySelector(`input[name="trainColor"][value="${color}"]`).checked = true;
+        };
+
+        // Initialize Data
+        loadDatabase();
+
+        // =========================================
+        // APPLICATION STATE
+        // =========================================
         const game = new Chess();
-        let cg, rootNode = null, currentNode = null, playerColor = 'white', trainingMode = 'decouverte', isTraining = false;
-        let currentPath = [], viewIndex = 0;
-        let totalMoves = 0, learnedMoves = 0, totalVariations = 0, learnedVariations = 0, errorCount = 0, currentMoveErrorLogged = false;
+        let cg;
+        let rootNode = null;
+        let currentNode = null;
+        let playerColor = 'white';
+        let trainingMode = 'decouverte'; 
+        let isTraining = false;
 
+        let currentPath = [];
+        let viewIndex = 0;
+
+        let totalMoves = 0; let learnedMoves = 0; let totalVariations = 0; let learnedVariations = 0;
+        let errorCount = 0; let currentMoveErrorLogged = false;
+
+        // DOM Elements
+        const setupView = document.getElementById('setup-view');
+        const trainingView = document.getElementById('training-view');
+        
+        // Setup Form Elements
         const repSelect = document.getElementById('repertoireSelect');
-        const activeLineDisplay = document.getElementById('activeLineDisplay');
         const startBtn = document.getElementById('startBtn');
-        const togglePgnBtn = document.getElementById('togglePgnBtn');
+        const saveRepBtn = document.getElementById('saveRepBtn');
+        const saveFeedback = document.getElementById('saveFeedback');
+        const newRepTitle = document.getElementById('newRepTitle');
+        const newRepPgn = document.getElementById('newRepPgn');
+
+        // Training Elements
+        const activeLineDisplay = document.getElementById('activeLineDisplay');
         const hintBtn = document.getElementById('hintBtn');
+        const stopBtn = document.getElementById('stopBtn');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         const analysisLink = document.getElementById('analysisLink');
@@ -186,29 +332,43 @@
         const boardWrapper = document.querySelector('.board-wrapper');
         const boardEl = document.getElementById('board');
 
-        // Populate Database Dropdown
-        repertoireDatabase.forEach(rep => {
-            const option = document.createElement('option');
-            option.value = rep.id;
-            option.textContent = rep.title;
-            repSelect.appendChild(option);
-        });
-
-        // Auto-select color when choosing a repertoire
+        // =========================================
+        // SETUP VIEW LOGIC
+        // =========================================
         repSelect.addEventListener('change', (e) => {
             const selectedRep = repertoireDatabase.find(r => r.id === e.target.value);
             if (selectedRep) {
-                document.querySelector(`input[name="color"][value="${selectedRep.defaultColor}"]`).checked = true;
+                document.querySelector(`input[name="trainColor"][value="${selectedRep.defaultColor}"]`).checked = true;
             }
         });
 
-        cg = Chessground(boardEl, { coordinates: true, movable: { color: undefined, dests: new Map() } });
+        saveRepBtn.addEventListener('click', () => {
+            const title = newRepTitle.value.trim();
+            const pgn = newRepPgn.value.trim();
+            const color = document.querySelector('input[name="newRepColor"]:checked').value;
 
-        togglePgnBtn.addEventListener('click', () => {
-            if (!isTraining) return;
-            activeLineDisplay.classList.toggle('hidden');
-            togglePgnBtn.textContent = activeLineDisplay.classList.contains('hidden') ? "Afficher PGN" : "Masquer PGN";
+            if (!title || !pgn) {
+                alert("Veuillez remplir le titre et le PGN.");
+                return;
+            }
+
+            saveCustomRepertoire(title, pgn, color);
+            
+            // Clear inputs and show feedback
+            newRepTitle.value = '';
+            newRepPgn.value = '';
+            saveFeedback.style.display = 'block';
+            setTimeout(() => { saveFeedback.style.display = 'none'; }, 3000);
         });
+
+        // =========================================
+        // TRAINING ENGINE LOGIC
+        // =========================================
+        const initChessground = () => {
+            if (!cg) {
+                cg = Chessground(boardEl, { coordinates: true, movable: { color: undefined, dests: new Map() } });
+            }
+        };
 
         const setFeedback = (msg, state) => { feedbackEl.textContent = msg; feedbackEl.className = `feedback ${state}`; };
         const updateStatsUI = () => { statMovesEl.textContent = `${learnedMoves} / ${totalMoves}`; statVarsEl.textContent = `${learnedVariations} / ${totalVariations}`; statErrorsEl.textContent = errorCount; };
@@ -226,8 +386,10 @@
                 const node = currentPath[i];
                 if (currentTurn === 'white') html += `<span class="move-number">${fullMoveNum}.</span> `;
                 else if (i === 1) html += `<span class="move-number">${fullMoveNum}...</span> `;
+                
                 const activeClass = (i === viewIndex) ? 'active-move' : '';
                 html += `<span class="pgn-move ${activeClass}" data-index="${i}">${node.san}</span> `;
+                
                 if (currentTurn === 'black') { fullMoveNum++; currentTurn = 'white'; } else { currentTurn = 'black'; }
             }
             activeLineDisplay.innerHTML = html.trim();
@@ -239,14 +401,17 @@
             if (!isTraining || currentPath.length === 0) return;
             const newIndex = viewIndex + step;
             if (newIndex < 0 || newIndex >= currentPath.length || newIndex === viewIndex) return;
+            
             viewIndex = newIndex; updateNavButtons(); renderPgnHtml();
             const node = currentPath[viewIndex]; game.load(node.fen);
             cg.set({ fen: game.fen(), lastMove: node.id !== 'root' ? [node.from, node.to] : null });
             updateAnalysisLink();
+            
             if (viewIndex < currentPath.length - 1) { lockBoard(); clearHints(); } 
             else { if (!node.isCompleted && game.turn() === playerColor[0]) preparePlayerTurn(); else lockBoard(); }
         };
 
+        // Inputs for Navigation
         prevBtn.addEventListener('click', () => navigateView(-1));
         nextBtn.addEventListener('click', () => navigateView(1));
         document.addEventListener('keydown', (e) => {
@@ -271,7 +436,7 @@
             if (!currentNode || !isTraining) return;
             let path = [], curr = currentNode;
             while (curr) { path.unshift(curr); curr = curr.parent; }
-            currentPath = path; viewIndex = currentPath.length - 1;
+            currentPath = path; viewIndex = currentPath.length - 1; 
             updateNavButtons(); renderPgnHtml(); updateAnalysisLink();
         };
 
@@ -288,6 +453,7 @@
             const startFen = fenMatch ? fenMatch[1] : new Chess().fen();
             const cleanPgn = pgnText.replace(/\[.*?\]/g, '').replace(/\{.*?\}/g, '').replace(/\$\d+/g, '').replace(/\d+\.+/g, ' ').trim();
             const tokens = cleanPgn.match(/[a-zA-Z0-9\-+=#KQRBN]+|\(|\)/g) || [];
+
             const root = { id: 'root', san: 'root', fen: startFen, children: [], parent: null, isCompleted: false, isVisited: true, isLeaf: false };
             let current = root, tempGame = new Chess(startFen), nodeStack = [], idCounter = 0;
 
@@ -301,14 +467,14 @@
                             const newNode = { id: 'node_'+(idCounter++), san: moveObj.san, from: moveObj.from, to: moveObj.to, fen: tempGame.fen(), color: moveObj.color === 'w' ? 'white' : 'black', children: [], parent: current, isCompleted: false, isVisited: false, isLeaf: false };
                             current.children.push(newNode); current = newNode;
                         }
-                    } catch (e) {}
+                    } catch (e) { console.warn("Skipped invalid token:", token); }
                 }
             }
             return root;
         };
 
         const initializeStats = (node) => {
-            totalMoves = 0; learnedMoves = 0; totalVariations = 0; learnedVariations = 0; errorCount = 0; currentMoveErrorLogged = false;
+            totalMoves = 0; learnedMoves = 0; totalVariations = 0; learnedVariations = 0; errorCount = 0; currentMoveErrorLogged = false; 
             const traverse = (n) => {
                 if (n.id !== 'root' && n.color === playerColor) totalMoves++;
                 if (n.children.length === 0 && n.id !== 'root') { n.isLeaf = true; totalVariations++; }
@@ -344,10 +510,10 @@
         };
 
         const lockBoard = () => cg.set({ movable: { dests: new Map() } });
-        const unlockBoard = () => cg.set({ turnColor: playerColor, movable: { color: playerColor, free: false, showDests: true, dests: getDests(), events: { after: onUserMove } } });
+        const unlockBoard = () => { cg.set({ turnColor: playerColor, movable: { color: playerColor, free: false, showDests: true, dests: getDests(), events: { after: onUserMove } } }); };
 
         const onUserMove = (orig, dest) => {
-            lockBoard(); clearHints();
+            lockBoard(); clearHints(); 
             const moveObj = game.moves({ verbose: true }).find(m => m.from === orig && m.to === dest && (m.promotion ? m.promotion === 'q' : true));
             const chosenChild = currentNode.children.find(c => c.san === (moveObj ? moveObj.san : null));
 
@@ -444,40 +610,51 @@
             }
         };
 
+        // =========================================
+        // VIEW TRANSITIONS
+        // =========================================
         startBtn.addEventListener('click', () => {
             const selectedRepId = repSelect.value;
-            if (!selectedRepId) { setFeedback("Veuillez choisir un répertoire", "error"); return; }
+            if (!selectedRepId) { alert("Veuillez choisir un répertoire"); return; }
             
             const repData = repertoireDatabase.find(r => r.id === selectedRepId);
             const rawPgn = repData.pgn;
 
-            playerColor = document.querySelector('input[name="color"]:checked').value;
-            trainingMode = document.querySelector('input[name="mode"]:checked').value;
+            playerColor = document.querySelector('input[name="trainColor"]:checked').value;
+            trainingMode = document.querySelector('input[name="trainMode"]:checked').value;
             
+            try { rootNode = buildRepertoireTree(rawPgn); } 
+            catch (err) { alert("Erreur lors de la lecture du PGN de ce répertoire."); return; }
+
+            initializeStats(rootNode);
+            if (totalMoves === 0) { alert("Aucun coup trouvé pour cette couleur dans ce répertoire."); return; }
+
+            // Apply Mode Rules
             if (trainingMode === 'decouverte') { errorStatRow.classList.add('hidden'); hintBtn.classList.add('hidden'); } 
             else { errorStatRow.classList.remove('hidden'); hintBtn.classList.remove('hidden'); }
 
-            clearHints();
-            
-            try { rootNode = buildRepertoireTree(rawPgn); } 
-            catch (err) { setFeedback("Erreur de parsing du PGN", "error"); return; }
-
-            initializeStats(rootNode);
-
-            if (totalMoves === 0) { setFeedback("Aucun coup trouvé pour votre couleur", "error"); return; }
-
+            // Switch UI Views
             isTraining = true;
-            activeLineDisplay.classList.remove('hidden');
-            togglePgnBtn.disabled = false;
-            togglePgnBtn.textContent = "Masquer PGN";
+            setupView.classList.add('hidden');
+            trainingView.classList.remove('hidden');
+            
+            // Critical: Initialize or redraw Chessground AFTER unhiding container
+            initChessground();
             
             cg.set({ orientation: playerColor });
             game.load(rootNode.fen); 
             updateAnalysisLink(); 
             startNextVariation();
         });
-        
-        updateAnalysisLink();
+
+        stopBtn.addEventListener('click', () => {
+            isTraining = false;
+            trainingView.classList.add('hidden');
+            setupView.classList.remove('hidden');
+            game.reset();
+            clearHints();
+        });
+
     </script>
 </body>
 </html>
