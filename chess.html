@@ -96,7 +96,7 @@
 
         .sidebar { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 320px; }
 
-        .stats-panel, .controls {
+        .stats-panel, .controls, .pgn-container {
             background: var(--card-bg); padding: 15px; border-radius: 8px;
             display: flex; flex-direction: column; gap: 10px;
         }
@@ -115,12 +115,28 @@
         .feedback.error { background: #5c1616; color: #e57373; }
         .feedback.warning { background: #b9770e; color: #fdf2e9; } 
 
+        /* PGN & Comments Display */
+        .pgn-container { gap: 0; padding: 0; background: transparent; }
+        
         .active-line {
-            width: 100%; min-height: 120px; max-height: 180px;
+            width: 100%; min-height: 80px; max-height: 120px;
             background: var(--card-bg); color: #ccc;
             border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;
             font-family: monospace; line-height: 1.8; overflow-y: auto;
             white-space: normal; word-wrap: break-word;
+        }
+
+        .comment-box {
+            margin-top: 10px;
+            background: #2a2a2a;
+            border-left: 4px solid #4caf50;
+            padding: 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 14px;
+            color: #ddd;
+            line-height: 1.4;
+            min-height: 44px;
+            transition: opacity 0.2s;
         }
 
         .pgn-move { cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: background 0.2s, color 0.2s; display: inline-block; }
@@ -178,11 +194,11 @@
                 <input type="text" id="newRepTitle" placeholder="Ex: Variante d'Échange de la Française">
             </div>
             <div class="form-group">
-                <label>PGN (Les tags [FEN] sont supportés pour les positions personnalisées) :</label>
-                <textarea id="newRepPgn" placeholder="1. e4 e6 2. d4 d5 3. exd5 exd5..."></textarea>
+                <label>PGN (Les tags [FEN] et commentaires {Notes} sont supportés) :</label>
+                <textarea id="newRepPgn" placeholder="1. e4 {Le pion roi} e6 2. d4 d5..."></textarea>
             </div>
             <div class="radio-row">
-                <strong>Couleur par défaut :</strong>
+                <strong>Couleur :</strong>
                 <label><input type="radio" name="newRepColor" value="white" checked> Blancs</label>
                 <label><input type="radio" name="newRepColor" value="black"> Noirs</label>
             </div>
@@ -201,12 +217,16 @@
                 <div class="stat-row" id="errorStatRow"><span>Erreurs :</span><span id="statErrors" class="stat-error-val">0</span></div>
             </div>
 
-            <div id="activeLineDisplay" class="active-line">Position initiale</div>
+            <div class="pgn-container">
+                <div id="activeLineDisplay" class="active-line">Position initiale</div>
+                <div id="commentBox" class="comment-box"><em>Aucun commentaire pour ce coup.</em></div>
+            </div>
             
             <div class="controls">
                 <div class="row-buttons">
                     <button id="prevBtn" class="secondary nav-btn" disabled>◀</button>
                     <button id="nextBtn" class="secondary nav-btn" disabled>▶</button>
+                    <button id="toggleCommentsBtn" class="secondary">Masquer Notes</button>
                     <button id="hintBtn" class="secondary">Aide</button>
                     <a id="analysisLink" href="#" target="_blank" class="secondary btn-link">Analyse ↗</a>
                 </div>
@@ -231,19 +251,20 @@
                 id: "default_1",
                 title: "Italienne - Attaque Max Lange (Blancs)",
                 defaultColor: "white",
-                pgn: `1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. d4 exd4 5. O-O Bc5 6. e5 d5 7. exf6 dxc4 8. Re1+ Be6 9. Ng5 Qd5 (9... Qxf6 10. Nxe6 fxe6 11. Qh5+) 10. Nc3 Qf5 11. Nce4 *`
+                // Comments added to demonstrate the feature
+                pgn: `1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 {Défense des deux cavaliers} 4. d4 exd4 5. O-O Bc5 {Transposition dans l'attaque Max Lange} 6. e5 d5 7. exf6 dxc4 8. Re1+ Be6 9. Ng5 Qd5 (9... Qxf6 {Mauvais car les Blancs récupèrent la pièce avec avantage} 10. Nxe6 fxe6 11. Qh5+) 10. Nc3 Qf5 11. Nce4 *`
             },
             {
                 id: "default_2",
                 title: "Défense Sicilienne - Dragon (Noirs)",
                 defaultColor: "black",
-                pgn: `1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6 6. Be3 Bg7 7. f3 O-O 8. Qd2 Nc6 *`
+                pgn: `1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6 {La structure caractéristique du Dragon} 6. Be3 Bg7 7. f3 O-O 8. Qd2 Nc6 *`
             },
             {
                 id: "default_3",
                 title: "Finale de Pions (Position FEN personnalisée)",
                 defaultColor: "white",
-                pgn: `[FEN "8/8/8/8/4K3/5P2/8/4k3 w - - 0 1"]\n1. f4 Kd2 2. f5 *`
+                pgn: `[FEN "8/8/8/8/4K3/5P2/8/4k3 w - - 0 1"]\n1. f4 {Sécurise le pion passé} Kd2 2. f5 *`
             }
         ];
 
@@ -280,12 +301,10 @@
             localStorage.setItem('custom_repertoires', JSON.stringify(customReps));
             loadDatabase();
             
-            // Select the newly created repertoire
             document.getElementById('repertoireSelect').value = newRep.id;
             document.querySelector(`input[name="trainColor"][value="${color}"]`).checked = true;
         };
 
-        // Initialize Data
         loadDatabase();
 
         // =========================================
@@ -298,6 +317,7 @@
         let playerColor = 'white';
         let trainingMode = 'decouverte'; 
         let isTraining = false;
+        let commentsVisible = true;
 
         let currentPath = [];
         let viewIndex = 0;
@@ -308,8 +328,6 @@
         // DOM Elements
         const setupView = document.getElementById('setup-view');
         const trainingView = document.getElementById('training-view');
-        
-        // Setup Form Elements
         const repSelect = document.getElementById('repertoireSelect');
         const startBtn = document.getElementById('startBtn');
         const saveRepBtn = document.getElementById('saveRepBtn');
@@ -319,10 +337,12 @@
 
         // Training Elements
         const activeLineDisplay = document.getElementById('activeLineDisplay');
+        const commentBox = document.getElementById('commentBox');
         const hintBtn = document.getElementById('hintBtn');
         const stopBtn = document.getElementById('stopBtn');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
+        const toggleCommentsBtn = document.getElementById('toggleCommentsBtn');
         const analysisLink = document.getElementById('analysisLink');
         const feedbackEl = document.getElementById('feedback');
         const statMovesEl = document.getElementById('statMoves');
@@ -346,17 +366,9 @@
             const title = newRepTitle.value.trim();
             const pgn = newRepPgn.value.trim();
             const color = document.querySelector('input[name="newRepColor"]:checked').value;
-
-            if (!title || !pgn) {
-                alert("Veuillez remplir le titre et le PGN.");
-                return;
-            }
-
+            if (!title || !pgn) { alert("Veuillez remplir le titre et le PGN."); return; }
             saveCustomRepertoire(title, pgn, color);
-            
-            // Clear inputs and show feedback
-            newRepTitle.value = '';
-            newRepPgn.value = '';
+            newRepTitle.value = ''; newRepPgn.value = '';
             saveFeedback.style.display = 'block';
             setTimeout(() => { saveFeedback.style.display = 'none'; }, 3000);
         });
@@ -370,13 +382,45 @@
             }
         };
 
+        // Comments Toggle
+        toggleCommentsBtn.addEventListener('click', () => {
+            commentsVisible = !commentsVisible;
+            if (commentsVisible) {
+                commentBox.classList.remove('hidden');
+                toggleCommentsBtn.textContent = "Masquer Notes";
+            } else {
+                commentBox.classList.add('hidden');
+                toggleCommentsBtn.textContent = "Afficher Notes";
+            }
+        });
+
         const setFeedback = (msg, state) => { feedbackEl.textContent = msg; feedbackEl.className = `feedback ${state}`; };
         const updateStatsUI = () => { statMovesEl.textContent = `${learnedMoves} / ${totalMoves}`; statVarsEl.textContent = `${learnedVariations} / ${totalVariations}`; statErrorsEl.textContent = errorCount; };
         const updateAnalysisLink = () => { analysisLink.href = `https://lichess.org/analysis/standard/${game.fen().replace(/ /g, '_')}`; };
         const updateNavButtons = () => { prevBtn.disabled = (viewIndex === 0); nextBtn.disabled = (currentPath.length === 0 || viewIndex === currentPath.length - 1); };
 
+        const updateCommentDisplay = () => {
+            if (currentPath.length === 0 || viewIndex === 0) {
+                const rootComment = rootNode.comment ? `<strong>Notes :</strong> ${rootNode.comment}` : `<em>Aucun commentaire pour ce coup.</em>`;
+                commentBox.innerHTML = rootComment;
+                return;
+            }
+            const node = currentPath[viewIndex];
+            if (node && node.comment) {
+                // Parse potential multi-line comments nicely
+                commentBox.innerHTML = `<strong>Notes :</strong> ${node.comment}`;
+            } else {
+                commentBox.innerHTML = `<em>Aucun commentaire pour ce coup.</em>`;
+            }
+        };
+
         const renderPgnHtml = () => {
-            if (currentPath.length <= 1) { activeLineDisplay.innerHTML = "Position initiale"; return; }
+            if (currentPath.length <= 1) { 
+                activeLineDisplay.innerHTML = "Position initiale"; 
+                updateCommentDisplay();
+                return; 
+            }
+
             const startFenParts = rootNode.fen.split(' ');
             let fullMoveNum = parseInt(startFenParts[5]) || 1;
             let currentTurn = startFenParts[1] === 'w' ? 'white' : 'black';
@@ -393,8 +437,11 @@
                 if (currentTurn === 'black') { fullMoveNum++; currentTurn = 'white'; } else { currentTurn = 'black'; }
             }
             activeLineDisplay.innerHTML = html.trim();
+            
             const activeElement = activeLineDisplay.querySelector('.active-move');
             if (activeElement) activeElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+            updateCommentDisplay();
         };
 
         const navigateView = (step) => {
@@ -411,7 +458,7 @@
             else { if (!node.isCompleted && game.turn() === playerColor[0]) preparePlayerTurn(); else lockBoard(); }
         };
 
-        // Inputs for Navigation
+        // Navigation Bindings
         prevBtn.addEventListener('click', () => navigateView(-1));
         nextBtn.addEventListener('click', () => navigateView(1));
         document.addEventListener('keydown', (e) => {
@@ -448,24 +495,53 @@
             if (uncompleted.length > 0) cg.set({ drawable: { autoShapes: [{ orig: uncompleted[0].from, brush: 'green' }] } });
         });
 
+        // Parser: Now Safely Extracts Comments!
         const buildRepertoireTree = (pgnText) => {
             const fenMatch = pgnText.match(/\[FEN\s+"([^"]+)"\]/i);
             const startFen = fenMatch ? fenMatch[1] : new Chess().fen();
-            const cleanPgn = pgnText.replace(/\[.*?\]/g, '').replace(/\{.*?\}/g, '').replace(/\$\d+/g, '').replace(/\d+\.+/g, ' ').trim();
-            const tokens = cleanPgn.match(/[a-zA-Z0-9\-+=#KQRBN]+|\(|\)/g) || [];
+            
+            // 1. Remove metadata tags (safely)
+            let cleanPgn = pgnText.replace(/\[.*?\]\s*/g, '').trim();
+            
+            // 2. Tokenize: Moves, Parens, Comments, NAGs, MoveNumbers
+            const tokens = cleanPgn.match(/[a-zA-Z0-9\-+=#KQRBN]+|\(|\)|\{[^}]*\}|\$\d+|\d+\.+/g) || [];
 
-            const root = { id: 'root', san: 'root', fen: startFen, children: [], parent: null, isCompleted: false, isVisited: true, isLeaf: false };
+            const root = { id: 'root', san: 'root', fen: startFen, comment: null, children: [], parent: null, isCompleted: false, isVisited: true, isLeaf: false };
             let current = root, tempGame = new Chess(startFen), nodeStack = [], idCounter = 0;
 
             for (let token of tokens) {
-                if (token === '(') { nodeStack.push(current); current = current.parent; tempGame.load(current.fen); } 
-                else if (token === ')') { current = nodeStack.pop(); tempGame.load(current.fen); } 
+                // Ignore move numbers and NAGs
+                if (/^\d+\.+$/.test(token)) continue; 
+                if (/^\$\d+$/.test(token)) continue; 
+
+                if (token === '(') { 
+                    nodeStack.push(current); 
+                    current = current.parent; 
+                    tempGame.load(current.fen); 
+                } 
+                else if (token === ')') { 
+                    current = nodeStack.pop(); 
+                    tempGame.load(current.fen); 
+                } 
+                else if (token.startsWith('{')) {
+                    // Extract comment and attach to the current node
+                    const cmt = token.slice(1, -1).trim();
+                    if (current) {
+                        current.comment = current.comment ? current.comment + " " + cmt : cmt;
+                    }
+                }
                 else {
                     try {
                         const moveObj = tempGame.move(token);
                         if (moveObj) {
-                            const newNode = { id: 'node_'+(idCounter++), san: moveObj.san, from: moveObj.from, to: moveObj.to, fen: tempGame.fen(), color: moveObj.color === 'w' ? 'white' : 'black', children: [], parent: current, isCompleted: false, isVisited: false, isLeaf: false };
-                            current.children.push(newNode); current = newNode;
+                            const newNode = { 
+                                id: 'node_'+(idCounter++), san: moveObj.san, from: moveObj.from, to: moveObj.to, 
+                                fen: tempGame.fen(), color: moveObj.color === 'w' ? 'white' : 'black', 
+                                comment: null, children: [], parent: current, 
+                                isCompleted: false, isVisited: false, isLeaf: false 
+                            };
+                            current.children.push(newNode); 
+                            current = newNode;
                         }
                     } catch (e) { console.warn("Skipped invalid token:", token); }
                 }
@@ -629,16 +705,13 @@
             initializeStats(rootNode);
             if (totalMoves === 0) { alert("Aucun coup trouvé pour cette couleur dans ce répertoire."); return; }
 
-            // Apply Mode Rules
             if (trainingMode === 'decouverte') { errorStatRow.classList.add('hidden'); hintBtn.classList.add('hidden'); } 
             else { errorStatRow.classList.remove('hidden'); hintBtn.classList.remove('hidden'); }
 
-            // Switch UI Views
             isTraining = true;
             setupView.classList.add('hidden');
             trainingView.classList.remove('hidden');
             
-            // Critical: Initialize or redraw Chessground AFTER unhiding container
             initChessground();
             
             cg.set({ orientation: playerColor });
