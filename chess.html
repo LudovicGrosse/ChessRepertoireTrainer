@@ -63,6 +63,9 @@
         .radio-row { display: flex; gap: 15px; align-items: center; font-size: 14px; }
         .radio-row strong { min-width: 80px; }
 
+        .toggle-row { display: flex; gap: 15px; margin-top: 10px; }
+        .toggle-row .toggle-container { flex: 1; }
+
         /* Toggle Switch CSS */
         .toggle-container {
             display: flex;
@@ -142,9 +145,11 @@
             background: #2a2a2a; color: #e0e0e0; border: 1px solid var(--border-color);
             padding: 15px; border-radius: 8px; cursor: pointer; text-align: left;
             transition: all 0.2s; font-size: 15px;
+            display: flex; justify-content: space-between; align-items: center;
         }
         .chapter-btn:hover { background: #333; border-color: #4caf50; }
         .chapter-btn.selected { background: #1e4620; border-color: #4caf50; color: #fff; font-weight: bold; }
+        .chapter-count { font-style: italic; opacity: 0.8; font-size: 0.9rem; }
 
         /* =========================================
            TRAINING VIEW (App Container)
@@ -234,27 +239,24 @@
                 <label>Sélectionner un répertoire :</label>
                 <select id="repertoireSelect"></select>
             </div>
-            <div class="radio-row">
-                <strong>Couleur :</strong>
+
+            <div id="chapter-selection-area" class="hidden" style="margin-top: 10px;">
+                <label style="font-size: 0.9rem; color: #aaa; margin-bottom: 5px; display: block;">Choix du chapitre :</label>
+                <div class="chapter-list" id="chapterList" style="max-height: 250px;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <div class="toggle-row">
                 <div class="toggle-container color-toggle" id="colorToggle" data-state="left">
                     <div class="toggle-slider"></div>
                     <div class="toggle-option active" data-val="white">Blancs</div>
                     <div class="toggle-option" data-val="black">Noirs</div>
                 </div>
-            </div>
-            <div class="radio-row">
-                <strong>Mode :</strong>
                 <div class="toggle-container" id="modeToggle" data-state="left">
                     <div class="toggle-slider"></div>
                     <div class="toggle-option active" data-val="decouverte">Découverte</div>
                     <div class="toggle-option" data-val="revision">Révision</div>
-                </div>
-            </div>
-            
-            <div id="chapter-selection-area" class="hidden" style="margin-top: 10px;">
-                <label style="font-size: 0.9rem; color: #aaa; margin-bottom: 5px; display: block;">Choix du chapitre :</label>
-                <div class="chapter-list" id="chapterList" style="max-height: 250px;">
-                    <!-- Dynamically populated -->
                 </div>
             </div>
 
@@ -460,7 +462,7 @@
 
                     const btn = document.createElement('button');
                     btn.className = 'chapter-btn';
-                    btn.textContent = `${chap.title} (${moveCount} coups à réviser)`;
+                    btn.innerHTML = `<span>${chap.title}</span><span class="chapter-count">${moveCount} coups</span>`;
                     btn.onclick = () => {
                         document.querySelectorAll('.chapter-btn').forEach(b => b.classList.remove('selected'));
                         btn.classList.add('selected');
