@@ -63,6 +63,46 @@
         .radio-row { display: flex; gap: 15px; align-items: center; font-size: 14px; }
         .radio-row strong { min-width: 80px; }
 
+        /* Toggle Switch CSS */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            background: #2a2a2a;
+            border-radius: 20px;
+            padding: 4px;
+            gap: 5px;
+            position: relative;
+        }
+        .toggle-option {
+            flex: 1;
+            text-align: center;
+            padding: 8px 15px;
+            border-radius: 16px;
+            cursor: pointer;
+            z-index: 1;
+            transition: color 0.3s;
+            font-weight: bold;
+            color: #888;
+        }
+        .toggle-option.active { color: #fff; }
+        .toggle-slider {
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            width: calc(50% - 4px);
+            background: #4caf50;
+            border-radius: 16px;
+            transition: left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            z-index: 0;
+        }
+        .toggle-container[data-state="left"] .toggle-slider { left: 4px; }
+        .toggle-container[data-state="right"] .toggle-slider { left: calc(50%); }
+        /* Variations of toggles */
+        .toggle-container.color-toggle .toggle-slider { background: #888; }
+        .toggle-container.color-toggle[data-state="left"] .toggle-slider { background: #f0d9b5; } /* White */
+        .toggle-container.color-toggle[data-state="left"] .toggle-option:first-child { color: #333; }
+        .toggle-container.color-toggle[data-state="right"] .toggle-slider { background: #b58863; } /* Black */
+
         /* =========================================
            SETUP VIEW (Dashboard)
         ========================================= */
@@ -85,6 +125,26 @@
         
         .form-group { display: flex; flex-direction: column; gap: 5px; }
         .form-group label { font-size: 0.9rem; color: #aaa; }
+
+        /* =========================================
+           CHAPTER SELECTION VIEW
+        ========================================= */
+        #chapter-view {
+            width: 100%; max-width: 800px;
+            display: flex; flex-direction: column; gap: 20px;
+            margin-top: 20px;
+        }
+        .chapter-list {
+            display: flex; flex-direction: column; gap: 10px;
+            max-height: 400px; overflow-y: auto; padding-right: 10px;
+        }
+        .chapter-btn {
+            background: #2a2a2a; color: #e0e0e0; border: 1px solid var(--border-color);
+            padding: 15px; border-radius: 8px; cursor: pointer; text-align: left;
+            transition: all 0.2s; font-size: 15px;
+        }
+        .chapter-btn:hover { background: #333; border-color: #4caf50; }
+        .chapter-btn.selected { background: #1e4620; border-color: #4caf50; color: #fff; font-weight: bold; }
 
         /* =========================================
            TRAINING VIEW (App Container)
@@ -176,15 +236,21 @@
             </div>
             <div class="radio-row">
                 <strong>Couleur :</strong>
-                <label><input type="radio" name="trainColor" value="white" checked> Blancs</label>
-                <label><input type="radio" name="trainColor" value="black"> Noirs</label>
+                <div class="toggle-container color-toggle" id="colorToggle" data-state="left">
+                    <div class="toggle-slider"></div>
+                    <div class="toggle-option active" data-val="white">Blancs</div>
+                    <div class="toggle-option" data-val="black">Noirs</div>
+                </div>
             </div>
             <div class="radio-row">
                 <strong>Mode :</strong>
-                <label><input type="radio" name="trainMode" value="decouverte" checked> Découverte (Flèches)</label>
-                <label><input type="radio" name="trainMode" value="revision"> Révision (Examen)</label>
+                <div class="toggle-container" id="modeToggle" data-state="left">
+                    <div class="toggle-slider"></div>
+                    <div class="toggle-option active" data-val="decouverte">Découverte</div>
+                    <div class="toggle-option" data-val="revision">Révision</div>
+                </div>
             </div>
-            <button id="startBtn" style="font-size: 16px; padding: 15px; margin-top: 10px;">Démarrer l'entraînement</button>
+            <button id="startBtn" style="font-size: 16px; padding: 15px; margin-top: 10px;">Suivant (Choix du chapitre)</button>
         </div>
 
         <div class="setup-card">
@@ -194,16 +260,34 @@
                 <input type="text" id="newRepTitle" placeholder="Ex: Variante d'Échange de la Française">
             </div>
             <div class="form-group">
-                <label>PGN (Les tags [FEN] et commentaires {Notes} sont supportés) :</label>
-                <textarea id="newRepPgn" placeholder="1. e4 {Le pion roi} e6 2. d4 d5..."></textarea>
+                <label>PGN (Multiples PGNs, tags [Event] et commentaires supportés) :</label>
+                <textarea id="newRepPgn" placeholder="[Event &quot;Chapitre 1&quot;]&#10;1. e4 {Le pion roi} e6 2. d4 d5..."></textarea>
             </div>
             <div class="radio-row">
                 <strong>Couleur :</strong>
-                <label><input type="radio" name="newRepColor" value="white" checked> Blancs</label>
-                <label><input type="radio" name="newRepColor" value="black"> Noirs</label>
+                <div class="toggle-container color-toggle" id="newColorToggle" data-state="left">
+                    <div class="toggle-slider"></div>
+                    <div class="toggle-option active" data-val="white">Blancs</div>
+                    <div class="toggle-option" data-val="black">Noirs</div>
+                </div>
             </div>
             <button id="saveRepBtn" class="secondary">Sauvegarder et Ajouter</button>
             <div id="saveFeedback" style="color: #81c784; font-size: 14px; font-weight: bold; display: none;">Répertoire ajouté !</div>
+        </div>
+    </div>
+
+    <!-- CHAPTER SELECTION VIEW -->
+    <div id="chapter-view" class="hidden">
+        <h1 class="header-title" id="chapterRepTitle">Titre du Répertoire</h1>
+        <div class="setup-card">
+            <h2>Sélectionnez un chapitre</h2>
+            <div class="chapter-list" id="chapterList">
+                <!-- Dynamically populated -->
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button id="backToSetupBtn" class="secondary">Retour</button>
+                <button id="startChapterBtn" style="flex: 1; font-size: 16px; padding: 15px;" disabled>Démarrer l'entraînement</button>
+            </div>
         </div>
     </div>
 
@@ -246,32 +330,65 @@
         // =========================================
         // DATA MANAGEMENT (Local DB + LocalStorage)
         // =========================================
+        // Helper to parse multiple games/chapters from a single PGN text
+        const parseMultiPgn = (rawPgn) => {
+            const chapters = [];
+            // A simple regex to find the start of a game based on [Event tag
+            // PGNs don't always have Event tags, but for studies they usually do.
+            // A more robust way is to split by blank lines that precede tag blocks.
+            // Here we split by looking for "[Event "
+            const parts = rawPgn.split(/(?=\[Event ")/);
+            
+            parts.forEach((part, index) => {
+                if (!part.trim()) return;
+                let title = `Chapitre ${index + 1}`;
+                const eventMatch = part.match(/\[Event "([^"]+)"\]/);
+                if (eventMatch && eventMatch[1] && eventMatch[1] !== "?") {
+                    title = eventMatch[1];
+                }
+                chapters.push({
+                    id: `chap_${Date.now()}_${index}`,
+                    title: title,
+                    pgn: part.trim()
+                });
+            });
+            
+            // If the user pasted a single PGN without tags, handle it gracefully
+            if (chapters.length === 0 && rawPgn.trim().length > 0) {
+                 chapters.push({
+                    id: `chap_${Date.now()}_0`,
+                    title: "Chapitre 1",
+                    pgn: rawPgn.trim()
+                });
+            }
+            return chapters;
+        };
+
         const defaultDatabase = [
             {
                 id: "default_1",
                 title: "Italienne - Attaque Max Lange (Blancs)",
                 defaultColor: "white",
-                // Comments added to demonstrate the feature
-                pgn: `1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 {Défense des deux cavaliers} 4. d4 exd4 5. O-O Bc5 {Transposition dans l'attaque Max Lange} 6. e5 d5 7. exf6 dxc4 8. Re1+ Be6 9. Ng5 Qd5 (9... Qxf6 {Mauvais car les Blancs récupèrent la pièce avec avantage} 10. Nxe6 fxe6 11. Qh5+) 10. Nc3 Qf5 11. Nce4 *`
+                chapters: parseMultiPgn(`[Event "Attaque Max Lange"]\n1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 {Défense des deux cavaliers} 4. d4 exd4 5. O-O Bc5 {Transposition dans l'attaque Max Lange} 6. e5 d5 7. exf6 dxc4 8. Re1+ Be6 9. Ng5 Qd5 (9... Qxf6 {Mauvais car les Blancs récupèrent la pièce avec avantage} 10. Nxe6 fxe6 11. Qh5+) 10. Nc3 Qf5 11. Nce4 *`)
             },
             {
                 id: "default_2",
                 title: "Défense Sicilienne - Dragon (Noirs)",
                 defaultColor: "black",
-                pgn: `1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6 {La structure caractéristique du Dragon} 6. Be3 Bg7 7. f3 O-O 8. Qd2 Nc6 *`
+                chapters: parseMultiPgn(`[Event "Variante du Dragon"]\n1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6 {La structure caractéristique du Dragon} 6. Be3 Bg7 7. f3 O-O 8. Qd2 Nc6 *`)
             },
             {
                 id: "default_3",
                 title: "Finale de Pions (Position FEN personnalisée)",
                 defaultColor: "white",
-                pgn: `[FEN "8/8/8/8/4K3/5P2/8/4k3 w - - 0 1"]\n1. f4 {Sécurise le pion passé} Kd2 2. f5 *`
+                chapters: parseMultiPgn(`[Event "Sécuriser le pion passé"]\n[FEN "8/8/8/8/4K3/5P2/8/4k3 w - - 0 1"]\n1. f4 {Sécurise le pion passé} Kd2 2. f5 *`)
             }
         ];
 
         let repertoireDatabase = [];
 
         const loadDatabase = () => {
-            const localData = localStorage.getItem('custom_repertoires');
+            const localData = localStorage.getItem('custom_repertoires_v2');
             const customReps = localData ? JSON.parse(localData) : [];
             repertoireDatabase = [...defaultDatabase, ...customReps];
             
@@ -284,28 +401,61 @@
                 option.textContent = rep.title;
                 repSelect.appendChild(option);
             });
+            
+            // Migrate old data if necessary (simple clear or ignore for now)
         };
 
-        const saveCustomRepertoire = (title, pgn, color) => {
-            const localData = localStorage.getItem('custom_repertoires');
+        const saveCustomRepertoire = (title, rawPgn, color) => {
+            const localData = localStorage.getItem('custom_repertoires_v2');
             const customReps = localData ? JSON.parse(localData) : [];
             
             const newRep = {
                 id: 'custom_' + Date.now(),
                 title: title,
                 defaultColor: color,
-                pgn: pgn
+                chapters: parseMultiPgn(rawPgn)
             };
             
             customReps.push(newRep);
-            localStorage.setItem('custom_repertoires', JSON.stringify(customReps));
+            localStorage.setItem('custom_repertoires_v2', JSON.stringify(customReps));
             loadDatabase();
             
             document.getElementById('repertoireSelect').value = newRep.id;
-            document.querySelector(`input[name="trainColor"][value="${color}"]`).checked = true;
+            setToggleState('colorToggle', color);
         };
 
         loadDatabase();
+
+        // =========================================
+        // TOGGLE LOGIC
+        // =========================================
+        const getToggleState = (id) => {
+            const container = document.getElementById(id);
+            const activeOpt = container.querySelector('.toggle-option.active');
+            return activeOpt ? activeOpt.dataset.val : null;
+        };
+
+        const setToggleState = (id, value) => {
+            const container = document.getElementById(id);
+            const options = container.querySelectorAll('.toggle-option');
+            options.forEach(opt => {
+                if (opt.dataset.val === value) {
+                    opt.classList.add('active');
+                    container.dataset.state = (opt === options[0]) ? 'left' : 'right';
+                } else {
+                    opt.classList.remove('active');
+                }
+            });
+        };
+
+        document.querySelectorAll('.toggle-container').forEach(container => {
+            container.querySelectorAll('.toggle-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    const val = e.target.dataset.val;
+                    setToggleState(container.id, val);
+                });
+            });
+        });
 
         // =========================================
         // APPLICATION STATE
@@ -318,6 +468,9 @@
         let trainingMode = 'decouverte'; 
         let isTraining = false;
         let commentsVisible = true;
+        
+        let currentRepertoireId = null;
+        let selectedChapterPgn = null;
 
         let currentPath = [];
         let viewIndex = 0;
@@ -327,13 +480,21 @@
 
         // DOM Elements
         const setupView = document.getElementById('setup-view');
+        const chapterView = document.getElementById('chapter-view');
         const trainingView = document.getElementById('training-view');
+        
         const repSelect = document.getElementById('repertoireSelect');
         const startBtn = document.getElementById('startBtn');
         const saveRepBtn = document.getElementById('saveRepBtn');
         const saveFeedback = document.getElementById('saveFeedback');
         const newRepTitle = document.getElementById('newRepTitle');
         const newRepPgn = document.getElementById('newRepPgn');
+
+        // Chapter Selection Elements
+        const chapterListEl = document.getElementById('chapterList');
+        const chapterRepTitleEl = document.getElementById('chapterRepTitle');
+        const backToSetupBtn = document.getElementById('backToSetupBtn');
+        const startChapterBtn = document.getElementById('startChapterBtn');
 
         // Training Elements
         const activeLineDisplay = document.getElementById('activeLineDisplay');
@@ -358,19 +519,91 @@
         repSelect.addEventListener('change', (e) => {
             const selectedRep = repertoireDatabase.find(r => r.id === e.target.value);
             if (selectedRep) {
-                document.querySelector(`input[name="trainColor"][value="${selectedRep.defaultColor}"]`).checked = true;
+                setToggleState('colorToggle', selectedRep.defaultColor);
             }
         });
 
         saveRepBtn.addEventListener('click', () => {
             const title = newRepTitle.value.trim();
             const pgn = newRepPgn.value.trim();
-            const color = document.querySelector('input[name="newRepColor"]:checked').value;
+            const color = getToggleState('newColorToggle');
             if (!title || !pgn) { alert("Veuillez remplir le titre et le PGN."); return; }
             saveCustomRepertoire(title, pgn, color);
             newRepTitle.value = ''; newRepPgn.value = '';
             saveFeedback.style.display = 'block';
             setTimeout(() => { saveFeedback.style.display = 'none'; }, 3000);
+        });
+
+        // =========================================
+        // VIEW TRANSITIONS & CHAPTER SELECTION
+        // =========================================
+        startBtn.addEventListener('click', () => {
+            currentRepertoireId = repSelect.value;
+            if (!currentRepertoireId) { alert("Veuillez choisir un répertoire"); return; }
+            
+            const repData = repertoireDatabase.find(r => r.id === currentRepertoireId);
+            
+            // Populate Chapter View
+            chapterRepTitleEl.textContent = repData.title;
+            chapterListEl.innerHTML = '';
+            selectedChapterPgn = null;
+            startChapterBtn.disabled = true;
+
+            repData.chapters.forEach((chap, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'chapter-btn';
+                btn.textContent = chap.title;
+                btn.onclick = () => {
+                    document.querySelectorAll('.chapter-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedChapterPgn = chap.pgn;
+                    startChapterBtn.disabled = false;
+                };
+                chapterListEl.appendChild(btn);
+            });
+
+            setupView.classList.add('hidden');
+            chapterView.classList.remove('hidden');
+        });
+
+        backToSetupBtn.addEventListener('click', () => {
+            chapterView.classList.add('hidden');
+            setupView.classList.remove('hidden');
+        });
+
+        startChapterBtn.addEventListener('click', () => {
+            if (!selectedChapterPgn) return;
+
+            playerColor = getToggleState('colorToggle');
+            trainingMode = getToggleState('modeToggle');
+            
+            try { rootNode = buildRepertoireTree(selectedChapterPgn); } 
+            catch (err) { alert("Erreur lors de la lecture du PGN de ce chapitre."); return; }
+
+            initializeStats(rootNode);
+            if (totalMoves === 0) { alert("Aucun coup trouvé pour cette couleur dans ce chapitre."); return; }
+
+            if (trainingMode === 'decouverte') { errorStatRow.classList.add('hidden'); hintBtn.classList.add('hidden'); } 
+            else { errorStatRow.classList.remove('hidden'); hintBtn.classList.remove('hidden'); }
+
+            isTraining = true;
+            chapterView.classList.add('hidden');
+            trainingView.classList.remove('hidden');
+            
+            initChessground();
+            
+            cg.set({ orientation: playerColor });
+            game.load(rootNode.fen); 
+            updateAnalysisLink(); 
+            startNextVariation();
+        });
+
+        stopBtn.addEventListener('click', () => {
+            isTraining = false;
+            trainingView.classList.add('hidden');
+            chapterView.classList.remove('hidden'); // Return to chapter view for quick switch
+            game.reset();
+            clearHints();
         });
 
         // =========================================
