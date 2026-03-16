@@ -386,6 +386,7 @@
 
         const showConfigCard = (title, chapters) => {
             currentRepertoire = { title, chapters };
+            currentChapterIndex = -1; // Reset selection when a new repertoire is loaded
             configTitle.textContent = `Configuration : ${title}`;
             configCard.style.display = 'flex';
             updateChapterList();
@@ -395,6 +396,8 @@
         const updateChapterList = () => {
             if (!currentRepertoire) return;
             playerColor = getToggleState('colorToggle');
+            const previousIdx = currentChapterIndex; // Remember previous selection
+            
             chapterListEl.innerHTML = '';
             selectedChapterPgn = null;
             currentChapterIndex = -1;
@@ -420,6 +423,15 @@
 
                     const btn = document.createElement('button');
                     btn.className = 'chapter-btn';
+                    
+                    // Restore selection state
+                    if (idx === previousIdx) {
+                        btn.classList.add('selected');
+                        selectedChapterPgn = chap.pgn;
+                        currentChapterIndex = idx;
+                        startBtn.disabled = false;
+                    }
+
                     btn.innerHTML = `<span>${chap.title}</span><span class="chapter-count">${moveCount} coups</span>`;
                     btn.onclick = () => {
                         document.querySelectorAll('.chapter-btn').forEach(b => b.classList.remove('selected'));
