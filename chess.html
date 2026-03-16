@@ -234,6 +234,22 @@
                 <label>Sélectionner un répertoire :</label>
                 <select id="repertoireSelect"></select>
             </div>
+            <div class="radio-row">
+                <strong>Couleur :</strong>
+                <div class="toggle-container color-toggle" id="colorToggle" data-state="left">
+                    <div class="toggle-slider"></div>
+                    <div class="toggle-option active" data-val="white">Blancs</div>
+                    <div class="toggle-option" data-val="black">Noirs</div>
+                </div>
+            </div>
+            <div class="radio-row">
+                <strong>Mode :</strong>
+                <div class="toggle-container" id="modeToggle" data-state="left">
+                    <div class="toggle-slider"></div>
+                    <div class="toggle-option active" data-val="decouverte">Découverte</div>
+                    <div class="toggle-option" data-val="revision">Révision</div>
+                </div>
+            </div>
             <button id="startBtn" style="font-size: 16px; padding: 15px; margin-top: 10px;">Suivant</button>
         </div>
 
@@ -267,23 +283,6 @@
             <h2 id="chapterSelectionTitle">Sélectionnez un chapitre</h2>
             <div class="chapter-list" id="chapterList">
                 <!-- Dynamically populated -->
-            </div>
-
-            <div class="radio-row" style="margin-top: 15px;">
-                <strong>Couleur :</strong>
-                <div class="toggle-container color-toggle" id="colorToggle" data-state="left">
-                    <div class="toggle-slider"></div>
-                    <div class="toggle-option active" data-val="white">Blancs</div>
-                    <div class="toggle-option" data-val="black">Noirs</div>
-                </div>
-            </div>
-            <div class="radio-row">
-                <strong>Mode :</strong>
-                <div class="toggle-container" id="modeToggle" data-state="left">
-                    <div class="toggle-slider"></div>
-                    <div class="toggle-option active" data-val="decouverte">Découverte</div>
-                    <div class="toggle-option" data-val="revision">Révision</div>
-                </div>
             </div>
 
             <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -374,7 +373,7 @@
             repertoireDatabase.forEach(rep => {
                 const option = document.createElement('option');
                 option.value = rep.id;
-                option.textContent = `${rep.title} (${rep.chapters.length} chapitres)`;
+                option.textContent = rep.chapters.length > 1 ? `${rep.title} (${rep.chapters.length} chapitres)` : rep.title;
                 repSelect.appendChild(option);
             });
         };
@@ -387,6 +386,7 @@
             localStorage.setItem('custom_repertoires_v3', JSON.stringify(customReps));
             loadDatabase();
             document.getElementById('repertoireSelect').value = newRep.id;
+            setToggleState('colorToggle', color);
         };
 
         // =========================================
@@ -429,6 +429,11 @@
 
         loadDatabase();
 
+        repSelect.addEventListener('change', (e) => {
+            const selectedRep = repertoireDatabase.find(r => r.id === e.target.value);
+            if (selectedRep) setToggleState('colorToggle', selectedRep.defaultColor);
+        });
+
         saveRepBtn.addEventListener('click', () => {
             const title = newRepTitle.value.trim(), pgn = newRepPgn.value.trim(), color = getToggleState('newColorToggle');
             if (!title || !pgn) { alert("Veuillez remplir le titre et le PGN."); return; }
@@ -440,6 +445,9 @@
         startBtn.addEventListener('click', () => {
             if (!repSelect.value) { alert("Veuillez choisir un répertoire"); return; }
             currentRepertoire = repertoireDatabase.find(r => r.id === repSelect.value);
+            playerColor = getToggleState('colorToggle');
+            trainingMode = getToggleState('modeToggle');
+
             chapterRepTitleEl.textContent = currentRepertoire.title;
             chapterListEl.innerHTML = ''; selectedChapterPgn = null; currentChapterIndex = -1; startChapterBtn.disabled = true;
 
@@ -449,7 +457,19 @@
             } else {
                 chapterListEl.classList.remove('hidden'); chapterSelectionTitleEl.textContent = "Sélectionnez un chapitre";
                 currentRepertoire.chapters.forEach((chap, idx) => {
-                    const btn = document.createElement('button'); btn.className = 'chapter-btn'; btn.textContent = chap.title;
+                    // Pre-calculate moves for the selected color
+                    let moveCount = 0;
+                    try {
+                        const tempRoot = buildRepertoireTree(chap.pgn);
+                        const countMoves = (n) => {
+                            if (n.id !== 'root' && n.color === playerColor) moveCount++;
+                            n.children.forEach(countMoves);
+                        };
+                        countMoves(tempRoot);
+                    } catch(e) {}
+
+                    const btn = document.createElement('button'); btn.className = 'chapter-btn'; 
+                    btn.textContent = `${chap.title} (${moveCount} coups à réviser)`;
                     btn.onclick = () => {
                         document.querySelectorAll('.chapter-btn').forEach(b => b.classList.remove('selected'));
                         btn.classList.add('selected'); selectedChapterPgn = chap.pgn; currentChapterIndex = idx; startChapterBtn.disabled = false;
@@ -457,14 +477,13 @@
                     chapterListEl.appendChild(btn);
                 });
             }
-            setToggleState('colorToggle', currentRepertoire.defaultColor);
             setupView.classList.add('hidden'); chapterView.classList.remove('hidden');
         });
 
         backToSetupBtn.addEventListener('click', () => { chapterView.classList.add('hidden'); setupView.classList.remove('hidden'); repSelect.value = ""; });
 
         const startTrainingSession = (pgn, chapterTitle) => {
-            playerColor = getToggleState('colorToggle'); trainingMode = getToggleState('modeToggle');
+            // Configuration is now read from Setup View, already stored in playerColor and trainingMode
             try { rootNode = buildRepertoireTree(pgn); } catch (err) { alert("Erreur lors de la lecture du PGN."); return; }
             initializeStats(rootNode);
             if (totalMoves === 0) { alert("Aucun coup trouvé pour cette couleur dans ce chapitre."); return; }
