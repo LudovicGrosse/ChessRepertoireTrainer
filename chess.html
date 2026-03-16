@@ -234,22 +234,26 @@
         <h1 class="header-title">Chess Repertoire Trainer</h1>
         
         <div class="setup-card">
-            <h2>Charger depuis Lichess</h2>
-            <div class="form-group">
-                <label>Lien ou ID de l'étude publique (ex: https://lichess.org/study/xxxxxx) :</label>
-                <input type="text" id="lichessInput" placeholder="https://lichess.org/study/...">
+            <h2>Charger un répertoire</h2>
+            
+            <div class="toggle-container" id="sourceToggle" data-state="left" style="margin-bottom: 15px;">
+                <div class="toggle-slider"></div>
+                <div class="toggle-option active" data-val="lichess">Étude Lichess</div>
+                <div class="toggle-option" data-val="pgn">Coller un PGN</div>
             </div>
-            <button id="loadLichessBtn" class="secondary" style="margin-top: 5px;">Récupérer l'étude</button>
-            <div id="lichessFeedback" style="color: #e57373; font-size: 14px; margin-top: 5px; display: none;"></div>
-        </div>
 
-        <div class="setup-card">
-            <h2>Entraînement rapide (PGN)</h2>
-            <div class="form-group">
-                <label>Collez votre PGN (Multi-chapitres supportés) :</label>
+            <div id="lichess-input-group" class="form-group">
+                <label>Lien ou ID de l'étude publique :</label>
+                <input type="text" id="lichessInput" placeholder="https://lichess.org/study/xxxxxx">
+            </div>
+
+            <div id="pgn-input-group" class="form-group hidden">
+                <label>Texte PGN (Multi-chapitres supportés) :</label>
                 <textarea id="quickPgnInput" placeholder="[Event &quot;Chapitre 1&quot;]&#10;1. e4 e5..."></textarea>
             </div>
-            <button id="loadPgnBtn" class="secondary" style="margin-top: 5px;">Charger le PGN</button>
+
+            <button id="loadBtn" class="secondary" style="margin-top: 10px;">Charger le répertoire</button>
+            <div id="lichessFeedback" style="color: #e57373; font-size: 14px; margin-top: 5px; display: none;"></div>
         </div>
 
         <div class="setup-card" id="config-card" style="display: none;">
@@ -351,20 +355,39 @@
         let totalMoves = 0, learnedMoves = 0, totalVariations = 0, learnedVariations = 0, errorCount = 0, currentMoveErrorLogged = false;
 
         const setupView = document.getElementById('setup-view'), configCard = document.getElementById('config-card'), trainingView = document.getElementById('training-view');
-        const startBtn = document.getElementById('startBtn'), loadLichessBtn = document.getElementById('loadLichessBtn'), lichessInput = document.getElementById('lichessInput'), lichessFeedback = document.getElementById('lichessFeedback');
-        const loadPgnBtn = document.getElementById('loadPgnBtn'), quickPgnInput = document.getElementById('quickPgnInput'), configTitle = document.getElementById('config-title');
+        const startBtn = document.getElementById('startBtn'), loadBtn = document.getElementById('loadBtn'), lichessInput = document.getElementById('lichessInput'), lichessFeedback = document.getElementById('lichessFeedback');
+        const quickPgnInput = document.getElementById('quickPgnInput'), configTitle = document.getElementById('config-title');
         const chapterListEl = document.getElementById('chapterList'), chapterSelectionArea = document.getElementById('chapter-selection-area');
-        const trainingHeaderEl = document.getElementById('trainingHeader'), activeLineDisplay = document.getElementById('activeLineDisplay'), commentBox = document.getElementById('commentBox'), hintBtn = document.getElementById('hintBtn'), stopBtn = document.getElementById('stopBtn'), prevBtn = document.getElementById('prevBtn'), nextBtn = document.getElementById('nextBtn'), toggleCommentsBtn = document.getElementById('toggleCommentsBtn'), analysisLink = document.getElementById('analysisLink'), feedbackEl = document.getElementById('feedback'), statMovesEl = document.getElementById('statMoves'), statVarsEl = document.getElementById('statVars'), statErrorsEl = document.getElementById('statErrors'), errorStatRow = document.getElementById('errorStatRow'), boardEl = document.getElementById('board'), boardWrapper = document.querySelector('.board-wrapper');
+        
+        const sourceToggle = document.getElementById('sourceToggle');
+        const lichessGroup = document.getElementById('lichess-input-group');
+        const pgnGroup = document.getElementById('pgn-input-group');
 
         // =========================================
         // SETUP & FETCH LOGIC
         // =========================================
         
+        // Handle Source Toggle switching
+        sourceToggle.querySelectorAll('.toggle-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const val = getToggleState('sourceToggle');
+                if (val === 'lichess') {
+                    lichessGroup.classList.remove('hidden');
+                    pgnGroup.classList.add('hidden');
+                } else {
+                    lichessGroup.classList.add('hidden');
+                    pgnGroup.classList.remove('hidden');
+                }
+                configCard.style.display = 'none'; // Reset config on toggle
+            });
+        });
+
         const showConfigCard = (title, chapters) => {
             currentRepertoire = { title, chapters };
             configTitle.textContent = `Configuration : ${title}`;
             configCard.style.display = 'flex';
             updateChapterList();
+            configCard.scrollIntoView({ behavior: 'smooth' });
         };
 
         const updateChapterList = () => {
@@ -410,42 +433,56 @@
 
         document.getElementById('colorToggle').addEventListener('click', () => setTimeout(updateChapterList, 50));
 
-        loadLichessBtn.addEventListener('click', async () => {
-            const input = lichessInput.value.trim();
-            if (!input) return;
-            
-            // Extract Study ID
-            let studyId = input;
-            const match = input.match(/lichess\.org\/study\/([a-zA-Z0-9]+)/);
-            if (match) studyId = match[1];
-
-            loadLichessBtn.disabled = true;
-            loadLichessBtn.textContent = "Chargement...";
+        loadBtn.addEventListener('click', async () => {
+            const source = getToggleState('sourceToggle');
             lichessFeedback.style.display = 'none';
+            configCard.style.display = 'none';
 
-            try {
-                const response = await fetch(`https://lichess.org/api/study/${studyId}.pgn`);
-                if (!response.ok) throw new Error("Étude non trouvée ou privée.");
-                const pgnText = await response.text();
-                const chapters = parseMultiPgn(pgnText);
-                if (chapters.length === 0) throw new Error("Aucun chapitre valide trouvé.");
+            if (source === 'lichess') {
+                const input = lichessInput.value.trim();
+                if (!input) return;
                 
-                showConfigCard(`Étude Lichess (${studyId})`, chapters);
-            } catch (err) {
-                lichessFeedback.textContent = err.message;
-                lichessFeedback.style.display = 'block';
-            } finally {
-                loadLichessBtn.disabled = false;
-                loadLichessBtn.textContent = "Récupérer l'étude";
-            }
-        });
+                let studyId = input;
+                const match = input.match(/lichess\.org\/study\/([a-zA-Z0-9]+)/);
+                if (match) studyId = match[1];
 
-        loadPgnBtn.addEventListener('click', () => {
-            const pgnText = quickPgnInput.value.trim();
-            if (!pgnText) { alert("Veuillez coller un PGN."); return; }
-            const chapters = parseMultiPgn(pgnText);
-            if (chapters.length === 0) { alert("Aucun chapitre valide trouvé."); return; }
-            showConfigCard("Entraînement Rapide (PGN)", chapters);
+                loadBtn.disabled = true;
+                loadBtn.textContent = "Chargement...";
+
+                try {
+                    const response = await fetch(`https://lichess.org/api/study/${studyId}.pgn`, {
+                        headers: { 'Accept': 'application/x-chess-pgn' }
+                    });
+                    
+                    if (!response.ok) {
+                        if (response.status === 404) throw new Error("Étude non trouvée. Vérifiez l'ID.");
+                        throw new Error("Erreur Lichess : " + response.statusText);
+                    }
+                    
+                    const pgnText = await response.text();
+                    const chapters = parseMultiPgn(pgnText);
+                    if (chapters.length === 0) throw new Error("L'étude semble vide ou invalide.");
+                    
+                    showConfigCard(`Étude Lichess (${studyId})`, chapters);
+                } catch (err) {
+                    console.error("Fetch error:", err);
+                    let errorMsg = err.message;
+                    if (err.name === 'TypeError' && window.location.protocol === 'file:') {
+                        errorMsg = "Bloqué par le navigateur (CORS). Pour corriger : lancez un serveur local ou utilisez l'entraînement rapide.";
+                    }
+                    lichessFeedback.textContent = errorMsg;
+                    lichessFeedback.style.display = 'block';
+                } finally {
+                    loadBtn.disabled = false;
+                    loadBtn.textContent = "Charger le répertoire";
+                }
+            } else {
+                const pgnText = quickPgnInput.value.trim();
+                if (!pgnText) { alert("Veuillez coller un PGN."); return; }
+                const chapters = parseMultiPgn(pgnText);
+                if (chapters.length === 0) { alert("Aucun chapitre valide trouvé."); return; }
+                showConfigCard("Entraînement Rapide (PGN)", chapters);
+            }
         });
 
         startBtn.addEventListener('click', () => {
