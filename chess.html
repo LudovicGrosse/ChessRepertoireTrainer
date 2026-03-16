@@ -234,12 +234,26 @@
         <h1 class="header-title">Chess Repertoire Trainer</h1>
         
         <div class="setup-card">
-            <h2>Configuration de l'entraînement</h2>
+            <h2>Charger depuis Lichess</h2>
             <div class="form-group">
-                <label>Sélectionner un répertoire :</label>
-                <select id="repertoireSelect"></select>
+                <label>Lien ou ID de l'étude publique (ex: https://lichess.org/study/xxxxxx) :</label>
+                <input type="text" id="lichessInput" placeholder="https://lichess.org/study/...">
             </div>
+            <button id="loadLichessBtn" class="secondary" style="margin-top: 5px;">Récupérer l'étude</button>
+            <div id="lichessFeedback" style="color: #e57373; font-size: 14px; margin-top: 5px; display: none;"></div>
+        </div>
 
+        <div class="setup-card">
+            <h2>Entraînement rapide (PGN)</h2>
+            <div class="form-group">
+                <label>Collez votre PGN (Multi-chapitres supportés) :</label>
+                <textarea id="quickPgnInput" placeholder="[Event &quot;Chapitre 1&quot;]&#10;1. e4 e5..."></textarea>
+            </div>
+            <button id="loadPgnBtn" class="secondary" style="margin-top: 5px;">Charger le PGN</button>
+        </div>
+
+        <div class="setup-card" id="config-card" style="display: none;">
+            <h2 id="config-title">Configuration</h2>
             <div id="chapter-selection-area" class="hidden" style="margin-top: 10px;">
                 <label style="font-size: 0.9rem; color: #aaa; margin-bottom: 5px; display: block;">Choix du chapitre :</label>
                 <div class="chapter-list" id="chapterList" style="max-height: 250px;">
@@ -261,28 +275,6 @@
             </div>
 
             <button id="startBtn" style="font-size: 16px; padding: 15px; margin-top: 10px;" disabled>Démarrer l'entraînement</button>
-        </div>
-
-        <div class="setup-card">
-            <h2>Ajouter un répertoire personnalisé</h2>
-            <div class="form-group">
-                <label>Titre :</label>
-                <input type="text" id="newRepTitle" placeholder="Ex: Variante d'Échange de la Française">
-            </div>
-            <div class="form-group">
-                <label>PGN (Multiples PGNs, tags [Event] et commentaires supportés) :</label>
-                <textarea id="newRepPgn" placeholder="[Event &quot;Chapitre 1&quot;]&#10;1. e4 {Le pion roi} e6 2. d4 d5..."></textarea>
-            </div>
-            <div class="radio-row">
-                <strong>Couleur :</strong>
-                <div class="toggle-container color-toggle" id="newColorToggle" data-state="left">
-                    <div class="toggle-slider"></div>
-                    <div class="toggle-option active" data-val="white">Blancs</div>
-                    <div class="toggle-option" data-val="black">Noirs</div>
-                </div>
-            </div>
-            <button id="saveRepBtn" class="secondary">Sauvegarder et Ajouter</button>
-            <div id="saveFeedback" style="color: #81c784; font-size: 14px; font-weight: bold; display: none;">Répertoire ajouté !</div>
         </div>
     </div>
 
@@ -323,28 +315,7 @@
     <script type="module">
         import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.0.0-beta.8/+esm';
         import { Chessground } from 'https://cdn.jsdelivr.net/npm/chessground@9.0.5/+esm';
-        import { 
-            getRepertoireDatabase, 
-            saveCustomRepertoire, 
-            buildRepertoireTree 
-        } from './data.js';
-
-        // =========================================
-        // DATA MANAGEMENT (via data.js module)
-        // =========================================
-        let repertoireDatabase = [];
-
-        const loadDatabase = () => {
-            repertoireDatabase = getRepertoireDatabase();
-            const repSelect = document.getElementById('repertoireSelect');
-            repSelect.innerHTML = '<option value="" disabled selected>-- Sélectionner un répertoire --</option>';
-            repertoireDatabase.forEach(rep => {
-                const option = document.createElement('option');
-                option.value = rep.id;
-                option.textContent = rep.chapters.length > 1 ? `${rep.title} (${rep.chapters.length} chapitres)` : rep.title;
-                repSelect.appendChild(option);
-            });
-        };
+        import { parseMultiPgn, buildRepertoireTree } from './data.js';
 
         // =========================================
         // TOGGLE LOGIC
@@ -379,37 +350,37 @@
         let currentRepertoire = null, currentChapterIndex = -1, selectedChapterPgn = null, currentPath = [], viewIndex = 0;
         let totalMoves = 0, learnedMoves = 0, totalVariations = 0, learnedVariations = 0, errorCount = 0, currentMoveErrorLogged = false;
 
-        const setupView = document.getElementById('setup-view'), chapterView = document.getElementById('chapter-view'), trainingView = document.getElementById('training-view');
-        const repSelect = document.getElementById('repertoireSelect'), startBtn = document.getElementById('startBtn'), saveRepBtn = document.getElementById('saveRepBtn'), saveFeedback = document.getElementById('saveFeedback'), newRepTitle = document.getElementById('newRepTitle'), newRepPgn = document.getElementById('newRepPgn');
-        const chapterListEl = document.getElementById('chapterList'), chapterRepTitleEl = document.getElementById('chapterRepTitle'), chapterSelectionTitleEl = document.getElementById('chapterSelectionTitle'), backToSetupBtn = document.getElementById('backToSetupBtn'), startChapterBtn = document.getElementById('startChapterBtn');
+        const setupView = document.getElementById('setup-view'), configCard = document.getElementById('config-card'), trainingView = document.getElementById('training-view');
+        const startBtn = document.getElementById('startBtn'), loadLichessBtn = document.getElementById('loadLichessBtn'), lichessInput = document.getElementById('lichessInput'), lichessFeedback = document.getElementById('lichessFeedback');
+        const loadPgnBtn = document.getElementById('loadPgnBtn'), quickPgnInput = document.getElementById('quickPgnInput'), configTitle = document.getElementById('config-title');
+        const chapterListEl = document.getElementById('chapterList'), chapterSelectionArea = document.getElementById('chapter-selection-area');
         const trainingHeaderEl = document.getElementById('trainingHeader'), activeLineDisplay = document.getElementById('activeLineDisplay'), commentBox = document.getElementById('commentBox'), hintBtn = document.getElementById('hintBtn'), stopBtn = document.getElementById('stopBtn'), prevBtn = document.getElementById('prevBtn'), nextBtn = document.getElementById('nextBtn'), toggleCommentsBtn = document.getElementById('toggleCommentsBtn'), analysisLink = document.getElementById('analysisLink'), feedbackEl = document.getElementById('feedback'), statMovesEl = document.getElementById('statMoves'), statVarsEl = document.getElementById('statVars'), statErrorsEl = document.getElementById('statErrors'), errorStatRow = document.getElementById('errorStatRow'), boardEl = document.getElementById('board'), boardWrapper = document.querySelector('.board-wrapper');
 
-        loadDatabase();
+        // =========================================
+        // SETUP & FETCH LOGIC
+        // =========================================
+        
+        const showConfigCard = (title, chapters) => {
+            currentRepertoire = { title, chapters };
+            configTitle.textContent = `Configuration : ${title}`;
+            configCard.style.display = 'flex';
+            updateChapterList();
+        };
 
         const updateChapterList = () => {
-            const repId = repSelect.value;
-            const chapArea = document.getElementById('chapter-selection-area');
-            
-            if (!repId) {
-                chapArea.classList.add('hidden');
-                startBtn.disabled = true;
-                return;
-            }
-
-            currentRepertoire = repertoireDatabase.find(r => r.id === repId);
+            if (!currentRepertoire) return;
             playerColor = getToggleState('colorToggle');
-            
             chapterListEl.innerHTML = '';
             selectedChapterPgn = null;
             currentChapterIndex = -1;
 
             if (currentRepertoire.chapters.length === 1) {
-                chapArea.classList.add('hidden');
+                chapterSelectionArea.classList.add('hidden');
                 selectedChapterPgn = currentRepertoire.chapters[0].pgn;
                 currentChapterIndex = 0;
                 startBtn.disabled = false;
             } else {
-                chapArea.classList.remove('hidden');
+                chapterSelectionArea.classList.remove('hidden');
                 startBtn.disabled = true;
                 currentRepertoire.chapters.forEach((chap, idx) => {
                     let moveCount = 0;
@@ -437,27 +408,44 @@
             }
         };
 
-        repSelect.addEventListener('change', (e) => {
-            const selectedRep = repertoireDatabase.find(r => r.id === e.target.value);
-            if (selectedRep) setToggleState('colorToggle', selectedRep.defaultColor);
-            updateChapterList();
-        });
+        document.getElementById('colorToggle').addEventListener('click', () => setTimeout(updateChapterList, 50));
 
-        document.getElementById('colorToggle').addEventListener('click', () => {
-            setTimeout(updateChapterList, 50);
-        });
-
-        saveRepBtn.addEventListener('click', () => {
-            const title = newRepTitle.value.trim(), pgn = newRepPgn.value.trim(), color = getToggleState('newColorToggle');
-            if (!title || !pgn) { alert("Veuillez remplir le titre et le PGN."); return; }
-            const newRep = saveCustomRepertoire(title, pgn, color);
-            newRepTitle.value = ''; newRepPgn.value = ''; saveFeedback.style.display = 'block';
-            setTimeout(() => { saveFeedback.style.display = 'none'; }, 3000);
+        loadLichessBtn.addEventListener('click', async () => {
+            const input = lichessInput.value.trim();
+            if (!input) return;
             
-            loadDatabase();
-            repSelect.value = newRep.id;
-            setToggleState('colorToggle', color);
-            updateChapterList();
+            // Extract Study ID
+            let studyId = input;
+            const match = input.match(/lichess\.org\/study\/([a-zA-Z0-9]+)/);
+            if (match) studyId = match[1];
+
+            loadLichessBtn.disabled = true;
+            loadLichessBtn.textContent = "Chargement...";
+            lichessFeedback.style.display = 'none';
+
+            try {
+                const response = await fetch(`https://lichess.org/api/study/${studyId}.pgn`);
+                if (!response.ok) throw new Error("Étude non trouvée ou privée.");
+                const pgnText = await response.text();
+                const chapters = parseMultiPgn(pgnText);
+                if (chapters.length === 0) throw new Error("Aucun chapitre valide trouvé.");
+                
+                showConfigCard(`Étude Lichess (${studyId})`, chapters);
+            } catch (err) {
+                lichessFeedback.textContent = err.message;
+                lichessFeedback.style.display = 'block';
+            } finally {
+                loadLichessBtn.disabled = false;
+                loadLichessBtn.textContent = "Récupérer l'étude";
+            }
+        });
+
+        loadPgnBtn.addEventListener('click', () => {
+            const pgnText = quickPgnInput.value.trim();
+            if (!pgnText) { alert("Veuillez coller un PGN."); return; }
+            const chapters = parseMultiPgn(pgnText);
+            if (chapters.length === 0) { alert("Aucun chapitre valide trouvé."); return; }
+            showConfigCard("Entraînement Rapide (PGN)", chapters);
         });
 
         startBtn.addEventListener('click', () => {
@@ -484,8 +472,6 @@
 
         stopBtn.addEventListener('click', () => {
             isTraining = false; trainingView.classList.add('hidden'); setupView.classList.remove('hidden');
-            repSelect.value = ""; 
-            updateChapterList();
             game.reset(); cg.set({ drawable: { autoShapes: [] } });
         });
 
