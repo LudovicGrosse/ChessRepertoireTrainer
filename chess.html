@@ -229,32 +229,16 @@
         <h1 class="header-title">Chess Repertoire Trainer</h1>
         
         <div class="setup-card">
-            <h2>1. Configuration de l'entraînement</h2>
+            <h2>Configuration de l'entraînement</h2>
             <div class="form-group">
                 <label>Sélectionner un répertoire :</label>
                 <select id="repertoireSelect"></select>
             </div>
-            <div class="radio-row">
-                <strong>Couleur :</strong>
-                <div class="toggle-container color-toggle" id="colorToggle" data-state="left">
-                    <div class="toggle-slider"></div>
-                    <div class="toggle-option active" data-val="white">Blancs</div>
-                    <div class="toggle-option" data-val="black">Noirs</div>
-                </div>
-            </div>
-            <div class="radio-row">
-                <strong>Mode :</strong>
-                <div class="toggle-container" id="modeToggle" data-state="left">
-                    <div class="toggle-slider"></div>
-                    <div class="toggle-option active" data-val="decouverte">Découverte</div>
-                    <div class="toggle-option" data-val="revision">Révision</div>
-                </div>
-            </div>
-            <button id="startBtn" style="font-size: 16px; padding: 15px; margin-top: 10px;">Suivant (Choix du chapitre)</button>
+            <button id="startBtn" style="font-size: 16px; padding: 15px; margin-top: 10px;">Suivant</button>
         </div>
 
         <div class="setup-card">
-            <h2>2. Ajouter un répertoire personnalisé</h2>
+            <h2>Ajouter un répertoire personnalisé</h2>
             <div class="form-group">
                 <label>Titre :</label>
                 <input type="text" id="newRepTitle" placeholder="Ex: Variante d'Échange de la Française">
@@ -280,11 +264,29 @@
     <div id="chapter-view" class="hidden">
         <h1 class="header-title" id="chapterRepTitle">Titre du Répertoire</h1>
         <div class="setup-card">
-            <h2>Sélectionnez un chapitre</h2>
+            <h2 id="chapterSelectionTitle">Sélectionnez un chapitre</h2>
             <div class="chapter-list" id="chapterList">
                 <!-- Dynamically populated -->
             </div>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
+
+            <div class="radio-row" style="margin-top: 15px;">
+                <strong>Couleur :</strong>
+                <div class="toggle-container color-toggle" id="colorToggle" data-state="left">
+                    <div class="toggle-slider"></div>
+                    <div class="toggle-option active" data-val="white">Blancs</div>
+                    <div class="toggle-option" data-val="black">Noirs</div>
+                </div>
+            </div>
+            <div class="radio-row">
+                <strong>Mode :</strong>
+                <div class="toggle-container" id="modeToggle" data-state="left">
+                    <div class="toggle-slider"></div>
+                    <div class="toggle-option active" data-val="decouverte">Découverte</div>
+                    <div class="toggle-option" data-val="revision">Révision</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button id="backToSetupBtn" class="secondary">Retour</button>
                 <button id="startChapterBtn" style="flex: 1; font-size: 16px; padding: 15px;" disabled>Démarrer l'entraînement</button>
             </div>
@@ -293,6 +295,7 @@
 
     <div id="training-view" class="hidden">
         <div class="sidebar">
+            <div id="trainingHeader" style="text-align: center; margin-bottom: 5px; font-weight: bold; color: #4caf50; font-size: 1.1rem;"></div>
             <div id="feedback" class="feedback waiting">Préparation...</div>
             
             <div class="stats-panel">
@@ -330,57 +333,33 @@
         // =========================================
         // DATA MANAGEMENT (Local DB + LocalStorage)
         // =========================================
-        // Helper to parse multiple games/chapters from a single PGN text
         const parseMultiPgn = (rawPgn) => {
             const chapters = [];
-            // A simple regex to find the start of a game based on [Event tag
-            // PGNs don't always have Event tags, but for studies they usually do.
-            // A more robust way is to split by blank lines that precede tag blocks.
-            // Here we split by looking for "[Event "
             const parts = rawPgn.split(/(?=\[Event ")/);
-            
             parts.forEach((part, index) => {
                 if (!part.trim()) return;
                 let title = `Chapitre ${index + 1}`;
                 const eventMatch = part.match(/\[Event "([^"]+)"\]/);
-                if (eventMatch && eventMatch[1] && eventMatch[1] !== "?") {
-                    title = eventMatch[1];
-                }
-                chapters.push({
-                    id: `chap_${Date.now()}_${index}`,
-                    title: title,
-                    pgn: part.trim()
-                });
+                if (eventMatch && eventMatch[1] && eventMatch[1] !== "?") title = eventMatch[1];
+                chapters.push({ id: `chap_${Date.now()}_${index}`, title: title, pgn: part.trim() });
             });
-            
-            // If the user pasted a single PGN without tags, handle it gracefully
             if (chapters.length === 0 && rawPgn.trim().length > 0) {
-                 chapters.push({
-                    id: `chap_${Date.now()}_0`,
-                    title: "Chapitre 1",
-                    pgn: rawPgn.trim()
-                });
+                 chapters.push({ id: `chap_${Date.now()}_0`, title: "Chapitre 1", pgn: rawPgn.trim() });
             }
             return chapters;
         };
 
         const defaultDatabase = [
             {
-                id: "default_1",
-                title: "Italienne - Attaque Max Lange (Blancs)",
-                defaultColor: "white",
+                id: "default_1", title: "Italienne - Attaque Max Lange (Blancs)", defaultColor: "white",
                 chapters: parseMultiPgn(`[Event "Attaque Max Lange"]\n1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 {Défense des deux cavaliers} 4. d4 exd4 5. O-O Bc5 {Transposition dans l'attaque Max Lange} 6. e5 d5 7. exf6 dxc4 8. Re1+ Be6 9. Ng5 Qd5 (9... Qxf6 {Mauvais car les Blancs récupèrent la pièce avec avantage} 10. Nxe6 fxe6 11. Qh5+) 10. Nc3 Qf5 11. Nce4 *`)
             },
             {
-                id: "default_2",
-                title: "Défense Sicilienne - Dragon (Noirs)",
-                defaultColor: "black",
+                id: "default_2", title: "Défense Sicilienne - Dragon (Noirs)", defaultColor: "black",
                 chapters: parseMultiPgn(`[Event "Variante du Dragon"]\n1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6 {La structure caractéristique du Dragon} 6. Be3 Bg7 7. f3 O-O 8. Qd2 Nc6 *`)
             },
             {
-                id: "default_3",
-                title: "Finale de Pions (Position FEN personnalisée)",
-                defaultColor: "white",
+                id: "default_3", title: "Finale de Pions (Position FEN personnalisée)", defaultColor: "white",
                 chapters: parseMultiPgn(`[Event "Sécuriser le pion passé"]\n[FEN "8/8/8/8/4K3/5P2/8/4k3 w - - 0 1"]\n1. f4 {Sécurise le pion passé} Kd2 2. f5 *`)
             }
         ];
@@ -388,50 +367,33 @@
         let repertoireDatabase = [];
 
         const loadDatabase = () => {
-            const localData = localStorage.getItem('custom_repertoires_v2');
-            const customReps = localData ? JSON.parse(localData) : [];
-            repertoireDatabase = [...defaultDatabase, ...customReps];
-            
+            const localData = localStorage.getItem('custom_repertoires_v3');
+            repertoireDatabase = [...defaultDatabase, ...(localData ? JSON.parse(localData) : [])];
             const repSelect = document.getElementById('repertoireSelect');
             repSelect.innerHTML = '<option value="" disabled selected>-- Sélectionner un répertoire --</option>';
-            
             repertoireDatabase.forEach(rep => {
                 const option = document.createElement('option');
                 option.value = rep.id;
-                option.textContent = rep.title;
+                option.textContent = `${rep.title} (${rep.chapters.length} chapitres)`;
                 repSelect.appendChild(option);
             });
-            
-            // Migrate old data if necessary (simple clear or ignore for now)
         };
 
         const saveCustomRepertoire = (title, rawPgn, color) => {
-            const localData = localStorage.getItem('custom_repertoires_v2');
+            const localData = localStorage.getItem('custom_repertoires_v3');
             const customReps = localData ? JSON.parse(localData) : [];
-            
-            const newRep = {
-                id: 'custom_' + Date.now(),
-                title: title,
-                defaultColor: color,
-                chapters: parseMultiPgn(rawPgn)
-            };
-            
+            const newRep = { id: 'custom_' + Date.now(), title, defaultColor: color, chapters: parseMultiPgn(rawPgn) };
             customReps.push(newRep);
-            localStorage.setItem('custom_repertoires_v2', JSON.stringify(customReps));
+            localStorage.setItem('custom_repertoires_v3', JSON.stringify(customReps));
             loadDatabase();
-            
             document.getElementById('repertoireSelect').value = newRep.id;
-            setToggleState('colorToggle', color);
         };
-
-        loadDatabase();
 
         // =========================================
         // TOGGLE LOGIC
         // =========================================
         const getToggleState = (id) => {
-            const container = document.getElementById(id);
-            const activeOpt = container.querySelector('.toggle-option.active');
+            const activeOpt = document.getElementById(id).querySelector('.toggle-option.active');
             return activeOpt ? activeOpt.dataset.val : null;
         };
 
@@ -442,18 +404,13 @@
                 if (opt.dataset.val === value) {
                     opt.classList.add('active');
                     container.dataset.state = (opt === options[0]) ? 'left' : 'right';
-                } else {
-                    opt.classList.remove('active');
-                }
+                } else opt.classList.remove('active');
             });
         };
 
         document.querySelectorAll('.toggle-container').forEach(container => {
             container.querySelectorAll('.toggle-option').forEach(option => {
-                option.addEventListener('click', (e) => {
-                    const val = e.target.dataset.val;
-                    setToggleState(container.id, val);
-                });
+                option.addEventListener('click', (e) => setToggleState(container.id, e.target.dataset.val));
             });
         });
 
@@ -461,170 +418,77 @@
         // APPLICATION STATE
         // =========================================
         const game = new Chess();
-        let cg;
-        let rootNode = null;
-        let currentNode = null;
-        let playerColor = 'white';
-        let trainingMode = 'decouverte'; 
-        let isTraining = false;
-        let commentsVisible = true;
-        
-        let currentRepertoireId = null;
-        let selectedChapterPgn = null;
+        let cg, rootNode = null, currentNode = null, playerColor = 'white', trainingMode = 'decouverte', isTraining = false, commentsVisible = true;
+        let currentRepertoire = null, currentChapterIndex = -1, selectedChapterPgn = null, currentPath = [], viewIndex = 0;
+        let totalMoves = 0, learnedMoves = 0, totalVariations = 0, learnedVariations = 0, errorCount = 0, currentMoveErrorLogged = false;
 
-        let currentPath = [];
-        let viewIndex = 0;
+        const setupView = document.getElementById('setup-view'), chapterView = document.getElementById('chapter-view'), trainingView = document.getElementById('training-view');
+        const repSelect = document.getElementById('repertoireSelect'), startBtn = document.getElementById('startBtn'), saveRepBtn = document.getElementById('saveRepBtn'), saveFeedback = document.getElementById('saveFeedback'), newRepTitle = document.getElementById('newRepTitle'), newRepPgn = document.getElementById('newRepPgn');
+        const chapterListEl = document.getElementById('chapterList'), chapterRepTitleEl = document.getElementById('chapterRepTitle'), chapterSelectionTitleEl = document.getElementById('chapterSelectionTitle'), backToSetupBtn = document.getElementById('backToSetupBtn'), startChapterBtn = document.getElementById('startChapterBtn');
+        const trainingHeaderEl = document.getElementById('trainingHeader'), activeLineDisplay = document.getElementById('activeLineDisplay'), commentBox = document.getElementById('commentBox'), hintBtn = document.getElementById('hintBtn'), stopBtn = document.getElementById('stopBtn'), prevBtn = document.getElementById('prevBtn'), nextBtn = document.getElementById('nextBtn'), toggleCommentsBtn = document.getElementById('toggleCommentsBtn'), analysisLink = document.getElementById('analysisLink'), feedbackEl = document.getElementById('feedback'), statMovesEl = document.getElementById('statMoves'), statVarsEl = document.getElementById('statVars'), statErrorsEl = document.getElementById('statErrors'), errorStatRow = document.getElementById('errorStatRow'), boardEl = document.getElementById('board'), boardWrapper = document.querySelector('.board-wrapper');
 
-        let totalMoves = 0; let learnedMoves = 0; let totalVariations = 0; let learnedVariations = 0;
-        let errorCount = 0; let currentMoveErrorLogged = false;
-
-        // DOM Elements
-        const setupView = document.getElementById('setup-view');
-        const chapterView = document.getElementById('chapter-view');
-        const trainingView = document.getElementById('training-view');
-        
-        const repSelect = document.getElementById('repertoireSelect');
-        const startBtn = document.getElementById('startBtn');
-        const saveRepBtn = document.getElementById('saveRepBtn');
-        const saveFeedback = document.getElementById('saveFeedback');
-        const newRepTitle = document.getElementById('newRepTitle');
-        const newRepPgn = document.getElementById('newRepPgn');
-
-        // Chapter Selection Elements
-        const chapterListEl = document.getElementById('chapterList');
-        const chapterRepTitleEl = document.getElementById('chapterRepTitle');
-        const backToSetupBtn = document.getElementById('backToSetupBtn');
-        const startChapterBtn = document.getElementById('startChapterBtn');
-
-        // Training Elements
-        const activeLineDisplay = document.getElementById('activeLineDisplay');
-        const commentBox = document.getElementById('commentBox');
-        const hintBtn = document.getElementById('hintBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const toggleCommentsBtn = document.getElementById('toggleCommentsBtn');
-        const analysisLink = document.getElementById('analysisLink');
-        const feedbackEl = document.getElementById('feedback');
-        const statMovesEl = document.getElementById('statMoves');
-        const statVarsEl = document.getElementById('statVars');
-        const statErrorsEl = document.getElementById('statErrors');
-        const errorStatRow = document.getElementById('errorStatRow');
-        const boardWrapper = document.querySelector('.board-wrapper');
-        const boardEl = document.getElementById('board');
-
-        // =========================================
-        // SETUP VIEW LOGIC
-        // =========================================
-        repSelect.addEventListener('change', (e) => {
-            const selectedRep = repertoireDatabase.find(r => r.id === e.target.value);
-            if (selectedRep) {
-                setToggleState('colorToggle', selectedRep.defaultColor);
-            }
-        });
+        loadDatabase();
 
         saveRepBtn.addEventListener('click', () => {
-            const title = newRepTitle.value.trim();
-            const pgn = newRepPgn.value.trim();
-            const color = getToggleState('newColorToggle');
+            const title = newRepTitle.value.trim(), pgn = newRepPgn.value.trim(), color = getToggleState('newColorToggle');
             if (!title || !pgn) { alert("Veuillez remplir le titre et le PGN."); return; }
             saveCustomRepertoire(title, pgn, color);
-            newRepTitle.value = ''; newRepPgn.value = '';
-            saveFeedback.style.display = 'block';
+            newRepTitle.value = ''; newRepPgn.value = ''; saveFeedback.style.display = 'block';
             setTimeout(() => { saveFeedback.style.display = 'none'; }, 3000);
         });
 
-        // =========================================
-        // VIEW TRANSITIONS & CHAPTER SELECTION
-        // =========================================
         startBtn.addEventListener('click', () => {
-            currentRepertoireId = repSelect.value;
-            if (!currentRepertoireId) { alert("Veuillez choisir un répertoire"); return; }
-            
-            const repData = repertoireDatabase.find(r => r.id === currentRepertoireId);
-            
-            // Populate Chapter View
-            chapterRepTitleEl.textContent = repData.title;
-            chapterListEl.innerHTML = '';
-            selectedChapterPgn = null;
-            startChapterBtn.disabled = true;
+            if (!repSelect.value) { alert("Veuillez choisir un répertoire"); return; }
+            currentRepertoire = repertoireDatabase.find(r => r.id === repSelect.value);
+            chapterRepTitleEl.textContent = currentRepertoire.title;
+            chapterListEl.innerHTML = ''; selectedChapterPgn = null; currentChapterIndex = -1; startChapterBtn.disabled = true;
 
-            repData.chapters.forEach((chap, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'chapter-btn';
-                btn.textContent = chap.title;
-                btn.onclick = () => {
-                    document.querySelectorAll('.chapter-btn').forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                    selectedChapterPgn = chap.pgn;
-                    startChapterBtn.disabled = false;
-                };
-                chapterListEl.appendChild(btn);
-            });
-
-            setupView.classList.add('hidden');
-            chapterView.classList.remove('hidden');
+            if (currentRepertoire.chapters.length === 1) {
+                chapterListEl.classList.add('hidden'); chapterSelectionTitleEl.textContent = "Configuration de l'entraînement";
+                selectedChapterPgn = currentRepertoire.chapters[0].pgn; currentChapterIndex = 0; startChapterBtn.disabled = false;
+            } else {
+                chapterListEl.classList.remove('hidden'); chapterSelectionTitleEl.textContent = "Sélectionnez un chapitre";
+                currentRepertoire.chapters.forEach((chap, idx) => {
+                    const btn = document.createElement('button'); btn.className = 'chapter-btn'; btn.textContent = chap.title;
+                    btn.onclick = () => {
+                        document.querySelectorAll('.chapter-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected'); selectedChapterPgn = chap.pgn; currentChapterIndex = idx; startChapterBtn.disabled = false;
+                    };
+                    chapterListEl.appendChild(btn);
+                });
+            }
+            setToggleState('colorToggle', currentRepertoire.defaultColor);
+            setupView.classList.add('hidden'); chapterView.classList.remove('hidden');
         });
 
-        backToSetupBtn.addEventListener('click', () => {
-            chapterView.classList.add('hidden');
-            setupView.classList.remove('hidden');
-        });
+        backToSetupBtn.addEventListener('click', () => { chapterView.classList.add('hidden'); setupView.classList.remove('hidden'); repSelect.value = ""; });
 
-        startChapterBtn.addEventListener('click', () => {
-            if (!selectedChapterPgn) return;
-
-            playerColor = getToggleState('colorToggle');
-            trainingMode = getToggleState('modeToggle');
-            
-            try { rootNode = buildRepertoireTree(selectedChapterPgn); } 
-            catch (err) { alert("Erreur lors de la lecture du PGN de ce chapitre."); return; }
-
+        const startTrainingSession = (pgn, chapterTitle) => {
+            playerColor = getToggleState('colorToggle'); trainingMode = getToggleState('modeToggle');
+            try { rootNode = buildRepertoireTree(pgn); } catch (err) { alert("Erreur lors de la lecture du PGN."); return; }
             initializeStats(rootNode);
             if (totalMoves === 0) { alert("Aucun coup trouvé pour cette couleur dans ce chapitre."); return; }
-
+            trainingHeaderEl.textContent = `${currentRepertoire.title} > ${chapterTitle}`;
             if (trainingMode === 'decouverte') { errorStatRow.classList.add('hidden'); hintBtn.classList.add('hidden'); } 
             else { errorStatRow.classList.remove('hidden'); hintBtn.classList.remove('hidden'); }
+            isTraining = true; chapterView.classList.add('hidden'); trainingView.classList.remove('hidden');
+            if (!cg) cg = Chessground(boardEl, { coordinates: true, movable: { color: undefined, dests: new Map() } });
+            cg.set({ orientation: playerColor }); game.load(rootNode.fen); updateAnalysisLink(); startNextVariation();
+        };
 
-            isTraining = true;
-            chapterView.classList.add('hidden');
-            trainingView.classList.remove('hidden');
-            
-            initChessground();
-            
-            cg.set({ orientation: playerColor });
-            game.load(rootNode.fen); 
-            updateAnalysisLink(); 
-            startNextVariation();
+        startChapterBtn.addEventListener('click', () => {
+            if (selectedChapterPgn && currentChapterIndex !== -1) startTrainingSession(selectedChapterPgn, currentRepertoire.chapters[currentChapterIndex].title);
         });
 
         stopBtn.addEventListener('click', () => {
-            isTraining = false;
-            trainingView.classList.add('hidden');
-            chapterView.classList.remove('hidden'); // Return to chapter view for quick switch
-            game.reset();
-            clearHints();
+            isTraining = false; trainingView.classList.add('hidden'); setupView.classList.remove('hidden');
+            repSelect.value = ""; game.reset(); cg.set({ drawable: { autoShapes: [] } });
         });
 
-        // =========================================
-        // TRAINING ENGINE LOGIC
-        // =========================================
-        const initChessground = () => {
-            if (!cg) {
-                cg = Chessground(boardEl, { coordinates: true, movable: { color: undefined, dests: new Map() } });
-            }
-        };
-
-        // Comments Toggle
         toggleCommentsBtn.addEventListener('click', () => {
             commentsVisible = !commentsVisible;
-            if (commentsVisible) {
-                commentBox.classList.remove('hidden');
-                toggleCommentsBtn.textContent = "Masquer Notes";
-            } else {
-                commentBox.classList.add('hidden');
-                toggleCommentsBtn.textContent = "Afficher Notes";
-            }
+            commentBox.classList.toggle('hidden', !commentsVisible);
+            toggleCommentsBtn.textContent = commentsVisible ? "Masquer Notes" : "Afficher Notes";
         });
 
         const setFeedback = (msg, state) => { feedbackEl.textContent = msg; feedbackEl.className = `feedback ${state}`; };
@@ -633,47 +497,24 @@
         const updateNavButtons = () => { prevBtn.disabled = (viewIndex === 0); nextBtn.disabled = (currentPath.length === 0 || viewIndex === currentPath.length - 1); };
 
         const updateCommentDisplay = () => {
-            if (currentPath.length === 0 || viewIndex === 0) {
-                const rootComment = rootNode.comment ? `<strong>Notes :</strong> ${rootNode.comment}` : `<em>Aucun commentaire pour ce coup.</em>`;
-                commentBox.innerHTML = rootComment;
-                return;
-            }
-            const node = currentPath[viewIndex];
-            if (node && node.comment) {
-                // Parse potential multi-line comments nicely
-                commentBox.innerHTML = `<strong>Notes :</strong> ${node.comment}`;
-            } else {
-                commentBox.innerHTML = `<em>Aucun commentaire pour ce coup.</em>`;
-            }
+            const node = (currentPath.length === 0 || viewIndex === 0) ? rootNode : currentPath[viewIndex];
+            commentBox.innerHTML = node && node.comment ? `<strong>Notes :</strong> ${node.comment}` : `<em>Aucun commentaire pour ce coup.</em>`;
         };
 
         const renderPgnHtml = () => {
-            if (currentPath.length <= 1) { 
-                activeLineDisplay.innerHTML = "Position initiale"; 
-                updateCommentDisplay();
-                return; 
-            }
-
+            if (currentPath.length <= 1) { activeLineDisplay.innerHTML = "Position initiale"; updateCommentDisplay(); return; }
             const startFenParts = rootNode.fen.split(' ');
-            let fullMoveNum = parseInt(startFenParts[5]) || 1;
-            let currentTurn = startFenParts[1] === 'w' ? 'white' : 'black';
-            let html = '';
-            
+            let fullMoveNum = parseInt(startFenParts[5]) || 1, currentTurn = startFenParts[1] === 'w' ? 'white' : 'black', html = '';
             for (let i = 1; i < currentPath.length; i++) {
                 const node = currentPath[i];
                 if (currentTurn === 'white') html += `<span class="move-number">${fullMoveNum}.</span> `;
                 else if (i === 1) html += `<span class="move-number">${fullMoveNum}...</span> `;
-                
-                const activeClass = (i === viewIndex) ? 'active-move' : '';
-                html += `<span class="pgn-move ${activeClass}" data-index="${i}">${node.san}</span> `;
-                
-                if (currentTurn === 'black') { fullMoveNum++; currentTurn = 'white'; } else { currentTurn = 'black'; }
+                html += `<span class="pgn-move ${i === viewIndex ? 'active-move' : ''}" data-index="${i}">${node.san}</span> `;
+                if (currentTurn === 'black') { fullMoveNum++; currentTurn = 'white'; } else currentTurn = 'black';
             }
             activeLineDisplay.innerHTML = html.trim();
-            
             const activeElement = activeLineDisplay.querySelector('.active-move');
             if (activeElement) activeElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-
             updateCommentDisplay();
         };
 
@@ -681,46 +522,30 @@
             if (!isTraining || currentPath.length === 0) return;
             const newIndex = viewIndex + step;
             if (newIndex < 0 || newIndex >= currentPath.length || newIndex === viewIndex) return;
-            
             viewIndex = newIndex; updateNavButtons(); renderPgnHtml();
             const node = currentPath[viewIndex]; game.load(node.fen);
             cg.set({ fen: game.fen(), lastMove: node.id !== 'root' ? [node.from, node.to] : null });
             updateAnalysisLink();
-            
-            if (viewIndex < currentPath.length - 1) { lockBoard(); clearHints(); } 
-            else { if (!node.isCompleted && game.turn() === playerColor[0]) preparePlayerTurn(); else lockBoard(); }
+            if (viewIndex < currentPath.length - 1) { cg.set({ movable: { dests: new Map() } }); cg.set({ drawable: { autoShapes: [] } }); } 
+            else if (!node.isCompleted && game.turn() === playerColor[0]) preparePlayerTurn(); else cg.set({ movable: { dests: new Map() } });
         };
 
-        // Navigation Bindings
         prevBtn.addEventListener('click', () => navigateView(-1));
         nextBtn.addEventListener('click', () => navigateView(1));
         document.addEventListener('keydown', (e) => {
             if (!isTraining || currentPath.length === 0) return;
-            if (e.key === 'ArrowLeft') { e.preventDefault(); navigateView(-1); }
-            else if (e.key === 'ArrowRight') { e.preventDefault(); navigateView(1); }
-            else if (e.key === 'ArrowUp') { e.preventDefault(); navigateView(-viewIndex); }
-            else if (e.key === 'ArrowDown') { e.preventDefault(); navigateView((currentPath.length - 1) - viewIndex); }
+            if (e.key === 'ArrowLeft') navigateView(-1); else if (e.key === 'ArrowRight') navigateView(1);
         });
-        boardWrapper.addEventListener('wheel', (e) => {
-            if (!isTraining || currentPath.length === 0) return;
-            e.preventDefault(); e.deltaY < 0 ? navigateView(-1) : navigateView(1);
-        }, { passive: false });
         activeLineDisplay.addEventListener('click', (e) => {
-            if (e.target.classList.contains('pgn-move')) {
-                const step = parseInt(e.target.getAttribute('data-index')) - viewIndex;
-                if (step !== 0) navigateView(step);
-            }
+            if (e.target.classList.contains('pgn-move')) navigateView(parseInt(e.target.getAttribute('data-index')) - viewIndex);
         });
 
         const updateActiveLineDisplay = () => {
             if (!currentNode || !isTraining) return;
             let path = [], curr = currentNode;
             while (curr) { path.unshift(curr); curr = curr.parent; }
-            currentPath = path; viewIndex = currentPath.length - 1; 
-            updateNavButtons(); renderPgnHtml(); updateAnalysisLink();
+            currentPath = path; viewIndex = currentPath.length - 1; updateNavButtons(); renderPgnHtml(); updateAnalysisLink();
         };
-
-        const clearHints = () => cg.set({ drawable: { autoShapes: [] } });
 
         hintBtn.addEventListener('click', () => {
             if (!currentNode || game.turn() !== playerColor[0] || viewIndex < currentPath.length - 1) return;
@@ -728,55 +553,26 @@
             if (uncompleted.length > 0) cg.set({ drawable: { autoShapes: [{ orig: uncompleted[0].from, brush: 'green' }] } });
         });
 
-        // Parser: Now Safely Extracts Comments!
         const buildRepertoireTree = (pgnText) => {
-            const fenMatch = pgnText.match(/\[FEN\s+"([^"]+)"\]/i);
-            const startFen = fenMatch ? fenMatch[1] : new Chess().fen();
-            
-            // 1. Remove metadata tags (safely)
-            let cleanPgn = pgnText.replace(/\[.*?\]\s*/g, '').trim();
-            
-            // 2. Tokenize: Moves, Parens, Comments, NAGs, MoveNumbers
-            const tokens = cleanPgn.match(/[a-zA-Z0-9\-+=#KQRBN]+|\(|\)|\{[^}]*\}|\$\d+|\d+\.+/g) || [];
-
+            const startFen = (pgnText.match(/\[FEN\s+"([^"]+)"\]/i) || [])[1] || new Chess().fen();
+            const tokens = pgnText.replace(/\[.*?\]\s*/g, '').trim().match(/[a-zA-Z0-9\-+=#KQRBN]+|\(|\)|\{[^}]*\}|\$\d+|\d+\.+/g) || [];
             const root = { id: 'root', san: 'root', fen: startFen, comment: null, children: [], parent: null, isCompleted: false, isVisited: true, isLeaf: false };
             let current = root, tempGame = new Chess(startFen), nodeStack = [], idCounter = 0;
-
             for (let token of tokens) {
-                // Ignore move numbers and NAGs
-                if (/^\d+\.+$/.test(token)) continue; 
-                if (/^\$\d+$/.test(token)) continue; 
-
-                if (token === '(') { 
-                    nodeStack.push(current); 
-                    current = current.parent; 
-                    tempGame.load(current.fen); 
-                } 
-                else if (token === ')') { 
-                    current = nodeStack.pop(); 
-                    tempGame.load(current.fen); 
-                } 
+                if (/^\d+\.+$/.test(token) || /^\$\d+$/.test(token)) continue;
+                if (token === '(') { nodeStack.push(current); current = current.parent; tempGame.load(current.fen); } 
+                else if (token === ')') { current = nodeStack.pop(); tempGame.load(current.fen); } 
                 else if (token.startsWith('{')) {
-                    // Extract comment and attach to the current node
                     const cmt = token.slice(1, -1).trim();
-                    if (current) {
-                        current.comment = current.comment ? current.comment + " " + cmt : cmt;
-                    }
-                }
-                else {
+                    if (current) current.comment = current.comment ? current.comment + " " + cmt : cmt;
+                } else {
                     try {
                         const moveObj = tempGame.move(token);
                         if (moveObj) {
-                            const newNode = { 
-                                id: 'node_'+(idCounter++), san: moveObj.san, from: moveObj.from, to: moveObj.to, 
-                                fen: tempGame.fen(), color: moveObj.color === 'w' ? 'white' : 'black', 
-                                comment: null, children: [], parent: current, 
-                                isCompleted: false, isVisited: false, isLeaf: false 
-                            };
-                            current.children.push(newNode); 
-                            current = newNode;
+                            const newNode = { id: 'node_'+(idCounter++), san: moveObj.san, from: moveObj.from, to: moveObj.to, fen: tempGame.fen(), color: moveObj.color === 'w' ? 'white' : 'black', comment: null, children: [], parent: current, isCompleted: false, isVisited: false, isLeaf: false };
+                            current.children.push(newNode); current = newNode;
                         }
-                    } catch (e) { console.warn("Skipped invalid token:", token); }
+                    } catch (e) {}
                 }
             }
             return root;
@@ -804,56 +600,40 @@
             if (!node) return null;
             if (node.isLeaf && !node.isCompleted) return [node];
             const uncompleted = node.children.find(c => !c.isCompleted);
-            if (!uncompleted) return null;
-            const rest = getNextPath(uncompleted);
-            return rest ? [node, ...rest] : null;
+            return uncompleted ? [node, ...getNextPath(uncompleted)] : null;
         };
 
-        const getDests = () => {
-            const dests = new Map();
-            game.moves({ verbose: true }).forEach(m => {
-                if (!dests.has(m.from)) dests.set(m.from, []);
-                dests.get(m.from).push(m.to);
-            });
-            return dests;
+        const preparePlayerTurn = () => {
+            setFeedback("À vous de jouer", "waiting");
+            cg.set({ turnColor: playerColor, movable: { color: playerColor, free: false, showDests: true, dests: (() => {
+                const dests = new Map(); game.moves({ verbose: true }).forEach(m => { if (!dests.has(m.from)) dests.set(m.from, []); dests.get(m.from).push(m.to); }); return dests;
+            })(), events: { after: onUserMove } } });
+            if (trainingMode === 'decouverte') {
+                const uncompleted = currentNode.children.filter(c => !c.isCompleted);
+                if (uncompleted.length > 0) cg.set({ drawable: { autoShapes: [{ orig: uncompleted[0].from, dest: uncompleted[0].to, brush: 'green' }] } });
+            }
         };
-
-        const lockBoard = () => cg.set({ movable: { dests: new Map() } });
-        const unlockBoard = () => { cg.set({ turnColor: playerColor, movable: { color: playerColor, free: false, showDests: true, dests: getDests(), events: { after: onUserMove } } }); };
 
         const onUserMove = (orig, dest) => {
-            lockBoard(); clearHints(); 
+            cg.set({ movable: { dests: new Map() } }); cg.set({ drawable: { autoShapes: [] } }); 
             const moveObj = game.moves({ verbose: true }).find(m => m.from === orig && m.to === dest && (m.promotion ? m.promotion === 'q' : true));
             const chosenChild = currentNode.children.find(c => c.san === (moveObj ? moveObj.san : null));
-
             if (!moveObj || !chosenChild) {
-                if (trainingMode === 'revision') {
-                    if (!currentMoveErrorLogged) { errorCount++; currentMoveErrorLogged = true; updateStatsUI(); }
-                    snapBack("Incorrect", "error");
-                } else {
-                    snapBack("Suivez la flèche !", "warning");
-                }
-                return;
+                if (trainingMode === 'revision') { if (!currentMoveErrorLogged) { errorCount++; currentMoveErrorLogged = true; updateStatsUI(); } setFeedback("Incorrect", "error"); }
+                else setFeedback("Suivez la flèche !", "warning");
+                setTimeout(() => { cg.set({ fen: game.fen() }); preparePlayerTurn(); }, 600); return;
             }
-
-            if (chosenChild.isCompleted) { snapBack("Déjà couvert", "warning"); return; }
-
-            currentMoveErrorLogged = false; 
-            setFeedback("Correct", "success");
-            game.move({ from: orig, to: dest, promotion: 'q' });
-            cg.set({ fen: game.fen(), lastMove: [orig, dest] }); 
-            currentNode = chosenChild;
-            updateActiveLineDisplay();
-
+            if (chosenChild.isCompleted) { setFeedback("Déjà couvert", "warning"); setTimeout(() => { cg.set({ fen: game.fen() }); preparePlayerTurn(); }, 600); return; }
+            currentMoveErrorLogged = false; setFeedback("Correct", "success");
+            game.move({ from: orig, to: dest, promotion: 'q' }); cg.set({ fen: game.fen(), lastMove: [orig, dest] }); 
+            currentNode = chosenChild; updateActiveLineDisplay();
             if (!currentNode.isVisited) { currentNode.isVisited = true; learnedMoves++; updateStatsUI(); }
             if (currentNode.isLeaf) { markNodeCompleted(currentNode); handleVariationEnd(); } 
             else setTimeout(() => playOpponentMove(), 250);
         };
 
-        const snapBack = (msg, state) => { setFeedback(msg, state); setTimeout(() => { cg.set({ fen: game.fen() }); preparePlayerTurn(); }, 600); };
-
         const playOpponentMove = (targetNode = null) => {
-            clearHints();
+            cg.set({ drawable: { autoShapes: [] } });
             let nodeToPlay = targetNode || currentNode.children.find(c => !c.isCompleted);
             if (nodeToPlay) {
                 game.move({ from: nodeToPlay.from, to: nodeToPlay.to, promotion: 'q' });
@@ -864,103 +644,42 @@
             }
         };
 
-        const preparePlayerTurn = () => {
-            setFeedback("À vous de jouer", "waiting");
-            unlockBoard();
-            if (trainingMode === 'decouverte') {
-                const uncompleted = currentNode.children.filter(c => !c.isCompleted);
-                if (uncompleted.length > 0) cg.set({ drawable: { autoShapes: [{ orig: uncompleted[0].from, dest: uncompleted[0].to, brush: 'green' }] } });
-            }
-        };
-
         const handleVariationEnd = () => {
             if (rootNode.isCompleted) {
-                if (trainingMode === 'revision') {
-                    const errorRate = totalMoves > 0 ? ((errorCount / totalMoves) * 100).toFixed(1) : 0;
-                    setFeedback(`Répertoire complété ! Erreurs : ${errorCount} (${errorRate}%)`, "success");
-                } else setFeedback(`Répertoire complété (Mode Découverte)`, "success");
-            } else {
-                setFeedback("Correct", "success");
-                setTimeout(startNextVariation, 1000);
-            }
+                const msg = trainingMode === 'revision' ? `Répertoire complété ! Erreurs : ${errorCount} (${totalMoves > 0 ? ((errorCount / totalMoves) * 100).toFixed(1) : 0}%)` : `Répertoire complété (Mode Découverte)`;
+                setFeedback(msg, "success");
+                if (currentRepertoire && currentChapterIndex < currentRepertoire.chapters.length - 1) {
+                    const nextBtn = document.createElement('button');
+                    nextBtn.textContent = "Chapitre Suivant"; nextBtn.style.marginTop = "10px";
+                    nextBtn.onclick = () => {
+                        currentChapterIndex++;
+                        selectedChapterPgn = currentRepertoire.chapters[currentChapterIndex].pgn;
+                        startTrainingSession(selectedChapterPgn, currentRepertoire.chapters[currentChapterIndex].title);
+                    };
+                    feedbackEl.appendChild(document.createElement('br'));
+                    feedbackEl.appendChild(nextBtn);
+                }
+            } else { setFeedback("Correct", "success"); setTimeout(startNextVariation, 1000); }
         };
 
         const startNextVariation = () => {
-            clearHints(); currentMoveErrorLogged = false; 
-            const path = getNextPath(rootNode);
-            if (!path) return;
-
-            let commonNode = path[0]; 
-            for (let i = 1; i < path.length; i++) if (path[i].isVisited) commonNode = path[i]; else break;
-
-            const proceedFromCommonNode = () => {
-                const nextNodeIndex = path.indexOf(commonNode) + 1;
-                if (nextNodeIndex < path.length) {
-                    const nextNode = path[nextNodeIndex];
-                    if (nextNode.color !== playerColor) setTimeout(() => playOpponentMove(nextNode), 400);
-                    else preparePlayerTurn();
-                }
+            cg.set({ drawable: { autoShapes: [] } }); currentMoveErrorLogged = false; 
+            const path = getNextPath(rootNode); if (!path) return;
+            let commonNode = path[0]; for (let i = 1; i < path.length; i++) if (path[i].isVisited) commonNode = path[i]; else break;
+            const proceed = () => {
+                const nextNode = path[path.indexOf(commonNode) + 1];
+                if (nextNode) { if (nextNode.color !== playerColor) setTimeout(() => playOpponentMove(nextNode), 400); else preparePlayerTurn(); }
             };
-
             if (commonNode.id !== 'root') {
                 setFeedback("Nouvelle variante...", "warning");
-                currentNode = commonNode.parent; updateActiveLineDisplay(); 
-                game.load(currentNode.fen); cg.set({ fen: game.fen(), lastMove: null }); lockBoard();
+                currentNode = commonNode.parent; updateActiveLineDisplay(); game.load(currentNode.fen); cg.set({ fen: game.fen(), lastMove: null });
                 setTimeout(() => {
                     game.move({ from: commonNode.from, to: commonNode.to, promotion: 'q' });
                     cg.set({ fen: game.fen(), lastMove: [commonNode.from, commonNode.to] });
-                    currentNode = commonNode; updateActiveLineDisplay();
-                    setTimeout(proceedFromCommonNode, 600);
+                    currentNode = commonNode; updateActiveLineDisplay(); setTimeout(proceed, 600);
                 }, 800);
-            } else {
-                currentNode = commonNode; updateActiveLineDisplay();
-                game.load(currentNode.fen); cg.set({ fen: game.fen(), lastMove: null });
-                proceedFromCommonNode();
-            }
+            } else { currentNode = commonNode; updateActiveLineDisplay(); game.load(currentNode.fen); cg.set({ fen: game.fen(), lastMove: null }); proceed(); }
         };
-
-        // =========================================
-        // VIEW TRANSITIONS
-        // =========================================
-        startBtn.addEventListener('click', () => {
-            const selectedRepId = repSelect.value;
-            if (!selectedRepId) { alert("Veuillez choisir un répertoire"); return; }
-            
-            const repData = repertoireDatabase.find(r => r.id === selectedRepId);
-            const rawPgn = repData.pgn;
-
-            playerColor = document.querySelector('input[name="trainColor"]:checked').value;
-            trainingMode = document.querySelector('input[name="trainMode"]:checked').value;
-            
-            try { rootNode = buildRepertoireTree(rawPgn); } 
-            catch (err) { alert("Erreur lors de la lecture du PGN de ce répertoire."); return; }
-
-            initializeStats(rootNode);
-            if (totalMoves === 0) { alert("Aucun coup trouvé pour cette couleur dans ce répertoire."); return; }
-
-            if (trainingMode === 'decouverte') { errorStatRow.classList.add('hidden'); hintBtn.classList.add('hidden'); } 
-            else { errorStatRow.classList.remove('hidden'); hintBtn.classList.remove('hidden'); }
-
-            isTraining = true;
-            setupView.classList.add('hidden');
-            trainingView.classList.remove('hidden');
-            
-            initChessground();
-            
-            cg.set({ orientation: playerColor });
-            game.load(rootNode.fen); 
-            updateAnalysisLink(); 
-            startNextVariation();
-        });
-
-        stopBtn.addEventListener('click', () => {
-            isTraining = false;
-            trainingView.classList.add('hidden');
-            setupView.classList.remove('hidden');
-            game.reset();
-            clearHints();
-        });
-
     </script>
 </body>
 </html>
