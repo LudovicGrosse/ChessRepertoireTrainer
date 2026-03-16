@@ -250,7 +250,15 @@
                     <div class="toggle-option" data-val="revision">Révision</div>
                 </div>
             </div>
-            <button id="startBtn" style="font-size: 16px; padding: 15px; margin-top: 10px;">Suivant</button>
+            
+            <div id="chapter-selection-area" class="hidden" style="margin-top: 10px;">
+                <label style="font-size: 0.9rem; color: #aaa; margin-bottom: 5px; display: block;">Choix du chapitre :</label>
+                <div class="chapter-list" id="chapterList" style="max-height: 250px;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <button id="startBtn" style="font-size: 16px; padding: 15px; margin-top: 10px;" disabled>Démarrer l'entraînement</button>
         </div>
 
         <div class="setup-card">
@@ -276,22 +284,7 @@
         </div>
     </div>
 
-    <!-- CHAPTER SELECTION VIEW -->
-    <div id="chapter-view" class="hidden">
-        <h1 class="header-title" id="chapterRepTitle">Titre du Répertoire</h1>
-        <div class="setup-card">
-            <h2 id="chapterSelectionTitle">Sélectionnez un chapitre</h2>
-            <div class="chapter-list" id="chapterList">
-                <!-- Dynamically populated -->
-            </div>
-
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button id="backToSetupBtn" class="secondary">Retour</button>
-                <button id="startChapterBtn" style="flex: 1; font-size: 16px; padding: 15px;" disabled>Démarrer l'entraînement</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- TRAINING VIEW -->
     <div id="training-view" class="hidden">
         <div class="sidebar">
             <div id="trainingHeader" style="text-align: center; margin-bottom: 5px; font-weight: bold; color: #4caf50; font-size: 1.1rem;"></div>
@@ -429,35 +422,32 @@
 
         loadDatabase();
 
-        repSelect.addEventListener('change', (e) => {
-            const selectedRep = repertoireDatabase.find(r => r.id === e.target.value);
-            if (selectedRep) setToggleState('colorToggle', selectedRep.defaultColor);
-        });
+        const updateChapterList = () => {
+            const repId = repSelect.value;
+            const chapArea = document.getElementById('chapter-selection-area');
+            
+            if (!repId) {
+                chapArea.classList.add('hidden');
+                startBtn.disabled = true;
+                return;
+            }
 
-        saveRepBtn.addEventListener('click', () => {
-            const title = newRepTitle.value.trim(), pgn = newRepPgn.value.trim(), color = getToggleState('newColorToggle');
-            if (!title || !pgn) { alert("Veuillez remplir le titre et le PGN."); return; }
-            saveCustomRepertoire(title, pgn, color);
-            newRepTitle.value = ''; newRepPgn.value = ''; saveFeedback.style.display = 'block';
-            setTimeout(() => { saveFeedback.style.display = 'none'; }, 3000);
-        });
-
-        startBtn.addEventListener('click', () => {
-            if (!repSelect.value) { alert("Veuillez choisir un répertoire"); return; }
-            currentRepertoire = repertoireDatabase.find(r => r.id === repSelect.value);
+            currentRepertoire = repertoireDatabase.find(r => r.id === repId);
             playerColor = getToggleState('colorToggle');
-            trainingMode = getToggleState('modeToggle');
-
-            chapterRepTitleEl.textContent = currentRepertoire.title;
-            chapterListEl.innerHTML = ''; selectedChapterPgn = null; currentChapterIndex = -1; startChapterBtn.disabled = true;
+            
+            chapterListEl.innerHTML = '';
+            selectedChapterPgn = null;
+            currentChapterIndex = -1;
 
             if (currentRepertoire.chapters.length === 1) {
-                chapterListEl.classList.add('hidden'); chapterSelectionTitleEl.textContent = "Configuration de l'entraînement";
-                selectedChapterPgn = currentRepertoire.chapters[0].pgn; currentChapterIndex = 0; startChapterBtn.disabled = false;
+                chapArea.classList.add('hidden');
+                selectedChapterPgn = currentRepertoire.chapters[0].pgn;
+                currentChapterIndex = 0;
+                startBtn.disabled = false;
             } else {
-                chapterListEl.classList.remove('hidden'); chapterSelectionTitleEl.textContent = "Sélectionnez un chapitre";
+                chapArea.classList.remove('hidden');
+                startBtn.disabled = true;
                 currentRepertoire.chapters.forEach((chap, idx) => {
-                    // Pre-calculate moves for the selected color
                     let moveCount = 0;
                     try {
                         const tempRoot = buildRepertoireTree(chap.pgn);
@@ -468,40 +458,67 @@
                         countMoves(tempRoot);
                     } catch(e) {}
 
-                    const btn = document.createElement('button'); btn.className = 'chapter-btn'; 
+                    const btn = document.createElement('button');
+                    btn.className = 'chapter-btn';
                     btn.textContent = `${chap.title} (${moveCount} coups à réviser)`;
                     btn.onclick = () => {
                         document.querySelectorAll('.chapter-btn').forEach(b => b.classList.remove('selected'));
-                        btn.classList.add('selected'); selectedChapterPgn = chap.pgn; currentChapterIndex = idx; startChapterBtn.disabled = false;
+                        btn.classList.add('selected');
+                        selectedChapterPgn = chap.pgn;
+                        currentChapterIndex = idx;
+                        startBtn.disabled = false;
                     };
                     chapterListEl.appendChild(btn);
                 });
             }
-            setupView.classList.add('hidden'); chapterView.classList.remove('hidden');
+        };
+
+        repSelect.addEventListener('change', (e) => {
+            const selectedRep = repertoireDatabase.find(r => r.id === e.target.value);
+            if (selectedRep) setToggleState('colorToggle', selectedRep.defaultColor);
+            updateChapterList();
         });
 
-        backToSetupBtn.addEventListener('click', () => { chapterView.classList.add('hidden'); setupView.classList.remove('hidden'); repSelect.value = ""; });
+        document.getElementById('colorToggle').addEventListener('click', () => {
+            setTimeout(updateChapterList, 50);
+        });
+
+        saveRepBtn.addEventListener('click', () => {
+            const title = newRepTitle.value.trim(), pgn = newRepPgn.value.trim(), color = getToggleState('newColorToggle');
+            if (!title || !pgn) { alert("Veuillez remplir le titre et le PGN."); return; }
+            saveCustomRepertoire(title, pgn, color);
+            newRepTitle.value = ''; newRepPgn.value = ''; saveFeedback.style.display = 'block';
+            setTimeout(() => { saveFeedback.style.display = 'none'; }, 3000);
+            updateChapterList();
+        });
+
+        startBtn.addEventListener('click', () => {
+            if (!selectedChapterPgn || currentChapterIndex === -1) return;
+            const chapterTitle = currentRepertoire.chapters[currentChapterIndex].title;
+            startTrainingSession(selectedChapterPgn, chapterTitle);
+        });
 
         const startTrainingSession = (pgn, chapterTitle) => {
-            // Configuration is now read from Setup View, already stored in playerColor and trainingMode
+            playerColor = getToggleState('colorToggle');
+            trainingMode = getToggleState('modeToggle');
             try { rootNode = buildRepertoireTree(pgn); } catch (err) { alert("Erreur lors de la lecture du PGN."); return; }
             initializeStats(rootNode);
             if (totalMoves === 0) { alert("Aucun coup trouvé pour cette couleur dans ce chapitre."); return; }
             trainingHeaderEl.textContent = `${currentRepertoire.title} > ${chapterTitle}`;
             if (trainingMode === 'decouverte') { errorStatRow.classList.add('hidden'); hintBtn.classList.add('hidden'); } 
             else { errorStatRow.classList.remove('hidden'); hintBtn.classList.remove('hidden'); }
-            isTraining = true; chapterView.classList.add('hidden'); trainingView.classList.remove('hidden');
+            isTraining = true;
+            setupView.classList.add('hidden');
+            trainingView.classList.remove('hidden');
             if (!cg) cg = Chessground(boardEl, { coordinates: true, movable: { color: undefined, dests: new Map() } });
             cg.set({ orientation: playerColor }); game.load(rootNode.fen); updateAnalysisLink(); startNextVariation();
         };
 
-        startChapterBtn.addEventListener('click', () => {
-            if (selectedChapterPgn && currentChapterIndex !== -1) startTrainingSession(selectedChapterPgn, currentRepertoire.chapters[currentChapterIndex].title);
-        });
-
         stopBtn.addEventListener('click', () => {
             isTraining = false; trainingView.classList.add('hidden'); setupView.classList.remove('hidden');
-            repSelect.value = ""; game.reset(); cg.set({ drawable: { autoShapes: [] } });
+            repSelect.value = ""; 
+            updateChapterList();
+            game.reset(); cg.set({ drawable: { autoShapes: [] } });
         });
 
         toggleCommentsBtn.addEventListener('click', () => {
