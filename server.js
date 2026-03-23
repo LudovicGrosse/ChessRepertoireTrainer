@@ -3,8 +3,8 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const path = require('path');
-
 const db = require('./database');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = 3000;
@@ -13,6 +13,15 @@ const SECRET_KEY = 'your_secret_key_here'; // In production, use environment var
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
+
+// Rate limiting for Auth routes to prevent brute-force attacks
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // Limit each IP to 10 requests per `window` (here, per 15 minutes)
+    message: { error: "Trop de tentatives de connexion. Veuillez réessayer dans 15 minutes." },
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
 
 // Middleware for JWT verification
 const authenticateToken = (req, res, next) => {
@@ -30,7 +39,7 @@ const authenticateToken = (req, res, next) => {
 
 // --- AUTH ENDPOINTS ---
 
-app.post('/api/register', (req, res) => {
+app.post('/api/register', authLimiter, (req, res) => {
     const { username, password } = req.body;
     const hash = bcrypt.hashSync(password, 10);
 
@@ -47,7 +56,7 @@ app.post('/api/register', (req, res) => {
     }
 });
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', authLimiter, (req, res) => {
     const { username, password } = req.body;
     const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
 
