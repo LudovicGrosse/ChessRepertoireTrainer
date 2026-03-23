@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -5,22 +6,23 @@ const bcrypt = require('bcryptjs');
 const path = require('path');
 const db = require('./database');
 const rateLimit = require('express-rate-limit');
+const crypto = require('crypto');
+const { sendEmail } = require('./mailer');
 
 const app = express();
 const PORT = 3000;
-const SECRET_KEY = 'your_secret_key_here'; // In production, use environment variables
+const SECRET_KEY = process.env.JWT_SECRET || 'your_secret_key_here';
+const APP_URL = process.env.APP_URL || `http://localhost:${PORT}`;
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Rate limiting for Auth routes to prevent brute-force attacks
+// Rate limiting for Auth routes
 const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10, // Limit each IP to 10 requests per `window` (here, per 15 minutes)
-    message: { error: "Trop de tentatives de connexion. Veuillez réessayer dans 15 minutes." },
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    max: 100, // Increased limit for easier testing
+    message: { error: "Trop de tentatives. Veuillez réessayer dans 5 minutes." },
 });
 
 // Middleware for JWT verification
@@ -39,32 +41,127 @@ const authenticateToken = (req, res, next) => {
 
 // --- AUTH ENDPOINTS ---
 
-app.post('/api/register', authLimiter, (req, res) => {
-    const { username, password } = req.body;
+app.post('/api/register', authLimiter, async (req, res) => {
+    const { username, email, password } = req.body;
+    if (!username || !email || !password) return res.status(400).json({ error: 'Tous les champs sont requis.' });
+
     const hash = bcrypt.hashSync(password, 10);
+    const verificationToken = crypto.randomBytes(32).toString('hex');
 
     try {
-        const insertUser = db.prepare('INSERT INTO users (username, password_hash) VALUES (?, ?)');
-        const result = insertUser.run(username, hash);
-        res.status(201).json({ id: result.lastInsertRowid, username });
+        const insertUser = db.prepare('INSERT INTO users (username, email, password_hash, verification_token) VALUES (?, ?, ?, ?)');
+        insertUser.run(username, email, hash, verificationToken);
+
+        // Send verification email
+        const verificationLink = `${APP_URL}/chess.html?verify=${verificationToken}`;
+        await sendEmail({
+            to: email,
+            subject: 'Vérifiez votre compte Chess Repertoire Trainer',
+            html: `
+                <div style="font-family: sans-serif; color: #333; line-height: 1.6;">
+                    <h2 style="color: #4caf50;">Votre compte a été créé avec succès !</h2>
+                    <p>Merci de vous être inscrit sur Chess Repertoire Trainer.</p>
+                    <p><strong>Identifiant :</strong> ${username}</p>
+                    <p>Pour finaliser votre inscription et activer votre compte, cliquez sur le bouton ci-dessous :</p>
+                    <div style="margin: 25px 0;">
+                        <a href="${verificationLink}" style="background: #4caf50; color: white; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold;">Activer mon compte</a>
+                    </div>
+                    <p style="font-size: 13px; color: #777;">Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>${verificationLink}</p>
+                </div>
+            `
+        });
+
+        res.status(201).json({ message: 'Compte créé ! Veuillez vérifier votre boîte mail.' });
     } catch (err) {
-        if (err.message.includes('UNIQUE constraint failed')) {
-            res.status(400).json({ error: 'Username already exists' });
+        console.error("REGISTRATION ERROR:", err);
+        if (err.message && err.message.includes('UNIQUE constraint failed')) {
+            const field = err.message.includes('email') ? 'L\'email' : 'Le nom d\'utilisateur';
+            res.status(400).json({ error: `${field} existe déjà.` });
         } else {
-            res.status(500).json({ error: 'Server error' });
+            res.status(500).json({ error: 'Erreur serveur: ' + (err.message || 'Détails inconnus') });
         }
+    }
+});
+
+app.get('/api/verify-email/:token', (req, res) => {
+    const { token } = req.params;
+    const user = db.prepare('SELECT * FROM users WHERE verification_token = ?').get(token);
+
+    if (!user) return res.status(400).json({ error: 'Token de vérification invalide.' });
+
+    try {
+        db.prepare('UPDATE users SET is_verified = 1, verification_token = NULL WHERE id = ?').run(user.id);
+        res.json({ message: 'Compte vérifié avec succès !' });
+    } catch (err) {
+        res.status(500).json({ error: 'Erreur lors de la vérification.' });
     }
 });
 
 app.post('/api/login', authLimiter, (req, res) => {
     const { username, password } = req.body;
-    const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+    const user = db.prepare('SELECT * FROM users WHERE username = ? OR email = ?').get(username, username);
 
     if (user && bcrypt.compareSync(password, user.password_hash)) {
+        if (user.is_verified === 0) {
+            return res.status(403).json({ error: 'Veuillez vérifier votre email avant de vous connecter.' });
+        }
         const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1d' });
         res.json({ token, user: { id: user.id, username: user.username } });
     } else {
-        res.status(401).json({ error: 'Invalid credentials' });
+        res.status(401).json({ error: 'Identifiants invalides.' });
+    }
+});
+
+app.post('/api/forgot-password', authLimiter, async (req, res) => {
+    const { email } = req.body;
+    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+
+    if (!user) return res.status(404).json({ error: 'Aucun compte associé à cet email.' });
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const expiry = new Date(Date.now() + 3600000).toISOString(); // 1 hour from now
+
+    try {
+        db.prepare('UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?').run(resetToken, expiry, user.id);
+        
+        const resetLink = `${APP_URL}/chess.html?reset=${resetToken}`;
+        await sendEmail({
+            to: email,
+            subject: 'Réinitialisation de votre mot de passe',
+            html: `
+                <div style="font-family: sans-serif; color: #333; line-height: 1.6;">
+                    <h2 style="color: #4caf50;">Réinitialisation de mot de passe</h2>
+                    <p>Bonjour <strong>${user.username}</strong>,</p>
+                    <p>Vous avez demandé la réinitialisation du mot de passe pour votre compte Chess Repertoire Trainer.</p>
+                    <p>Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe (ce lien est valable 1 heure) :</p>
+                    <div style="margin: 25px 0;">
+                        <a href="${resetLink}" style="background: #4caf50; color: white; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold;">Réinitialiser mon mot de passe</a>
+                    </div>
+                    <p style="font-size: 13px; color: #777;">Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.</p>
+                </div>
+            `
+        });
+
+        res.json({ message: 'Lien de réinitialisation envoyé !' });
+    } catch (err) {
+        res.status(500).json({ error: 'Erreur serveur.' });
+    }
+});
+
+app.post('/api/reset-password', authLimiter, (req, res) => {
+    const { token, newPassword } = req.body;
+    const user = db.prepare('SELECT * FROM users WHERE reset_token = ?').get(token);
+
+    if (!user || new Date(user.reset_token_expiry) < new Date()) {
+        return res.status(400).json({ error: 'Lien invalide ou expiré.' });
+    }
+
+    const hash = bcrypt.hashSync(newPassword, 10);
+    try {
+        db.prepare('UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?').run(hash, user.id);
+        res.json({ message: 'Mot de passe réinitialisé avec succès !' });
+    } catch (err) {
+        res.status(500).json({ error: 'Erreur serveur.' });
     }
 });
 
