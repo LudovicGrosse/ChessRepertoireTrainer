@@ -8,76 +8,70 @@ Ce document a pour but de vous donner une vue d'ensemble claire de l'architectur
 
 L'application est construite sur un modèle **Client-Serveur (Full-Stack)** léger :
 
-*   **Le Backend (Serveur) :** Construit avec Node.js et Express.js. Il s'occupe de servir la page web, de gérer l'authentification (connexion/inscription) et de dialoguer avec la base de données pour enregistrer ou récupérer l'historique de l'utilisateur.
-*   **La Base de Données :** Une base SQLite locale (`database.db`). C'est un fichier unique, facile à gérer, qui contient les tables pour les utilisateurs et leurs statistiques.
-*   **Le Frontend (Client) :** Une Single Page Application (SPA) contenue dans un seul fichier `chess.html`. Elle gère toute l'interface utilisateur, la logique d'entraînement aux échecs, l'affichage de l'échiquier et les requêtes vers le backend et vers Lichess.
+*   **Le Backend (Serveur) :** Construit avec Node.js et Express.js. Il s'occupe de servir la page web, de gérer l'authentification (connexion/inscription), d'envoyer les emails de vérification et de dialoguer avec la base de données.
+*   **La Base de Données :** Une base SQLite locale (`database.db`). C'est un fichier unique qui contient les tables pour les utilisateurs (avec leurs tokens de sécurité) et leur historique.
+*   **Le Frontend (Client) :** Une Single Page Application (SPA) contenue dans `chess.html`. Elle gère toute l'interface utilisateur, la logique d'entraînement, l'affichage de l'échiquier et les requêtes vers le serveur.
 
 ---
 
 ## 2. Les Outils et Librairies Utilisés
 
 ### Côté Backend (Node.js)
-*   **Express.js :** Le framework web qui permet de créer le serveur, de définir les "routes" (les adresses URL comme `/api/login`) et de traiter les requêtes HTTP.
-*   **better-sqlite3 :** La librairie qui permet à Node.js de lire et d'écrire dans la base de données SQLite de manière très rapide et synchrone.
-*   **bcryptjs :** Utilisé pour la sécurité. Il "hashe" (crypte) les mots de passe avant de les stocker en base de données. Même si la base est lue, les mots de passe restent secrets.
-*   **jsonwebtoken (JWT) :** Utilisé pour maintenir la session de l'utilisateur. Lors de la connexion, le serveur crée un jeton (token) chiffré qu'il donne au navigateur. Le navigateur le renvoie à chaque requête pour prouver l'identité de l'utilisateur.
+*   **Express.js :** Framework web pour créer le serveur et les routes API.
+*   **better-sqlite3 :** Gestion rapide de la base de données SQLite.
+*   **bcryptjs :** Hachage sécurisé des mots de passe.
+*   **jsonwebtoken (JWT) :** Gestion des sessions utilisateurs via des jetons sécurisés.
+*   **nodemailer :** Envoi d'emails réels (via SMTP) pour la vérification de compte et la récupération de mot de passe.
+*   **dotenv :** Gestion des variables d'environnement (mots de passe SMTP, clés secrètes) via un fichier `.env`.
+*   **express-rate-limit :** Protection contre les attaques par force brute sur les routes d'authentification.
 
 ### Côté Frontend (Navigateur)
-*   **Chessground :** Une librairie open-source créée par Lichess. C'est elle qui dessine l'échiquier, gère le déplacement des pièces à la souris, dessine les flèches et surligne les cases.
-*   **chess.js :** Le "cerveau" des échecs en arrière-plan. Il ne dessine rien, mais il connaît les règles : il valide si un coup est légal, détecte les échecs et mats, et génère le code FEN (la position) après chaque coup.
+*   **Chessground :** Librairie de Lichess pour l'affichage et l'interaction avec l'échiquier.
+*   **chess.js :** Moteur de règles d'échecs (validation des coups, détection échec et mat).
 
 ---
 
-## 3. Structure des Fichiers et Logique du Code
+## 3. Nouveau Système d'Authentification et Sécurité
 
-### `database.js`
-C'est le point d'entrée de la base de données.
-*   Il initialise la connexion au fichier `database.db`.
-*   Il exécute des requêtes `CREATE TABLE IF NOT EXISTS` pour s'assurer que les tables `users` et `history` sont prêtes.
+Le système a été renforcé pour inclure des fonctionnalités de production :
 
-### `server.js`
-Le cœur du backend.
-*   **Middlewares :** Il utilise `express.json()` pour lire les données envoyées par le client, et `authenticateToken` pour vérifier que le JWT est valide avant d'autoriser l'accès à l'historique.
-*   **Routes Auth :** `POST /api/register` (crée un compte et hashe le mot de passe) et `POST /api/login` (vérifie le mot de passe et génère un JWT).
-*   **Routes Data :** `POST /api/history` (enregistre une session d'entraînement) et `GET /api/history` (récupère l'historique de l'utilisateur connecté).
+### A. Inscription et Vérification d'Email
+1.  L'utilisateur s'inscrit avec un pseudo, un email et un mot de passe.
+2.  Le serveur crée le compte avec un `is_verified = 0` et génère un `verification_token` unique.
+3.  Un email est envoyé à l'utilisateur via le service configuré dans le `.env`.
+4.  L'utilisateur clique sur le lien, le serveur valide le token et active le compte (`is_verified = 1`).
+5.  **Connexion impossible** tant que l'email n'est pas vérifié.
 
-### `data.js`
-Le moteur de traitement des fichiers PGN (Portable Game Notation).
-*   **`parseMultiPgn(pgnText)` :** Lichess renvoie souvent plusieurs chapitres dans un seul fichier texte. Cette fonction découpe le texte pour isoler chaque chapitre.
-*   **`buildRepertoireTree(pgn)` :** La fonction la plus complexe. Elle lit un texte PGN et construit un "Arbre" (Tree). Chaque nœud de l'arbre est un coup d'échec. S'il y a des variantes, un nœud aura plusieurs "enfants". Cet arbre est crucial pour permettre à l'application de savoir quel coup est correct pendant l'entraînement.
+### B. Récupération de Mot de Passe
+1.  L'utilisateur saisit son email dans la vue "Mot de passe oublié".
+2.  Le serveur génère un `reset_token` et une date d'expiration (1 heure).
+3.  Un email contenant le pseudo du compte et un lien spécial est envoyé.
+4.  L'utilisateur choisit un nouveau mot de passe via ce lien sécurisé.
 
-### `chess.html`
-Le fichier massif qui fait tout le travail côté navigateur. Il est divisé en grandes sections :
-
-#### A. Le CSS (Styles)
-Gère l'apparence, avec des couleurs sombres, la disposition de l'échiquier et les animations des menus.
-
-#### B. Le HTML (Structure)
-Trois grandes "vues" qui s'affichent ou se cachent selon l'état (`.hidden`) :
-1.  **Auth Section :** Formulaire de connexion/inscription.
-2.  **Setup View (Dashboard) :** L'historique des répertoires, le champ pour coller un lien Lichess, et les options de configuration (Blancs/Noirs, Mode).
-3.  **Training View :** L'échiquier, les boutons de navigation, le panneau de statistiques et les commentaires.
-
-#### C. Le Javascript (Logique Frontend)
-C'est là que la magie opère. Voici les fonctions clés à comprendre :
-
-*   **Logique d'Authentification :** `handleAuthResponse` sauvegarde le JWT dans le `localStorage` du navigateur. `updateAuthUI` vérifie si ce jeton existe pour décider d'afficher le tableau de bord ou l'écran de connexion.
-*   **Tableau de Bord (`renderInteractiveDashboard`) :** Cette fonction prend les données brutes de la base de données, les regroupe par répertoire (titre + couleur), et génère le HTML dynamique pour afficher la liste avec les petits boutons `+` et `-`.
-*   **Chargement Lichess (`loadLichessStudy`) :** Elle utilise `fetch` pour aller chercher le fichier `.pgn` sur l'API publique de Lichess. Elle utilise des expressions régulières (`match`) pour extraire le vrai nom de l'étude depuis les balises PGN.
-*   **Le Moteur d'Entraînement :**
-    *   `startTrainingSession` : Initialise l'arbre (`buildRepertoireTree`), met les compteurs à zéro, et affiche l'échiquier. Elle envoie aussi immédiatement un "ping" à l'historique pour dire que le chapitre a été ouvert.
-    *   `preparePlayerTurn` : Dit à Chessground (l'échiquier visuel) quelles pièces le joueur a le droit de bouger. Si on est en mode "Découverte", elle dessine une flèche verte.
-    *   `onUserMove` : Déclenchée quand vous relâchez une pièce. Elle vérifie avec `chess.js` si le coup est légal, puis cherche dans l'arbre PGN si ce coup correspond à la théorie. Si oui -> succès, sinon -> erreur.
-    *   `playOpponentMove` : Fait jouer l'ordinateur automatiquement en suivant l'arbre PGN.
-    *   `handleVariationEnd` : S'exécute quand on arrive à la fin d'une ligne. Si l'arbre entier est complété, elle affiche le score final, envoie les données au serveur (`saveHistory`), et fait apparaître les boutons pour rejouer ou passer au chapitre suivant.
+### C. Variables d'Environnement (`.env`)
+Toutes les informations sensibles sont stockées dans le fichier `.env` (non suivi par Git pour la sécurité) :
+*   `SMTP_USER` / `SMTP_PASS` : Identifiants de l'expéditeur de mails (ex: Gmail).
+*   `JWT_SECRET` : Clé secrète pour signer les jetons de session.
+*   `APP_URL` : L'adresse de votre site pour que les liens dans les mails pointent au bon endroit.
 
 ---
 
-## En résumé : Le cycle de vie d'une action
+## 4. Structure des Fichiers Clés
 
-1. Vous copiez un lien Lichess et cliquez sur Charger.
-2. `chess.html` envoie une requête à l'API Lichess, télécharge le texte PGN, et appelle `data.js` pour découper les chapitres.
-3. Vous cliquez sur "Démarrer". `data.js` transforme le texte du chapitre en un arbre de coups. `chess.html` affiche l'échiquier. Une requête est envoyée au `server.js` pour noter dans SQLite que vous avez commencé ce chapitre.
-4. Vous jouez un coup. `chess.js` vérifie les règles, le code JS compare votre coup à l'arbre.
-5. Vous finissez la révision. `chess.html` calcule votre % de réussite et envoie les statistiques finales à `server.js` qui met à jour la base de données SQLite.
-6. Vous retournez au menu. `chess.html` demande l'historique à `server.js`, qui lit SQLite, renvoie les données, et le code JS reconstruit l'affichage de votre tableau de bord.
+*   `database.js` : Initialise SQLite et définit le schéma des tables `users` (avec colonnes email/tokens) et `history`.
+*   `server.js` : Contient toute la logique API. Gère les inscriptions, les connexions, la vérification des tokens et le stockage de l'historique de révision.
+*   `mailer.js` : Utilitaire central pour l'envoi de mails. Il bascule automatiquement en mode "Mock" (affichage dans la console) si aucun identifiant SMTP n'est configuré, facilitant le développement.
+*   `chess.html` : 
+    *   **Vues dynamiques :** Gère l'affichage des formulaires (Login, Register, Forgot, Reset) et du Dashboard.
+    *   **Gestion des URLs :** Détecte automatiquement les paramètres `?verify=...` ou `?reset=...` dans l'adresse pour afficher la bonne interface à l'utilisateur.
+    *   **Moteur d'entraînement :** Compare chaque coup joué par l'utilisateur à l'arbre théorique généré à partir du PGN Lichess.
+
+---
+
+## 5. Cycle de Vie des Données d'Entraînement
+
+1.  **Chargement :** Le PGN est récupéré depuis Lichess et transformé en arbre de coups par `data.js`.
+2.  **Pratique :** L'utilisateur joue ses coups. En mode **Révision**, les erreurs sont comptabilisées.
+3.  **Calcul :** À la fin du chapitre, le score est calculé : `(Total coups - Erreurs) / Total coups`.
+4.  **Persistance :** Le résultat est envoyé au serveur et stocké dans SQLite uniquement si la session est une "Révision" complète.
+5.  **Visualisation :** Le Dashboard récupère ces données pour afficher la progression (dernière date de révision, taux de succès moyen, nombre de tentatives).

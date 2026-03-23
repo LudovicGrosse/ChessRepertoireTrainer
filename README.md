@@ -7,6 +7,8 @@ This application provides a personalized experience where users can log in, prac
 ## 🚀 Features
 
 -   **User Authentication:** Secure login and registration system with JWT session management.
+-   **Email Verification:** New accounts require email verification via a clickable link sent automatically after registration.
+-   **Password Recovery:** Secure "Forgot Password" functionality that sends a 1-hour valid reset link to the user's email.
 -   **Lichess Integration:** Seamlessly load any public Lichess study by pasting its URL or ID. The app automatically extracts the real study name and all chapters.
 -   **Interactive Dashboard:** 
     -   Track all your loaded repertoires, grouped by color.
@@ -35,29 +37,33 @@ The project uses a Node.js/Express backend with a local SQLite database for zero
     ```bash
     npm install
     ```
-4.  Start the local server:
+4.  **Configure Environment Variables:**
+    -   Copy `.env.example` to `.env`.
+    -   Fill in your SMTP credentials (e.g., Gmail App Password) to enable email features.
+5.  Start the local server:
     ```bash
     npm start
     ```
-5.  Open your browser and navigate to: `http://localhost:3000`
+6.  Open your browser and navigate to: `http://localhost:3000`
 
 ## 📖 How to Use
 
-1.  **Log In / Sign Up:** Create an account or log in to access your dashboard.
-2.  **Load Content:** Enter a Lichess Study URL and click **"Charger le répertoire"**.
-3.  **Configure:**
-    -   Select the side you want to train (**Blancs** or **Noirs**).
-    -   Choose the mode (**Découverte** or **Révision**).
-    -   Select a specific chapter.
-4.  **Train:** Click **"Démarrer l'entraînement"**. Follow the moves or test your memory.
-5.  **Review:** After a session, check your Dashboard to see your updated success rate and history.
+1.  **Register:** Create an account with your email.
+2.  **Verify:** Check your email (or terminal in mock mode) and click the verification link.
+3.  **Log In:** Access your dashboard with your verified account.
+4.  **Load Content:** Enter a Lichess Study URL and click **"Charger le répertoire"**.
+5.  **Configure:** Select side, mode, and chapter.
+6.  **Train:** Click **"Démarrer l'entraînement"**. Follow the moves or test your memory.
+7.  **Review:** After a session, check your Dashboard to see your updated success rate and history.
 
 ## 📂 Project Structure
 
 -   `server.js`: The Express.js backend handling API routes, JWT authentication, and database queries.
 -   `database.js`: SQLite database initialization and schema definitions (`users` and `history` tables).
+-   `mailer.js`: Email utility using `nodemailer` for verification and password reset.
 -   `chess.html`: The main frontend SPA containing the UI, routing logic, and training engine.
 -   `data.js`: Handles PGN parsing and tree building for the repertoire navigation.
+-   `.env`: Local configuration for SMTP and JWT secrets (ignored by git).
 
 ## 📜 License
 
