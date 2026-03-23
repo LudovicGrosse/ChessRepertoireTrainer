@@ -326,7 +326,12 @@
                 <input type="text" id="usernameInput" placeholder="Nom d'utilisateur">
                 <div class="password-container">
                     <input type="password" id="passwordInput" placeholder="Mot de passe">
-                    <button type="button" id="togglePasswordBtn" class="password-toggle" tabindex="-1">👁️</button>
+                    <button type="button" id="togglePasswordBtn" class="password-toggle" tabindex="-1">
+                        <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
                 </div>
                 <div class="row-buttons">
                     <button id="loginBtn">Se connecter</button>
@@ -477,13 +482,17 @@
         // =========================================
         // AUTH LOGIC
         // =========================================
-        togglePasswordBtn.addEventListener('click', () => {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            // Optional: change icon based on state if desired, keeping simple here
+        togglePasswordBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                togglePasswordBtn.style.color = '#fff';
+            } else {
+                passwordInput.type = 'password';
+                togglePasswordBtn.style.color = '#aaa';
+            }
         });
 
-        const updateAuthUI = () => {
         const repertoireListEl = document.getElementById('repertoireList'), refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
 
         const startBtn = document.getElementById('startBtn'), loadBtn = document.getElementById('loadBtn'), lichessInput = document.getElementById('lichessInput'), lichessFeedback = document.getElementById('lichessFeedback');
