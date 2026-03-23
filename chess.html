@@ -226,59 +226,153 @@
         cg-board square.move-dest { background: radial-gradient(rgba(0, 0, 0, 0.15) 20%, transparent 20%); }
 
         @media (max-width: 768px) { #training-view { flex-direction: column-reverse; } }
+
+        /* Top Bar Styles */
+        header {
+            width: 100%;
+            background: #1e1e1e;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+        header .user-badge { display: flex; align-items: center; gap: 15px; font-size: 14px; }
+        
+        body { padding-top: 80px; } /* Space for fixed header */
+
+        /* Auth & Dashboard Styles */
+        .auth-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .dashboard-card { background: var(--card-bg); padding: 25px; border-radius: 12px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 15px; }
+        
+        /* Interactive History Styles */
+        .repertoire-item {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            background: #2a2a2a;
+        }
+        .repertoire-header {
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .repertoire-header:hover { background: #333; }
+        .repertoire-header .meta { font-size: 12px; color: #aaa; display: flex; gap: 15px; }
+        .color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 1px solid #555; }
+        .color-white { background: #fff; }
+        .color-black { background: #555; }
+
+        .chapters-detail {
+            background: #1e1e1e;
+            border-top: 1px solid var(--border-color);
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .chapters-detail.open { max-height: 500px; padding: 10px; overflow-y: auto; }
+        
+        .chapter-row {
+            padding: 10px;
+            border-radius: 6px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            align-items: center;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .chapter-row:hover { background: #2a2a2a; color: #4caf50; }
+        .chapter-row .label { color: #aaa; font-size: 11px; display: block; }
+        
+        .success-rate { font-weight: bold; color: #4caf50; }
+        .low-success { color: #e57373; }
     </style>
 </head>
 <body>
 
+    <header id="top-bar" class="hidden">
+        <div style="font-weight: bold; color: #4caf50;">Chess Repertoire Trainer</div>
+        <div class="user-badge">
+            <span>Bonjour, <strong id="displayUsername"></strong></span>
+            <button id="logoutBtn" class="danger" style="padding: 5px 12px; font-size: 12px;">Déconnexion</button>
+        </div>
+    </header>
+
     <div id="setup-view">
         <h1 class="header-title">Chess Repertoire Trainer</h1>
-        
-        <div class="setup-card">
-            <h2>Charger un répertoire</h2>
-            
-            <div class="toggle-container" id="sourceToggle" data-state="left" style="margin-bottom: 15px;">
-                <div class="toggle-slider"></div>
-                <div class="toggle-option active" data-val="lichess">Étude Lichess</div>
-                <div class="toggle-option" data-val="pgn">Coller un PGN</div>
-            </div>
 
-            <div id="lichess-input-group" class="form-group">
-                <label>Lien ou ID de l'étude publique :</label>
-                <input type="text" id="lichessInput" placeholder="https://lichess.org/study/xxxxxx">
+        <!-- AUTH SECTION (Landing) -->
+        <div id="auth-section" class="setup-card">
+            <h2>Connexion / Inscription</h2>
+            <div class="auth-container">
+                <input type="text" id="usernameInput" placeholder="Nom d'utilisateur">
+                <input type="password" id="passwordInput" placeholder="Mot de passe">
+                <div class="row-buttons">
+                    <button id="loginBtn">Se connecter</button>
+                    <button id="registerBtn" class="secondary">S'inscrire</button>
+                </div>
             </div>
-
-            <div id="pgn-input-group" class="form-group hidden">
-                <label>Texte PGN (Multi-chapitres supportés) :</label>
-                <textarea id="quickPgnInput" placeholder="[Event &quot;Chapitre 1&quot;]&#10;1. e4 e5..."></textarea>
-            </div>
-
-            <button id="loadBtn" class="secondary" style="margin-top: 10px;">Charger le répertoire</button>
-            <div id="lichessFeedback" style="color: #e57373; font-size: 14px; margin-top: 5px; display: none;"></div>
+            <div id="authFeedback" style="color: #e57373; font-size: 14px; margin-top: 5px; display: none;"></div>
         </div>
 
-        <div class="setup-card" id="config-card" style="display: none;">
-            <h2 id="config-title">Configuration</h2>
-            <div id="chapter-selection-area" class="hidden" style="margin-top: 10px;">
-                <label style="font-size: 0.9rem; color: #aaa; margin-bottom: 5px; display: block;">Choix du chapitre :</label>
-                <div class="chapter-list" id="chapterList" style="max-height: 250px;">
+        <!-- LOGGED IN CONTENT (Hidden by default) -->
+        <div id="main-setup-content" class="hidden" style="display: flex; flex-direction: column; gap: 20px;">
+            
+            <div class="setup-card" id="dashboard-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h2 style="margin:0; border:none; padding:0;">Vos Répertoires</h2>
+                    <button id="refreshHistoryBtn" class="secondary" style="padding: 5px 10px; font-size: 12px;">Rafraîchir</button>
+                </div>
+                <div id="repertoireList">
                     <!-- Dynamically populated -->
+                    <div style="text-align: center; color: #777; padding: 20px;">Chargement de l'historique...</div>
                 </div>
             </div>
 
-            <div class="toggle-row">
-                <div class="toggle-container color-toggle" id="colorToggle" data-state="left">
-                    <div class="toggle-slider"></div>
-                    <div class="toggle-option active" data-val="white">Blancs</div>
-                    <div class="toggle-option" data-val="black">Noirs</div>
+            <div class="setup-card">
+                <h2>Charger une nouvelle étude</h2>
+                <div id="lichess-input-group" class="form-group">
+                    <label>Lien ou ID de l'étude publique Lichess :</label>
+                    <input type="text" id="lichessInput" placeholder="https://lichess.org/study/xxxxxx">
                 </div>
-                <div class="toggle-container" id="modeToggle" data-state="left">
-                    <div class="toggle-slider"></div>
-                    <div class="toggle-option active" data-val="decouverte">Découverte</div>
-                    <div class="toggle-option" data-val="revision">Révision</div>
-                </div>
+                <button id="loadBtn" class="secondary" style="margin-top: 10px;">Charger le répertoire</button>
+                <div id="lichessFeedback" style="color: #e57373; font-size: 14px; margin-top: 5px; display: none;"></div>
             </div>
 
-            <button id="startBtn" style="font-size: 16px; padding: 15px; margin-top: 10px;" disabled>Démarrer l'entraînement</button>
+            <div class="setup-card" id="config-card" style="display: none;">
+                <h2 id="config-title">Répertoire</h2>
+                <div id="chapter-selection-area" class="hidden" style="margin-top: 10px;">
+                    <label style="font-size: 0.9rem; color: #aaa; margin-bottom: 5px; display: block;">Choix du chapitre :</label>
+                    <div class="chapter-list" id="chapterList" style="max-height: 250px;">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-container color-toggle" id="colorToggle" data-state="left">
+                        <div class="toggle-slider"></div>
+                        <div class="toggle-option active" data-val="white">Blancs</div>
+                        <div class="toggle-option" data-val="black">Noirs</div>
+                    </div>
+                    <div class="toggle-container" id="modeToggle" data-state="left">
+                        <div class="toggle-slider"></div>
+                        <div class="toggle-option active" data-val="decouverte">Découverte</div>
+                        <div class="toggle-option" data-val="revision">Révision</div>
+                    </div>
+                </div>
+
+                <button id="startBtn" style="font-size: 16px; padding: 15px; margin-top: 10px;" disabled>Démarrer l'entraînement</button>
+            </div>
         </div>
     </div>
 
@@ -288,6 +382,10 @@
             <div id="trainingHeader" style="text-align: center; margin-bottom: 5px; font-weight: bold; color: #4caf50; font-size: 1.1rem;"></div>
             <div id="feedback" class="feedback waiting">Préparation...</div>
             
+            <div id="trainingActions" class="hidden">
+                <!-- Buttons added dynamically at the end of a chapter -->
+            </div>
+
             <div class="stats-panel">
                 <div class="stat-row"><span>Coups à apprendre :</span><span id="statMoves" class="stat-value">0 / 0</span></div>
                 <div class="stat-row"><span>Variantes :</span><span id="statVars" class="stat-value">0 / 0</span></div>
@@ -354,40 +452,337 @@
         let currentRepertoire = null, currentChapterIndex = -1, selectedChapterPgn = null, currentPath = [], viewIndex = 0;
         let totalMoves = 0, learnedMoves = 0, totalVariations = 0, learnedVariations = 0, errorCount = 0, currentMoveErrorLogged = false;
 
+        // AUTH & API STATE
+        let currentUser = null;
+        let authToken = localStorage.getItem('chess_token');
+
         const setupView = document.getElementById('setup-view'), configCard = document.getElementById('config-card'), trainingView = document.getElementById('training-view');
+        
+        // Auth & Navigation Elements
+        const topBar = document.getElementById('top-bar'), authSection = document.getElementById('auth-section'), mainSetupContent = document.getElementById('main-setup-content');
+        const usernameInput = document.getElementById('usernameInput'), passwordInput = document.getElementById('passwordInput'), loginBtn = document.getElementById('loginBtn'), registerBtn = document.getElementById('registerBtn'), logoutBtn = document.getElementById('logoutBtn'), displayUsername = document.getElementById('displayUsername'), authFeedback = document.getElementById('authFeedback');
+        
+        // Dashboard Elements
+        const repertoireListEl = document.getElementById('repertoireList'), refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
+
         const startBtn = document.getElementById('startBtn'), loadBtn = document.getElementById('loadBtn'), lichessInput = document.getElementById('lichessInput'), lichessFeedback = document.getElementById('lichessFeedback');
-        const quickPgnInput = document.getElementById('quickPgnInput'), configTitle = document.getElementById('config-title');
+        const configTitle = document.getElementById('config-title');
         const chapterListEl = document.getElementById('chapterList'), chapterSelectionArea = document.getElementById('chapter-selection-area');
         
-        const trainingHeaderEl = document.getElementById('trainingHeader'), activeLineDisplay = document.getElementById('activeLineDisplay'), commentBox = document.getElementById('commentBox'), hintBtn = document.getElementById('hintBtn'), stopBtn = document.getElementById('stopBtn'), prevBtn = document.getElementById('prevBtn'), nextBtn = document.getElementById('nextBtn'), toggleCommentsBtn = document.getElementById('toggleCommentsBtn'), analysisLink = document.getElementById('analysisLink'), feedbackEl = document.getElementById('feedback'), statMovesEl = document.getElementById('statMoves'), statVarsEl = document.getElementById('statVars'), statErrorsEl = document.getElementById('statErrors'), errorStatRow = document.getElementById('errorStatRow'), boardEl = document.getElementById('board'), boardWrapper = document.querySelector('.board-wrapper');
+        const trainingHeaderEl = document.getElementById('trainingHeader'), activeLineDisplay = document.getElementById('activeLineDisplay'), commentBox = document.getElementById('commentBox'), hintBtn = document.getElementById('hintBtn'), stopBtn = document.getElementById('stopBtn'), prevBtn = document.getElementById('prevBtn'), nextBtn = document.getElementById('nextBtn'), toggleCommentsBtn = document.getElementById('toggleCommentsBtn'), analysisLink = document.getElementById('analysisLink'), feedbackEl = document.getElementById('feedback'), statMovesEl = document.getElementById('statMoves'), statVarsEl = document.getElementById('statVars'), statErrorsEl = document.getElementById('statErrors'), errorStatRow = document.getElementById('errorStatRow'), boardEl = document.getElementById('board');
 
-        const sourceToggle = document.getElementById('sourceToggle');
-        const lichessGroup = document.getElementById('lichess-input-group');
-        const pgnGroup = document.getElementById('pgn-input-group');
+        // =========================================
+        // AUTH LOGIC
+        // =========================================
+        const updateAuthUI = () => {
+            if (authToken) {
+                authSection.classList.add('hidden');
+                mainSetupContent.classList.remove('hidden');
+                topBar.classList.remove('hidden');
+                const user = JSON.parse(localStorage.getItem('chess_user'));
+                displayUsername.textContent = user ? user.username : 'Utilisateur';
+                fetchHistory();
+            } else {
+                authSection.classList.remove('hidden');
+                mainSetupContent.classList.add('hidden');
+                topBar.classList.add('hidden');
+            }
+        };
+
+        const handleAuthResponse = (data) => {
+            if (data.token) {
+                authToken = data.token;
+                localStorage.setItem('chess_token', data.token);
+                localStorage.setItem('chess_user', JSON.stringify(data.user));
+                authFeedback.style.display = 'none';
+                updateAuthUI();
+            }
+        };
+
+        loginBtn.addEventListener('click', async () => {
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+            if (!username || !password) return;
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (res.ok) handleAuthResponse(data);
+                else throw new Error(data.error);
+            } catch (err) {
+                authFeedback.textContent = err.message;
+                authFeedback.style.display = 'block';
+            }
+        });
+
+        registerBtn.addEventListener('click', async () => {
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+            if (!username || !password) return;
+
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    authFeedback.textContent = "Compte créé ! Connectez-vous.";
+                    authFeedback.style.color = "#4caf50";
+                    authFeedback.style.display = 'block';
+                } else throw new Error(data.error);
+            } catch (err) {
+                authFeedback.textContent = err.message;
+                authFeedback.style.color = "#e57373";
+                authFeedback.style.display = 'block';
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            authToken = null;
+            localStorage.removeItem('chess_token');
+            localStorage.removeItem('chess_user');
+            
+            // Clear inputs
+            usernameInput.value = '';
+            passwordInput.value = '';
+            lichessInput.value = '';
+            
+            // Reset Training view if active
+            isTraining = false;
+            trainingView.classList.add('hidden');
+            setupView.classList.remove('hidden');
+            configCard.style.display = 'none';
+            if (cg) cg.set({ drawable: { autoShapes: [] } });
+            
+            updateAuthUI();
+        });
+
+        // =========================================
+        // DASHBOARD LOGIC
+        // =========================================
+        const fetchHistory = async () => {
+            if (!authToken) return;
+            try {
+                const res = await fetch('/api/history', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    renderInteractiveDashboard(data);
+                }
+            } catch (err) { console.error("Failed to fetch history:", err); }
+        };
+
+        const renderInteractiveDashboard = (history) => {
+            if (history.length === 0) {
+                repertoireListEl.innerHTML = '<div style="text-align: center; color: #777; padding: 20px;">Aucun historique de révision.</div>';
+                return;
+            }
+
+            // Group by repertoire AND color
+            const repertoires = {};
+            history.forEach(entry => {
+                const repKey = entry.repertoire_title + '_' + entry.color;
+                if (!repertoires[repKey]) {
+                    repertoires[repKey] = {
+                        title: entry.repertoire_title,
+                        study_id: entry.study_id,
+                        color: entry.color,
+                        chaptersHistory: {},
+                        last_revision: null,
+                        total_chapters: entry.total_chapters || 0
+                    };
+                }
+                const rep = repertoires[repKey];
+                
+                // Track last revision ONLY if it's a valid revision
+                if (entry.is_revision) {
+                    if (!rep.last_revision || new Date(entry.date) > new Date(rep.last_revision)) {
+                        rep.last_revision = entry.date;
+                    }
+                }
+                
+                if (!rep.chaptersHistory[entry.chapter_title]) {
+                    rep.chaptersHistory[entry.chapter_title] = {
+                        title: entry.chapter_title,
+                        revisions: [],
+                        total_revisions: 0
+                    };
+                }
+                // Only count as revision if is_revision flag is true
+                if (entry.is_revision) {
+                    rep.chaptersHistory[entry.chapter_title].revisions.push(entry);
+                    rep.chaptersHistory[entry.chapter_title].total_revisions++;
+                }
+            });
+
+            repertoireListEl.innerHTML = '';
+            Object.values(repertoires).sort((a,b) => {
+                if (!a.last_revision) return 1;
+                if (!b.last_revision) return -1;
+                return new Date(b.last_revision) - new Date(a.last_revision);
+            }).forEach(rep => {
+                const repItem = document.createElement('div');
+                repItem.className = 'repertoire-item';
+                
+                const lastDate = rep.last_revision ? new Date(rep.last_revision).toLocaleDateString('fr-FR') : 'Jamais';
+                const colorClass = rep.color === 'white' ? 'color-white' : 'color-black';
+                const chapWord = (rep.total_chapters || 0) <= 1 ? 'chapitre' : 'chapitres';
+
+                repItem.innerHTML = `
+                    <div class="repertoire-header">
+                        <div>
+                            <strong>${rep.title} <span style="color: #777; font-weight: normal; font-size: 0.85rem;">(${(rep.total_chapters || 0)} ${chapWord})</span></strong>
+                            <div class="meta">
+                                <span><span class="color-dot ${colorClass}"></span> ${rep.color === 'white' ? 'Blancs' : 'Noirs'}</span>
+                                <span>Dernière révision: ${lastDate}</span>
+                            </div>
+                        </div>
+                        <div class="toggle-icon" style="font-size: 20px; color: #4caf50;">+</div>
+                    </div>
+                    <div class="chapters-detail"></div>
+                `;
+
+                const header = repItem.querySelector('.repertoire-header');
+                const detail = repItem.querySelector('.chapters-detail');
+                const icon = repItem.querySelector('.toggle-icon');
+                
+                header.onclick = async () => {
+                    const isOpen = detail.classList.contains('open');
+                    document.querySelectorAll('.chapters-detail').forEach(d => d.classList.remove('open'));
+                    document.querySelectorAll('.toggle-icon').forEach(i => i.textContent = '+');
+                    
+                    if (!isOpen) {
+                        detail.classList.add('open');
+                        icon.textContent = '-';
+                        
+                        // Extract correct Lichess Study ID
+                        let extractedId = rep.study_id;
+                        if (extractedId && extractedId.includes('lichess.org/study/')) {
+                            const match = extractedId.match(/lichess\.org\/study\/([a-zA-Z0-9]+)/);
+                            if (match) extractedId = match[1];
+                        }
+                        if (!extractedId) {
+                            const match = rep.title.match(/\((.*?)\)/);
+                            if (match) extractedId = match[1];
+                        }
+
+                        if (!extractedId) {
+                            detail.innerHTML = '<div style="padding: 15px; text-align: center; font-size: 13px; color: #e57373;">Impossible de retrouver l\'ID de l\'étude.</div>';
+                            return;
+                        }
+                        
+                        detail.innerHTML = '<div style="padding: 15px; text-align: center; font-size: 13px; color: #777;">Chargement des chapitres...</div>';
+                        try {
+                            const response = await fetch(`https://lichess.org/api/study/${extractedId}.pgn`, {
+                                headers: { 'Accept': 'application/x-chess-pgn' }
+                            });
+                            if (!response.ok) throw new Error(`Lichess API returned ${response.status}`);
+                            
+                            const pgnText = await response.text();
+                            const allChapters = parseMultiPgn(pgnText);
+                            
+                            detail.innerHTML = '';
+                            allChapters.forEach(chap => {
+                                const hist = rep.chaptersHistory[chap.title];
+                                const validRevisions = hist ? hist.revisions : [];
+                                const latest = validRevisions.length > 0 ? validRevisions[0] : null;
+                                
+                                // CLEAN CHAPTER TITLE (Remove redundant study name prefix)
+                                let displayTitle = chap.title;
+                                if (displayTitle.startsWith(rep.title + ": ")) {
+                                    displayTitle = displayTitle.replace(rep.title + ": ", "");
+                                }
+
+                                const successRate = latest ? Math.max(0, Math.round(((latest.total_moves - latest.errors) / latest.total_moves) * 100)) : '-';
+                                const successClass = latest ? (successRate > 70 ? 'success-rate' : (successRate < 40 ? 'low-success' : '')) : '';
+                                const chapDate = latest ? new Date(latest.date).toLocaleDateString('fr-FR') : 'Jamais';
+                                const revCount = hist ? hist.total_revisions : 0;
+
+                                const chapRow = document.createElement('div');
+                                chapRow.className = 'chapter-row';
+                                if (!latest) chapRow.style.opacity = '0.6';
+
+                                chapRow.innerHTML = `
+                                    <div>
+                                        <span class="label">Chapitre</span>
+                                        <strong>${displayTitle}</strong>
+                                    </div>
+                                    <div>
+                                        <span class="label">Succès</span>
+                                        <span class="${successClass}">${successRate}${latest ? '%' : ''}</span>
+                                    </div>
+                                    <div>
+                                        <span class="label">Révisions</span>
+                                        ${revCount}
+                                    </div>
+                                    <div>
+                                        <span class="label">Dernière</span>
+                                        ${chapDate}
+                                    </div>
+                                `;
+
+                                chapRow.onclick = (e) => {
+                                    e.stopPropagation();
+                                    relaunchStudy(rep.study_id || extractedId, chap.title, rep.color);
+                                };
+                                detail.appendChild(chapRow);
+                            });
+                        } catch (err) {
+                            console.error("Dashboard Fetch Error:", err);
+                            detail.innerHTML = `<div style="padding: 15px; text-align: center; font-size: 13px; color: #e57373;">Erreur Lichess : ${err.message}</div>`;
+                        }
+                    }
+                };
+                repertoireListEl.appendChild(repItem);
+            });
+        };
+
+        const relaunchStudy = async (studyId, chapterTitle, color) => {
+            lichessInput.value = studyId;
+            setToggleState('colorToggle', color);
+            setToggleState('modeToggle', 'revision');
+            
+            // Trigger load
+            await loadLichessStudy(studyId, chapterTitle);
+        };
+
+        const saveHistory = async (stats) => {
+            if (!authToken) return;
+            try {
+                await fetch('/api/history', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        ...stats,
+                        study_id: lichessInput.value.trim(),
+                        color: playerColor,
+                        total_chapters: currentRepertoire ? currentRepertoire.chapters.length : 0
+                    })
+                });
+                fetchHistory(); // Refresh list
+            } catch (err) { console.error("Failed to save history:", err); }
+        };
+
+        refreshHistoryBtn.onclick = fetchHistory;
+        updateAuthUI();
 
         // =========================================
         // SETUP & FETCH LOGIC
         // =========================================
-        
-        // Handle Source Toggle switching
-        sourceToggle.querySelectorAll('.toggle-option').forEach(option => {
-            option.addEventListener('click', () => {
-                const val = getToggleState('sourceToggle');
-                if (val === 'lichess') {
-                    lichessGroup.classList.remove('hidden');
-                    pgnGroup.classList.add('hidden');
-                } else {
-                    lichessGroup.classList.add('hidden');
-                    pgnGroup.classList.remove('hidden');
-                }
-                configCard.style.display = 'none'; // Reset config on toggle
-            });
-        });
-
         const showConfigCard = (title, chapters) => {
             currentRepertoire = { title, chapters };
             currentChapterIndex = -1; // Reset selection when a new repertoire is loaded
-            configTitle.textContent = `Configuration : ${title}`;
+            configTitle.textContent = `Répertoire : ${title}`;
             configCard.style.display = 'flex';
             updateChapterList();
             configCard.scrollIntoView({ behavior: 'smooth' });
@@ -396,7 +791,7 @@
         const updateChapterList = () => {
             if (!currentRepertoire) return;
             playerColor = getToggleState('colorToggle');
-            const previousIdx = currentChapterIndex; // Remember previous selection
+            const previousIdx = currentChapterIndex;
             
             chapterListEl.innerHTML = '';
             selectedChapterPgn = null;
@@ -423,8 +818,6 @@
 
                     const btn = document.createElement('button');
                     btn.className = 'chapter-btn';
-                    
-                    // Restore selection state
                     if (idx === previousIdx) {
                         btn.classList.add('selected');
                         selectedChapterPgn = chap.pgn;
@@ -447,57 +840,59 @@
 
         document.getElementById('colorToggle').addEventListener('click', () => setTimeout(updateChapterList, 50));
 
-        loadBtn.addEventListener('click', async () => {
-            const source = getToggleState('sourceToggle');
+        const loadLichessStudy = async (input, targetChapterTitle = null) => {
             lichessFeedback.style.display = 'none';
             configCard.style.display = 'none';
+            if (!input) return;
+            
+            let studyId = input;
+            const match = input.match(/lichess\.org\/study\/([a-zA-Z0-9]+)/);
+            if (match) studyId = match[1];
 
-            if (source === 'lichess') {
-                const input = lichessInput.value.trim();
-                if (!input) return;
+            loadBtn.disabled = true;
+            loadBtn.textContent = "Chargement...";
+
+            try {
+                const response = await fetch(`https://lichess.org/api/study/${studyId}.pgn`, {
+                    headers: { 'Accept': 'application/x-chess-pgn' }
+                });
+                if (!response.ok) throw new Error("Étude non trouvée ou erreur API.");
                 
-                let studyId = input;
-                const match = input.match(/lichess\.org\/study\/([a-zA-Z0-9]+)/);
-                if (match) studyId = match[1];
-
-                loadBtn.disabled = true;
-                loadBtn.textContent = "Chargement...";
-
-                try {
-                    const response = await fetch(`https://lichess.org/api/study/${studyId}.pgn`, {
-                        headers: { 'Accept': 'application/x-chess-pgn' }
-                    });
-                    
-                    if (!response.ok) {
-                        if (response.status === 404) throw new Error("Étude non trouvée. Vérifiez l'ID.");
-                        throw new Error("Erreur Lichess : " + response.statusText);
-                    }
-                    
-                    const pgnText = await response.text();
-                    const chapters = parseMultiPgn(pgnText);
-                    if (chapters.length === 0) throw new Error("L'étude semble vide ou invalide.");
-                    
-                    showConfigCard(`Étude Lichess (${studyId})`, chapters);
-                } catch (err) {
-                    console.error("Fetch error:", err);
-                    let errorMsg = err.message;
-                    if (err.name === 'TypeError' && window.location.protocol === 'file:') {
-                        errorMsg = "Bloqué par le navigateur (CORS). Pour corriger : lancez un serveur local ou utilisez l'entraînement rapide.";
-                    }
-                    lichessFeedback.textContent = errorMsg;
-                    lichessFeedback.style.display = 'block';
-                } finally {
-                    loadBtn.disabled = false;
-                    loadBtn.textContent = "Charger le répertoire";
+                const pgnText = await response.text();
+                
+                // EXTRACT STUDY NAME
+                let studyName = `Étude Lichess (${studyId})`;
+                const studyNameMatch = pgnText.match(/\[StudyName "(.*?)"\]/);
+                if (studyNameMatch) {
+                    studyName = studyNameMatch[1];
+                } else {
+                    const eventMatch = pgnText.match(/\[Event "(.*?):/);
+                    if (eventMatch) studyName = eventMatch[1];
                 }
-            } else {
-                const pgnText = quickPgnInput.value.trim();
-                if (!pgnText) { alert("Veuillez coller un PGN."); return; }
+
                 const chapters = parseMultiPgn(pgnText);
-                if (chapters.length === 0) { alert("Aucun chapitre valide trouvé."); return; }
-                showConfigCard("Entraînement Rapide (PGN)", chapters);
+                if (chapters.length === 0) throw new Error("L'étude semble vide.");
+                
+                showConfigCard(studyName, chapters);
+
+                // Auto-select chapter if provided
+                if (targetChapterTitle) {
+                    const idx = chapters.findIndex(c => c.title === targetChapterTitle);
+                    if (idx !== -1) {
+                        currentChapterIndex = idx;
+                        updateChapterList(); // Select the button
+                    }
+                }
+            } catch (err) {
+                lichessFeedback.textContent = err.message;
+                lichessFeedback.style.display = 'block';
+            } finally {
+                loadBtn.disabled = false;
+                loadBtn.textContent = "Charger le répertoire";
             }
-        });
+        };
+
+        loadBtn.addEventListener('click', () => loadLichessStudy(lichessInput.value.trim()));
 
         startBtn.addEventListener('click', () => {
             if (!selectedChapterPgn || currentChapterIndex === -1) return;
@@ -505,13 +900,49 @@
             startTrainingSession(selectedChapterPgn, chapterTitle);
         });
 
+        // Hoisted up to be accessible by startTrainingSession
+        const initializeStats = (node) => {
+            totalMoves = 0; learnedMoves = 0; totalVariations = 0; learnedVariations = 0; errorCount = 0; currentMoveErrorLogged = false; 
+            const traverse = (n) => {
+                if (n.id !== 'root' && n.color === playerColor) totalMoves++;
+                if (n.children.length === 0 && n.id !== 'root') { n.isLeaf = true; totalVariations++; }
+                n.children.forEach(traverse);
+            };
+            traverse(node); updateStatsUI();
+        };
+
         const startTrainingSession = (pgn, chapterTitle) => {
             playerColor = getToggleState('colorToggle');
             trainingMode = getToggleState('modeToggle');
             try { rootNode = buildRepertoireTree(pgn); } catch (err) { alert("Erreur lors de la lecture du PGN."); return; }
             initializeStats(rootNode);
             if (totalMoves === 0) { alert("Aucun coup trouvé pour cette couleur dans ce chapitre."); return; }
-            trainingHeaderEl.textContent = `${currentRepertoire.title} > ${chapterTitle}`;
+            
+            // SAVE TO HISTORY IMMEDIATELY (So it appears even if never revised)
+            if (authToken) {
+                saveHistory({
+                    repertoire_title: currentRepertoire.title,
+                    chapter_title: chapterTitle,
+                    moves_learned: 0,
+                    total_moves: totalMoves,
+                    errors: 0
+                });
+            }
+
+            // CLEAN CHAPTER TITLE FOR UI (Remove study name if present)
+            let displayChapter = chapterTitle;
+            if (displayChapter.startsWith(currentRepertoire.title + ": ")) {
+                displayChapter = displayChapter.replace(currentRepertoire.title + ": ", "");
+            }
+
+            // RESET UI
+            trainingHeaderEl.innerHTML = `
+                <div style="font-size: 1.1rem; color: #4caf50; font-weight: bold; margin-bottom: 2px;">${currentRepertoire.title}</div>
+                <div style="font-size: 0.85rem; color: #aaa; font-weight: normal; border-top: 1px solid #333; padding-top: 4px; margin-top: 2px;">${displayChapter}</div>
+            `;
+            document.getElementById('trainingActions').classList.add('hidden');
+            document.getElementById('trainingActions').innerHTML = '';
+            
             if (trainingMode === 'decouverte') { errorStatRow.classList.add('hidden'); hintBtn.classList.add('hidden'); } 
             else { errorStatRow.classList.remove('hidden'); hintBtn.classList.remove('hidden'); }
             isTraining = true;
@@ -594,16 +1025,6 @@
             if (uncompleted.length > 0) cg.set({ drawable: { autoShapes: [{ orig: uncompleted[0].from, brush: 'green' }] } });
         });
 
-        const initializeStats = (node) => {
-            totalMoves = 0; learnedMoves = 0; totalVariations = 0; learnedVariations = 0; errorCount = 0; currentMoveErrorLogged = false; 
-            const traverse = (n) => {
-                if (n.id !== 'root' && n.color === playerColor) totalMoves++;
-                if (n.children.length === 0 && n.id !== 'root') { n.isLeaf = true; totalVariations++; }
-                n.children.forEach(traverse);
-            };
-            traverse(node); updateStatsUI();
-        };
-
         const markNodeCompleted = (node) => {
             node.isCompleted = true; if (node.isLeaf) learnedVariations++;
             let parent = node.parent;
@@ -662,18 +1083,61 @@
 
         const handleVariationEnd = () => {
             if (rootNode.isCompleted) {
-                const msg = trainingMode === 'revision' ? `Répertoire complété ! Erreurs : ${errorCount} (${totalMoves > 0 ? ((errorCount / totalMoves) * 100).toFixed(1) : 0}%)` : `Répertoire complété (Mode Découverte)`;
+                const msg = trainingMode === 'revision' ? `Répertoire complété ! Erreurs : ${errorCount} (${totalMoves > 0 ? (Math.max(0, (totalMoves - errorCount) / totalMoves) * 100).toFixed(0) : 0}%)` : `Répertoire complété (Mode Découverte)`;
                 setFeedback(msg, "success");
-                if (currentRepertoire && currentChapterIndex < currentRepertoire.chapters.length - 1) {
+                
+                // SAVE TO HISTORY IF LOGGED IN (Revision mode only)
+                if (authToken && trainingMode === 'revision') {
+                    saveHistory({
+                        repertoire_title: currentRepertoire.title,
+                        chapter_title: currentRepertoire.chapters[currentChapterIndex].title,
+                        moves_learned: learnedMoves,
+                        total_moves: totalMoves,
+                        errors: errorCount
+                    });
+                }
+
+                // UI for actions below feedback
+                const trainingActions = document.getElementById('trainingActions');
+                trainingActions.innerHTML = '';
+                trainingActions.classList.remove('hidden');
+                trainingActions.style.display = 'flex';
+                trainingActions.style.gap = '8px';
+                trainingActions.style.marginTop = '10px';
+
+                // Option 1: Switch to Revision (if in Discovery) or Redo (if in Revision)
+                const actionBtn = document.createElement('button');
+                actionBtn.textContent = trainingMode === 'decouverte' ? "Mode Révision" : "Refaire";
+                actionBtn.onclick = () => {
+                    setToggleState('modeToggle', 'revision');
+                    trainingActions.classList.add('hidden');
+                    startTrainingSession(selectedChapterPgn, currentRepertoire.chapters[currentChapterIndex].title);
+                };
+                trainingActions.appendChild(actionBtn);
+
+                // Option 2: Next Chapter / First Chapter
+                if (currentRepertoire && currentRepertoire.chapters.length > 1) {
                     const nextBtn = document.createElement('button');
-                    nextBtn.textContent = "Chapitre Suivant"; nextBtn.style.marginTop = "10px";
-                    nextBtn.onclick = () => {
-                        currentChapterIndex++;
-                        selectedChapterPgn = currentRepertoire.chapters[currentChapterIndex].pgn;
-                        startTrainingSession(selectedChapterPgn, currentRepertoire.chapters[currentChapterIndex].title);
-                    };
-                    feedbackEl.appendChild(document.createElement('br'));
-                    feedbackEl.appendChild(nextBtn);
+                    nextBtn.className = 'secondary';
+                    
+                    if (currentChapterIndex < currentRepertoire.chapters.length - 1) {
+                        nextBtn.textContent = "Chapitre Suivant";
+                        nextBtn.onclick = () => {
+                            currentChapterIndex++;
+                            selectedChapterPgn = currentRepertoire.chapters[currentChapterIndex].pgn;
+                            trainingActions.classList.add('hidden');
+                            startTrainingSession(selectedChapterPgn, currentRepertoire.chapters[currentChapterIndex].title);
+                        };
+                    } else {
+                        nextBtn.textContent = "Premier Chapitre";
+                        nextBtn.onclick = () => {
+                            currentChapterIndex = 0;
+                            selectedChapterPgn = currentRepertoire.chapters[0].pgn;
+                            trainingActions.classList.add('hidden');
+                            startTrainingSession(selectedChapterPgn, currentRepertoire.chapters[0].title);
+                        };
+                    }
+                    trainingActions.appendChild(nextBtn);
                 }
             } else { setFeedback("Correct", "success"); setTimeout(startNextVariation, 1000); }
         };
