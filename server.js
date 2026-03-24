@@ -193,6 +193,16 @@ app.get('/api/history', authenticateToken, (req, res) => {
     }
 });
 
+app.delete('/api/history/repertoire', authenticateToken, (req, res) => {
+    try {
+        const stmt = db.prepare('DELETE FROM history WHERE user_id = ? AND repertoire_title = ? AND color = ?');
+        stmt.run(req.user.id, req.query.title, req.query.color);
+        res.sendStatus(200);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to delete history' });
+    }
+});
+
 // Default route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'chess.html'));
