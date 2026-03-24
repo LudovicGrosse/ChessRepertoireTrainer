@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chess Repertoire Trainer</title>
+    <title>La Boîte à Ouvertures</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessground@9.0.5/assets/chessground.base.css">
@@ -146,6 +147,41 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px);
+            z-index: 10000; display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s;
+        }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-content {
+            background: var(--card-bg); width: 90%; max-width: 600px;
+            max-height: 85vh; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid var(--border-color); display: flex; flex-direction: column;
+            transform: translateY(20px); transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-content { transform: translateY(0); }
+        .modal-header {
+            padding: 16px 24px; border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-header h2 { margin: 0; font-size: 1.25rem; color: var(--primary); }
+        .close-modal-btn {
+            background: transparent; border: none; color: var(--text-muted);
+            font-size: 24px; cursor: pointer; padding: 0; box-shadow: none; display: block;
+        }
+        .close-modal-btn:hover { color: var(--text-main); background: transparent; transform: none; box-shadow: none; }
+        .modal-body {
+            padding: 24px; overflow-y: auto; font-size: 14px; line-height: 1.6; color: #cbd5e1;
+        }
+        .modal-body h3 { color: #f8fafc; margin-top: 24px; margin-bottom: 12px; font-size: 1.1rem; }
+        .modal-body h3:first-child { margin-top: 0; }
+        .modal-body p { margin-top: 0; margin-bottom: 12px; }
+        .modal-body ul { margin-top: 0; margin-bottom: 16px; padding-left: 20px; }
+        .modal-body li { margin-bottom: 6px; }
+        .modal-body strong { color: #f8fafc; }
 
         /* Top Bar Styles */
         header {
@@ -307,8 +343,9 @@
 <body>
 
     <header id="top-bar" class="hidden fade-in">
-        <div class="logo">Chess Repertoire Trainer</div>
+        <div class="logo">La Boîte à Ouvertures</div>
         <div class="user-badge">
+            <button id="helpBtn" class="secondary" style="padding: 6px; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;" title="Aide">?</button>
             <span style="color: var(--text-muted);">Bonjour, <strong id="displayUsername" style="color: var(--text-main);"></strong></span>
             <button id="logoutBtn" class="secondary" style="padding: 6px 12px; font-size: 12px;">Déconnexion</button>
         </div>
@@ -316,8 +353,44 @@
 
     <div id="toast-container"></div>
 
+    <!-- HELP MODAL -->
+    <div id="helpModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Comment utiliser l'application ?</h2>
+                <button class="close-modal-btn" id="closeHelpBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>📚 Le Tableau de Bord</h3>
+                <p>Une fois connecté, votre tableau de bord conserve l'historique de vos révisions. Pour chaque répertoire, vous pouvez voir vos chapitres, le nombre de coups, et votre taux de réussite.</p>
+                <ul>
+                    <li><strong>Badge "MAJ" :</strong> Si vous modifiez une étude sur Lichess (en ajoutant ou supprimant des coups), l'application le détecte automatiquement. Un badge "MAJ" apparaîtra et votre pourcentage de réussite sera ajusté (car vous avez de nouveaux coups à apprendre !).</li>
+                    <li><strong>Suppression :</strong> Vous pouvez nettoyer votre historique en cliquant sur le bouton de suppression dans les détails d'un répertoire.</li>
+                </ul>
+
+                <h3>🔗 Charger une étude</h3>
+                <p>Copiez/collez simplement l'URL d'une étude Lichess publique dans le champ prévu à cet effet. Vous pouvez aussi coller l'URL d'un chapitre spécifique pour y accéder directement. <em>Note : L'étude Lichess doit être publique ou non répertoriée, les études privées ne sont pas accessibles par l'API sans authentification Lichess.</em></p>
+
+                <h3>🎯 Modes d'entraînement</h3>
+                <ul>
+                    <li><strong>Mode Découverte :</strong> Idéal pour apprendre une nouvelle ouverture. L'application vous guide en affichant une flèche verte indiquant le prochain coup à jouer. Les erreurs ne sont pas comptabilisées.</li>
+                    <li><strong>Mode Révision :</strong> Testez vos connaissances ! Aucune aide visuelle n'est affichée. Si vous jouez un mauvais coup ou vous trompez de variante, une erreur est comptabilisée, ce qui baissera votre taux de succès final. L'entraînement ne se termine que lorsque vous avez rejoué et validé chaque variante de l'arbre.</li>
+                </ul>
+
+                <h3>💡 Fonctionnalités en jeu</h3>
+                <ul>
+                    <li><strong>Solution :</strong> Bloqué en mode Révision ? Cliquez sur "Solution" pour voir la flèche verte. Attention, cela compte comme une erreur.</li>
+                    <li><strong>Notes :</strong> Cliquez sur le bouton "Notes" pour afficher ou masquer les commentaires textuels importés de votre PGN Lichess sous chaque coup.</li>
+                    <li><strong>Navigation au clavier :</strong> Utilisez les flèches ⬅️ et ➡️ de votre clavier pour naviguer dans l'historique des coups du chapitre en cours.</li>
+                    <li><strong>Clic sur les coups :</strong> Vous pouvez cliquer directement sur un coup dans la notation PGN pour revenir à cette position.</li>
+                    <li><strong>Protection anti-doublon :</strong> Si vous tentez de jouer une variante que vous avez déjà complétée précédemment, l'application vous l'indique et vous replace pour explorer une autre branche non terminée.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <div id="setup-view" class="fade-in">
-        <h1 class="header-title hidden" id="main-title">Chess Repertoire Trainer</h1>
+        <h1 class="header-title hidden" id="main-title">La Boîte à Ouvertures</h1>
 
         <!-- AUTH SECTION -->
         <div id="auth-section" class="setup-card">
@@ -332,7 +405,9 @@
                         <label for="loginPassword">Mot de passe</label>
                         <div class="password-container">
                             <input type="password" id="loginPassword" name="login_password" autocomplete="current-password" placeholder="Mot de passe" required>
-                            <button type="button" class="password-toggle" tabindex="-1">👁️</button>
+                            <button type="button" class="password-toggle" tabindex="-1">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
                         </div>
                     </div>
                     <button type="submit" id="loginBtn" style="margin-top: 8px; padding: 12px;">Se connecter</button>
@@ -358,7 +433,9 @@
                         <label for="regPassword">Mot de passe</label>
                         <div class="password-container">
                             <input type="password" id="regPassword" name="reg_password" autocomplete="new-password" placeholder="Mot de passe" required>
-                            <button type="button" class="password-toggle" tabindex="-1">👁️</button>
+                            <button type="button" class="password-toggle" tabindex="-1">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
                         </div>
                     </div>
                     <button type="submit" id="registerBtn" style="margin-top: 8px; padding: 12px;">S'inscrire</button>
@@ -385,7 +462,9 @@
                 <form id="resetForm" class="form-group" style="gap: 12px;">
                     <div class="password-container">
                         <input type="password" id="newPassword" placeholder="Nouveau mot de passe" required>
-                        <button type="button" class="password-toggle" tabindex="-1">👁️</button>
+                        <button type="button" class="password-toggle" tabindex="-1">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
                     </div>
                     <button type="submit" style="padding: 12px;">Enregistrer</button>
                 </form>
@@ -397,7 +476,6 @@
             <div class="setup-card" id="dashboard-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <h2 style="margin:0; border:none; padding:0;">Vos Répertoires</h2>
-                    <button id="refreshHistoryBtn" class="secondary" style="padding: 6px 12px; font-size: 12px;">Actualiser</button>
                 </div>
                 <div id="repertoireList">
                     <div style="text-align: center; color: var(--text-muted); padding: 20px;">Chargement de l'historique...</div>
@@ -545,7 +623,11 @@
                 e.preventDefault();
                 const input = btn.previousElementSibling;
                 input.type = input.type === 'password' ? 'text' : 'password';
-                btn.textContent = input.type === 'password' ? '👁️' : '🔒';
+                if (input.type === 'password') {
+                    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+                } else {
+                    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+                }
             };
         });
 
@@ -691,9 +773,20 @@
         };
 
         // =========================================
+        // HELP MODAL LOGIC
+        // =========================================
+        const helpModal = document.getElementById('helpModal');
+        const helpBtn = document.getElementById('helpBtn');
+        const closeHelpBtn = document.getElementById('closeHelpBtn');
+
+        helpBtn.onclick = () => helpModal.classList.add('show');
+        closeHelpBtn.onclick = () => helpModal.classList.remove('show');
+        helpModal.onclick = (e) => { if (e.target === helpModal) helpModal.classList.remove('show'); };
+
+        // =========================================
         // DASHBOARD & REPERTOIRE LOGIC
         // =========================================
-        const repertoireListEl = document.getElementById('repertoireList'), refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
+        const repertoireListEl = document.getElementById('repertoireList');
         const startBtn = document.getElementById('startBtn'), loadBtn = document.getElementById('loadBtn'), lichessInput = document.getElementById('lichessInput');
         const chapterListEl = document.getElementById('chapterList'), chapterSelectionArea = document.getElementById('chapter-selection-area');
         
@@ -866,7 +959,6 @@
             fetchHistory();
         };
 
-        refreshHistoryBtn.onclick = fetchHistory;
         updateAuthUI();
 
         const updateChapterList = () => {

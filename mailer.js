@@ -25,7 +25,7 @@ const sendEmail = async ({ to, subject, html }) => {
 
     try {
         const info = await transporter.sendMail({
-            from: `"Chess Repertoire Trainer" <${process.env.SMTP_USER}>`,
+            from: `"La Boîte à Ouvertures" <${process.env.SMTP_USER}>`,
             to,
             subject,
             html

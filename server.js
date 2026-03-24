@@ -56,11 +56,11 @@ app.post('/api/register', authLimiter, async (req, res) => {
         const verificationLink = `${APP_URL}/chess.html?verify=${verificationToken}`;
         await sendEmail({
             to: email,
-            subject: 'Vérifiez votre compte Chess Repertoire Trainer',
+            subject: 'Vérifiez votre compte La Boîte à Ouvertures',
             html: `
                 <div style="font-family: sans-serif; color: #333; line-height: 1.6;">
                     <h2 style="color: #4caf50;">Votre compte a été créé avec succès !</h2>
-                    <p>Merci de vous être inscrit sur Chess Repertoire Trainer.</p>
+                    <p>Merci de vous être inscrit sur La Boîte à Ouvertures.</p>
                     <p><strong>Identifiant :</strong> ${username}</p>
                     <p>Pour finaliser votre inscription et activer votre compte, cliquez sur le bouton ci-dessous :</p>
                     <div style="margin: 25px 0;">
@@ -132,7 +132,7 @@ app.post('/api/forgot-password', authLimiter, async (req, res) => {
                 <div style="font-family: sans-serif; color: #333; line-height: 1.6;">
                     <h2 style="color: #4caf50;">Réinitialisation de mot de passe</h2>
                     <p>Bonjour <strong>${user.username}</strong>,</p>
-                    <p>Vous avez demandé la réinitialisation du mot de passe pour votre compte Chess Repertoire Trainer.</p>
+                    <p>Vous avez demandé la réinitialisation du mot de passe pour votre compte La Boîte à Ouvertures.</p>
                     <p>Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe (ce lien est valable 1 heure) :</p>
                     <div style="margin: 25px 0;">
                         <a href="${resetLink}" style="background: #4caf50; color: white; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold;">Réinitialiser mon mot de passe</a>
@@ -209,5 +209,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 Chess Repertoire Trainer Server started at http://localhost:${PORT}`);
+    console.log(`🚀 La Boîte à Ouvertures Server started at http://localhost:${PORT}`);
 });

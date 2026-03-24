@@ -1,4 +1,4 @@
-# Chess Repertoire Trainer
+# La Boîte à Ouvertures
 
 A full-stack, web-based tool designed to help chess players build, learn, and track their opening repertoires directly from Lichess studies. 
 

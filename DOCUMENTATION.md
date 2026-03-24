@@ -1,4 +1,4 @@
-# Architecture et Fonctionnement du Chess Repertoire Trainer
+# Architecture et Fonctionnement du La Boîte à Ouvertures
 
 Ce document a pour but de vous donner une vue d'ensemble claire de l'architecture de votre application, des outils utilisés, et de la façon dont le code est structuré.
 
