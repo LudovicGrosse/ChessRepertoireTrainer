@@ -3,12 +3,8 @@ const path = require('path');
 
 const db = new Database(path.join(__dirname, 'database.db'));
 
-// RESET DATABASE (Requested by user to start fresh)
 db.exec(`
-    DROP TABLE IF EXISTS history;
-    DROP TABLE IF EXISTS users;
-
-    CREATE TABLE users (
+    CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
         email TEXT UNIQUE NOT NULL,
@@ -19,7 +15,7 @@ db.exec(`
         reset_token_expiry DATETIME
     );
 
-    CREATE TABLE history (
+    CREATE TABLE IF NOT EXISTS history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         repertoire_title TEXT,
