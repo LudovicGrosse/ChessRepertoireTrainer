@@ -9,16 +9,21 @@ This application provides a personalized experience where users can log in, prac
 -   **User Authentication:** Secure login and registration system with JWT session management.
 -   **Email Verification:** New accounts require email verification via a clickable link sent automatically after registration.
 -   **Password Recovery:** Secure "Forgot Password" functionality that sends a 1-hour valid reset link to the user's email.
--   **Lichess Integration:** Seamlessly load any public Lichess study by pasting its URL or ID. The app automatically extracts the real study name and all chapters.
+-   **Modern UI/UX:** Completely redesigned dark theme using Slate and Emerald palettes for a professional, focused training environment.
+-   **Toast Notifications:** Real-time feedback for all actions (auth, errors, success, hints) via sleek, non-intrusive toast messages.
+-   **Training Progress Bar:** Visual, interactive progress bar during training sessions to track your advancement through the chapter.
 -   **Interactive Dashboard:** 
     -   Track all your loaded repertoires, grouped by color.
-    -   View detailed statistics for every chapter: last revision date, total revisions, and success percentages.
+    -   View detailed statistics for every chapter: last revision date, success percentages, and total move count.
     -   **One-Click Re-launch:** Instantly reload a specific chapter from your history to practice it again.
+-   **Improved Navigation:**
+    -   Clickable PGN move badges to jump back and forth in the move history.
+    -   Keyboard support (Left/Right arrows) for quick move navigation.
+    -   "Next Chapter" or "First Chapter" buttons at the end of a session for seamless training flow.
 -   **Multiple Training Modes:**
     -   **Discovery Mode:** Learn new lines with visual hints and arrows showing the correct moves.
-    -   **Revision Mode:** Test your knowledge! Practice without hints. Only successfully completed revision sessions are logged into your success statistics.
--   **Dynamic Navigation:** Easily switch between Revision and Discovery modes or jump to the next chapter directly from the training completion screen.
--   **Dual Perspective:** Train as either White or Black.
+    -   **Revision Mode:** Test your knowledge! Practice without hints. Includes a "Solution" button that tracks errors if you get stuck.
+-   **Dual Perspective:** Train as either White or Black with optimized contrast for better readability.
 -   **Interactive Board:** Powered by [Chessground](https://github.com/lichess-org/chessground) and [chess.js](https://github.com/jhlywa/chess.js), providing a smooth, Lichess-like experience.
 
 ## 🛠️ Installation & Setup
