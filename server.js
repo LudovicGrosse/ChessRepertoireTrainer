@@ -4,13 +4,13 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const path = require('path');
-const db = require('./database');
+const db = require('./database'); // This is now a pg.Pool instance
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
 const { sendEmail } = require('./mailer');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.JWT_SECRET || 'your_secret_key_here';
 const APP_URL = process.env.APP_URL || `http://localhost:${PORT}`;
 
@@ -49,8 +49,10 @@ app.post('/api/register', authLimiter, async (req, res) => {
     const verificationToken = crypto.randomBytes(32).toString('hex');
 
     try {
-        const insertUser = db.prepare('INSERT INTO users (username, email, password_hash, verification_token) VALUES (?, ?, ?, ?)');
-        insertUser.run(username, email, hash, verificationToken);
+        await db.query(
+            'INSERT INTO users (username, email, password_hash, verification_token) VALUES ($1, $2, $3, $4)',
+            [username, email, hash, verificationToken]
+        );
 
         // Send verification email
         const verificationLink = `${APP_URL}/chess.html?verify=${verificationToken}`;
@@ -74,8 +76,8 @@ app.post('/api/register', authLimiter, async (req, res) => {
         res.status(201).json({ message: 'Compte créé ! Veuillez vérifier votre boîte mail.' });
     } catch (err) {
         console.error("REGISTRATION ERROR:", err);
-        if (err.message && err.message.includes('UNIQUE constraint failed')) {
-            const field = err.message.includes('email') ? 'L\'email' : 'Le nom d\'utilisateur';
+        if (err.code === '23505') { // PostgreSQL unique violation code
+            const field = err.constraint.includes('email') ? 'L\'email' : 'Le nom d\'utilisateur';
             res.status(400).json({ error: `${field} existe déjà.` });
         } else {
             res.status(500).json({ error: 'Erreur serveur: ' + (err.message || 'Détails inconnus') });
@@ -83,46 +85,58 @@ app.post('/api/register', authLimiter, async (req, res) => {
     }
 });
 
-app.get('/api/verify-email/:token', (req, res) => {
+app.get('/api/verify-email/:token', async (req, res) => {
     const { token } = req.params;
-    const user = db.prepare('SELECT * FROM users WHERE verification_token = ?').get(token);
-
-    if (!user) return res.status(400).json({ error: 'Token de vérification invalide.' });
-
+    
     try {
-        db.prepare('UPDATE users SET is_verified = 1, verification_token = NULL WHERE id = ?').run(user.id);
+        const { rows } = await db.query('SELECT * FROM users WHERE verification_token = $1', [token]);
+        const user = rows[0];
+
+        if (!user) return res.status(400).json({ error: 'Token de vérification invalide.' });
+
+        await db.query('UPDATE users SET is_verified = 1, verification_token = NULL WHERE id = $1', [user.id]);
         res.json({ message: 'Compte vérifié avec succès !' });
     } catch (err) {
+        console.error("VERIFY ERROR:", err);
         res.status(500).json({ error: 'Erreur lors de la vérification.' });
     }
 });
 
-app.post('/api/login', authLimiter, (req, res) => {
+app.post('/api/login', authLimiter, async (req, res) => {
     const { username, password } = req.body;
-    const user = db.prepare('SELECT * FROM users WHERE username = ? OR email = ?').get(username, username);
+    
+    try {
+        const { rows } = await db.query('SELECT * FROM users WHERE username = $1 OR email = $1', [username]);
+        const user = rows[0];
 
-    if (user && bcrypt.compareSync(password, user.password_hash)) {
-        if (user.is_verified === 0) {
-            return res.status(403).json({ error: 'Veuillez vérifier votre email avant de vous connecter.' });
+        if (user && bcrypt.compareSync(password, user.password_hash)) {
+            if (user.is_verified === 0) {
+                return res.status(403).json({ error: 'Veuillez vérifier votre email avant de vous connecter.' });
+            }
+            const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1d' });
+            res.json({ token, user: { id: user.id, username: user.username } });
+        } else {
+            res.status(401).json({ error: 'Identifiants invalides.' });
         }
-        const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1d' });
-        res.json({ token, user: { id: user.id, username: user.username } });
-    } else {
-        res.status(401).json({ error: 'Identifiants invalides.' });
+    } catch (err) {
+        console.error("LOGIN ERROR:", err);
+        res.status(500).json({ error: 'Erreur serveur.' });
     }
 });
 
 app.post('/api/forgot-password', authLimiter, async (req, res) => {
     const { email } = req.body;
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-
-    if (!user) return res.status(404).json({ error: 'Aucun compte associé à cet email.' });
-
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const expiry = new Date(Date.now() + 3600000).toISOString(); // 1 hour from now
-
+    
     try {
-        db.prepare('UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?').run(resetToken, expiry, user.id);
+        const { rows } = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+        const user = rows[0];
+
+        if (!user) return res.status(404).json({ error: 'Aucun compte associé à cet email.' });
+
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const expiry = new Date(Date.now() + 3600000).toISOString(); // 1 hour from now
+
+        await db.query('UPDATE users SET reset_token = $1, reset_token_expiry = $2 WHERE id = $3', [resetToken, expiry, user.id]);
         
         const resetLink = `${APP_URL}/chess.html?reset=${resetToken}`;
         await sendEmail({
@@ -144,39 +158,42 @@ app.post('/api/forgot-password', authLimiter, async (req, res) => {
 
         res.json({ message: 'Lien de réinitialisation envoyé !' });
     } catch (err) {
+        console.error("FORGOT PWD ERROR:", err);
         res.status(500).json({ error: 'Erreur serveur.' });
     }
 });
 
-app.post('/api/reset-password', authLimiter, (req, res) => {
+app.post('/api/reset-password', authLimiter, async (req, res) => {
     const { token, newPassword } = req.body;
-    const user = db.prepare('SELECT * FROM users WHERE reset_token = ?').get(token);
-
-    if (!user || new Date(user.reset_token_expiry) < new Date()) {
-        return res.status(400).json({ error: 'Lien invalide ou expiré.' });
-    }
-
-    const hash = bcrypt.hashSync(newPassword, 10);
+    
     try {
-        db.prepare('UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?').run(hash, user.id);
+        const { rows } = await db.query('SELECT * FROM users WHERE reset_token = $1', [token]);
+        const user = rows[0];
+
+        if (!user || new Date(user.reset_token_expiry) < new Date()) {
+            return res.status(400).json({ error: 'Lien invalide ou expiré.' });
+        }
+
+        const hash = bcrypt.hashSync(newPassword, 10);
+        await db.query('UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expiry = NULL WHERE id = $2', [hash, user.id]);
         res.json({ message: 'Mot de passe réinitialisé avec succès !' });
     } catch (err) {
+        console.error("RESET PWD ERROR:", err);
         res.status(500).json({ error: 'Erreur serveur.' });
     }
 });
 
 // --- HISTORY ENDPOINTS ---
 
-app.post('/api/history', authenticateToken, (req, res) => {
+app.post('/api/history', authenticateToken, async (req, res) => {
     const { repertoire_title, chapter_title, study_id, color, moves_learned, total_moves, errors, total_chapters, is_revision } = req.body;
     const date = new Date().toISOString();
 
     try {
-        const insertHistory = db.prepare(`
+        await db.query(`
             INSERT INTO history (user_id, repertoire_title, chapter_title, study_id, color, date, moves_learned, total_moves, errors, total_chapters, is_revision)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
-        insertHistory.run(req.user.id, repertoire_title, chapter_title, study_id, color, date, moves_learned, total_moves, errors, total_chapters, is_revision ? 1 : 0);
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        `, [req.user.id, repertoire_title, chapter_title, study_id, color, date, moves_learned, total_moves, errors, total_chapters, is_revision ? 1 : 0]);
         res.sendStatus(201);
     } catch (err) {
         console.error("Save history error:", err);
@@ -184,21 +201,23 @@ app.post('/api/history', authenticateToken, (req, res) => {
     }
 });
 
-app.get('/api/history', authenticateToken, (req, res) => {
+app.get('/api/history', authenticateToken, async (req, res) => {
     try {
-        const history = db.prepare('SELECT * FROM history WHERE user_id = ? ORDER BY date DESC').all(req.user.id);
-        res.json(history);
+        const { rows } = await db.query('SELECT * FROM history WHERE user_id = $1 ORDER BY date DESC', [req.user.id]);
+        res.json(rows);
     } catch (err) {
+        console.error("Fetch history error:", err);
         res.status(500).json({ error: 'Failed to fetch history' });
     }
 });
 
-app.delete('/api/history/repertoire', authenticateToken, (req, res) => {
+app.delete('/api/history/repertoire', authenticateToken, async (req, res) => {
     try {
-        const stmt = db.prepare('DELETE FROM history WHERE user_id = ? AND repertoire_title = ? AND color = ?');
-        stmt.run(req.user.id, req.query.title, req.query.color);
+        await db.query('DELETE FROM history WHERE user_id = $1 AND repertoire_title = $2 AND color = $3', 
+        [req.user.id, req.query.title, req.query.color]);
         res.sendStatus(200);
     } catch (err) {
+        console.error("Delete history error:", err);
         res.status(500).json({ error: 'Failed to delete history' });
     }
 });
@@ -209,5 +228,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 La Boîte à Ouvertures Server started at http://localhost:${PORT}`);
+    console.log(`🚀 La Boîte à Ouvertures Server started at port ${PORT}`);
 });
