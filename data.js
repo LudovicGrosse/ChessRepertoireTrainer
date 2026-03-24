@@ -14,8 +14,14 @@ export const parseMultiPgn = (rawPgn) => {
     parts.forEach((part, index) => {
         if (!part.trim()) return;
         let title = `Chapitre ${index + 1}`;
-        const eventMatch = part.match(/\[Event "([^"]+)"\]/);
-        if (eventMatch && eventMatch[1] && eventMatch[1] !== "?") title = eventMatch[1];
+        const chapterNameMatch = part.match(/\[ChapterName\s+"([^"]+)"\]/);
+        const eventMatch = part.match(/\[Event\s+"([^"]+)"\]/);
+        
+        if (chapterNameMatch && chapterNameMatch[1]) {
+            title = chapterNameMatch[1];
+        } else if (eventMatch && eventMatch[1] && eventMatch[1] !== "?") {
+            title = eventMatch[1];
+        }
         chapters.push({ id: `chap_${Date.now()}_${index}`, title: title, pgn: part.trim() });
     });
     if (chapters.length === 0 && rawPgn.trim().length > 0) {
