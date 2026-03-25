@@ -337,11 +337,13 @@
         cg-board square.move-dest { background: radial-gradient(rgba(0, 0, 0, 0.15) 20%, transparent 20%); }
 
         @media (max-width: 768px) { 
-            body { padding: 10px; padding-top: 70px; }
+            body { padding: 10px; padding-top: 70px; overflow-x: hidden; }
             header { padding: 10px 15px; }
             header .user-badge span { display: none; }
             
             .setup-card { padding: 16px; }
+            
+            .toggle-row { flex-direction: column; gap: 10px; } /* Stack toggles on mobile */
             
             .chapter-row { grid-template-columns: 1fr 1fr; gap: 12px 8px; }
             .chapter-row > div:first-child { grid-column: span 2; border-bottom: 1px solid #334155; padding-bottom: 8px; }
@@ -1133,9 +1135,13 @@
                 html += `<span class="pgn-move ${i === viewIndex ? 'active-move' : ''}" data-index="${i}">${currentPath[i].san}</span> `;
                 if (turn === 'black') { num++; turn = 'white'; } else turn = 'black';
             }
-            document.getElementById('activeLineDisplay').innerHTML = html.trim();
-            const active = document.getElementById('activeLineDisplay').querySelector('.active-move');
-            if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            const display = document.getElementById('activeLineDisplay');
+            display.innerHTML = html.trim();
+            const active = display.querySelector('.active-move');
+            if (active) {
+                // Scroll only the container, not the whole page window
+                display.scrollTop = active.offsetTop - display.offsetTop - (display.clientHeight / 2) + (active.clientHeight / 2);
+            }
             const node = currentPath[viewIndex]; document.getElementById('commentBox').innerHTML = node?.comment ? `<strong>Notes :</strong> ${node.comment}` : `<em>Aucun commentaire.</em>`;
         };
 
