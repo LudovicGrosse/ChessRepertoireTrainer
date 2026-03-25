@@ -961,17 +961,21 @@
                             });
                             
                             const footer = document.createElement('div');
-                            footer.style.display = 'flex'; footer.style.justifyContent = 'space-between'; footer.style.alignItems = 'center';
+                            footer.style.display = 'flex'; footer.style.justifyContent = 'flex-end'; footer.style.alignItems = 'center'; footer.style.gap = '12px';
                             footer.style.marginTop = '15px'; footer.style.paddingTop = '12px'; footer.style.borderTop = '1px solid var(--border-color)';
                             
-                            const syncBtn = document.createElement('a');
-                            syncBtn.href = '#'; syncBtn.style.color = 'var(--text-muted)'; syncBtn.style.fontSize = '11px'; syncBtn.textContent = '🔄 Synchroniser avec Lichess';
+                            const syncBtn = document.createElement('button');
+                            syncBtn.className = 'secondary';
+                            syncBtn.style.cssText = 'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
+                            syncBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> Synchroniser`;
+                            syncBtn.onmouseover = () => { syncBtn.style.color = 'var(--primary)'; };
+                            syncBtn.onmouseout = () => { syncBtn.style.color = 'var(--text-muted)'; };
                             syncBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); syncFromLichess(true); };
                             footer.appendChild(syncBtn);
 
                             const delBtn = document.createElement('button');
                             delBtn.className = 'secondary';
-                            delBtn.style.cssText = 'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer;';
+                            delBtn.style.cssText = 'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
                             delBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg> Supprimer`;
                             delBtn.onmouseover = () => { delBtn.style.color = 'var(--danger)'; };
                             delBtn.onmouseout = () => { delBtn.style.color = 'var(--text-muted)'; };
