@@ -185,22 +185,25 @@
 
         /* Top Bar Styles */
         header {
-            width: 100%; background: var(--card-bg); padding: 12px 24px;
+            width: 100%; background: var(--card-bg); padding: 0 24px; height: 64px;
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 1px solid var(--border-color); position: fixed;
             top: 0; left: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
-        header .logo { font-weight: 700; color: var(--primary); font-size: 1.2rem; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
-        .logo-icon { width: 32px; height: 32px; }
+        header .logo { font-weight: 700; color: var(--primary); font-size: 1.1rem; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .logo-icon { width: 32px; height: 32px; flex-shrink: 0; }
+
+        header .user-badge { display: flex; align-items: center; gap: 12px; }
+        header .user-badge span { font-size: 13px; }
 
         /* =========================================
            SETUP VIEW (Dashboard)
         ========================================= */
         #setup-view {
-            width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 24px;
+            width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 24px; margin: 0 auto;
         }
-        .header-title { text-align: center; margin: 0 0 10px 0; color: var(--primary); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 15px; }
-        .header-title .logo-icon { width: 48px; height: 48px; }
+        .header-title { text-align: center; margin: 20px 0 10px 0; color: var(--primary); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 1.8rem; }
+        .header-title .logo-icon { width: 42px; height: 48px; }
 
         .setup-card {
             background: var(--card-bg); padding: 24px; border-radius: 12px;
@@ -338,24 +341,29 @@
         cg-board square.move-dest { background: radial-gradient(rgba(0, 0, 0, 0.15) 20%, transparent 20%); }
 
         @media (max-width: 768px) { 
-            body { padding: 10px; padding-top: 110px; overflow-x: hidden; }
-            header { padding: 10px 15px; flex-direction: column; gap: 8px; align-items: center; height: auto; }
-            header .logo { order: 2; font-size: 1.1rem; }
-            header .user-badge { order: 1; width: 100%; justify-content: space-between; gap: 10px; }
+            body { padding: 10px; padding-top: 80px; overflow-x: hidden; }
+            header { padding: 0 15px; height: 60px; }
+            header .logo { font-size: 1rem; gap: 8px; }
+            header .logo-icon { width: 28px; height: 28px; }
+            header .user-badge { gap: 8px; }
             header .user-badge span { display: none; }
+            header #logoutBtn { padding: 6px 10px; font-size: 11px; }
             
             .setup-card { padding: 16px; }
             
-            .toggle-row { flex-direction: column; gap: 10px; } /* Stack toggles on mobile */
+            .toggle-row { flex-direction: column; gap: 10px; }
             
             .chapter-row { grid-template-columns: 1fr 1fr; gap: 12px 8px; }
             .chapter-row > div:first-child { grid-column: span 2; border-bottom: 1px solid #334155; padding-bottom: 8px; }
             
+            .header-title { font-size: 1.4rem; gap: 10px; margin-top: 10px; }
+            .header-title .logo-icon { width: 36px; height: 36px; }
+
             .modal-content { width: 95%; max-height: 90vh; }
             .modal-body { padding: 16px; }
             
             #training-view { flex-direction: column-reverse; gap: 16px; } 
-            .board-wrapper { max-width: 100%; position: sticky; top: 100px; z-index: 10; }
+            .board-wrapper { max-width: 100%; position: sticky; top: 70px; z-index: 10; }
             .sidebar { min-width: 100%; max-width: 100%; gap: 12px; }
             
             .active-line { max-height: 90px; overflow-y: auto; }
@@ -372,18 +380,19 @@
     <header id="top-bar" class="hidden fade-in">
         <div class="logo">
             <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 40 L50 25 L80 40 L50 55 Z" fill="#10b981"/>
-                <path d="M20 40 L50 55 L50 85 L20 70 Z" fill="#059669"/>
-                <path d="M50 55 L80 40 L80 70 L50 85 Z" fill="#047857"/>
-                <path d="M35 38 L50 45 L65 38 L50 31 Z" fill="white" opacity="0.3"/>
-                <path d="M45 45 L55 45 L55 65 L45 65 Z" fill="white" opacity="0.5"/>
+                <path d="M50 35 L80 50 L50 65 L20 50 Z" fill="#064e3b" />
+                <path d="M20 50 L50 65 L50 90 L20 75 Z" fill="#059669" />
+                <path d="M50 65 L80 50 L80 75 L50 90 Z" fill="#047857" />
+                <path d="M20 50 L50 35 L35 25 L5 40 Z" fill="#34d399" opacity="0.8" />
+                <path d="M50 35 L80 50 L95 40 L65 25 Z" fill="#059669" opacity="0.4" />
+                <path d="M50 65 L50 90" stroke="#064e3b" stroke-width="0.5" />
             </svg>
-            La Boîte à Ouvertures
+            <span>La Boîte à Ouvertures</span>
         </div>
         <div class="user-badge">
-            <button id="helpBtn" class="secondary" style="padding: 6px; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;" title="Aide">?</button>
+            <button id="helpBtn" class="secondary" style="padding: 0; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0;" title="Aide">?</button>
             <span style="color: var(--text-muted);">Bonjour, <strong id="displayUsername" style="color: var(--text-main);"></strong></span>
-            <button id="logoutBtn" class="secondary" style="padding: 6px 12px; font-size: 12px;">Déconnexion</button>
+            <button id="logoutBtn" class="secondary" style="padding: 6px 12px; font-size: 12px; flex-shrink: 0;">Déconnexion</button>
         </div>
     </header>
 
@@ -427,14 +436,15 @@
 
     <div id="setup-view" class="fade-in">
         <h1 class="header-title hidden" id="main-title">
-            <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 40 L50 25 L80 40 L50 55 Z" fill="#10b981"/>
-                <path d="M20 40 L50 55 L50 85 L20 70 Z" fill="#059669"/>
-                <path d="M50 55 L80 40 L80 70 L50 85 Z" fill="#047857"/>
-                <path d="M35 38 L50 45 L65 38 L50 31 Z" fill="white" opacity="0.3"/>
-                <path d="M45 45 L55 45 L55 65 L45 65 Z" fill="white" opacity="0.5"/>
+            <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">
+                <path d="M50 35 L80 50 L50 65 L20 50 Z" fill="#064e3b" />
+                <path d="M20 50 L50 65 L50 90 L20 75 Z" fill="#059669" />
+                <path d="M50 65 L80 50 L80 75 L50 90 Z" fill="#047857" />
+                <path d="M20 50 L50 35 L35 25 L5 40 Z" fill="#34d399" opacity="0.8" />
+                <path d="M50 35 L80 50 L95 40 L65 25 Z" fill="#059669" opacity="0.4" />
+                <path d="M50 65 L50 90" stroke="#064e3b" stroke-width="0.5" />
             </svg>
-            La Boîte à Ouvertures
+            <span>La Boîte à Ouvertures</span>
         </h1>
 
         <!-- AUTH SECTION -->
