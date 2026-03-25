@@ -407,28 +407,29 @@
             </div>
             <div class="modal-body">
                 <h3>📚 Le Tableau de Bord</h3>
-                <p>Une fois connecté, votre tableau de bord conserve l'historique de vos révisions. Pour chaque répertoire, vous pouvez voir vos chapitres, le nombre de coups, et votre taux de réussite.</p>
+                <p>Votre tableau de bord conserve l'historique de vos révisions. Pour chaque répertoire, vous pouvez voir vos chapitres, le nombre de coups, et votre taux de réussite.</p>
                 <ul>
-                    <li><strong>Badge "MAJ" :</strong> Si vous modifiez une étude sur Lichess (en ajoutant ou supprimant des coups), l'application le détecte automatiquement. Un badge "MAJ" apparaîtra et votre pourcentage de réussite sera ajusté (car vous avez de nouveaux coups à apprendre !).</li>
-                    <li><strong>Suppression :</strong> Vous pouvez nettoyer votre historique en cliquant sur le bouton de suppression dans les détails d'un répertoire.</li>
+                    <li><strong>Vitesse & Cache :</strong> L'application mémorise les données des études pendant 1 heure. Cela permet une navigation instantanée.</li>
+                    <li><strong>Synchronisation :</strong> Si vous avez modifié votre étude sur Lichess, cliquez sur le bouton "Synchroniser" en bas d'un répertoire pour forcer la mise à jour des données.</li>
+                    <li><strong>Badge "MAJ" :</strong> Si une modification est détectée (nouveaux coups), un badge "MAJ" apparaît et votre pourcentage de réussite est ajusté automatiquement.</li>
+                    <li><strong>Suppression :</strong> Vous pouvez nettoyer votre historique via le bouton "Supprimer" dans les détails d'un répertoire.</li>
                 </ul>
 
                 <h3>🔗 Charger une étude</h3>
-                <p>Copiez/collez simplement l'URL d'une étude Lichess publique dans le champ prévu à cet effet. Vous pouvez aussi coller l'URL d'un chapitre spécifique pour y accéder directement. <em>Note : L'étude Lichess doit être publique ou non répertoriée, les études privées ne sont pas accessibles par l'API sans authentification Lichess.</em></p>
+                <p>Copiez/collez l'URL d'une étude Lichess publique. Vous pouvez aussi utiliser l'URL d'un chapitre spécifique. <em>Note : Les études doivent être "Publiques" ou "Non répertoriées" sur Lichess.</em></p>
 
                 <h3>🎯 Modes d'entraînement</h3>
                 <ul>
-                    <li><strong>Mode Découverte :</strong> Idéal pour apprendre une nouvelle ouverture. L'application vous guide en affichant une flèche verte indiquant le prochain coup à jouer. Les erreurs ne sont pas comptabilisées.</li>
-                    <li><strong>Mode Révision :</strong> Testez vos connaissances ! Aucune aide visuelle n'est affichée. Si vous jouez un mauvais coup ou vous trompez de variante, une erreur est comptabilisée, ce qui baissera votre taux de succès final. L'entraînement ne se termine que lorsque vous avez rejoué et validé chaque variante de l'arbre.</li>
+                    <li><strong>Mode Découverte :</strong> Idéal pour apprendre. Une flèche verte indique le prochain coup. Les erreurs ne sont pas comptabilisées.</li>
+                    <li><strong>Mode Révision :</strong> Testez vos connaissances sans aide. Les erreurs impactent votre taux de réussite. L'entraînement se termine une fois toutes les variantes validées.</li>
                 </ul>
 
                 <h3>💡 Fonctionnalités en jeu</h3>
                 <ul>
-                    <li><strong>Solution :</strong> Bloqué en mode Révision ? Cliquez sur "Solution" pour voir la flèche verte. Attention, cela compte comme une erreur.</li>
-                    <li><strong>Notes :</strong> Cliquez sur le bouton "Notes" pour afficher ou masquer les commentaires textuels importés de votre PGN Lichess sous chaque coup.</li>
-                    <li><strong>Navigation au clavier :</strong> Utilisez les flèches ⬅️ et ➡️ de votre clavier pour naviguer dans l'historique des coups du chapitre en cours.</li>
-                    <li><strong>Clic sur les coups :</strong> Vous pouvez cliquer directement sur un coup dans la notation PGN pour revenir à cette position.</li>
-                    <li><strong>Protection anti-doublon :</strong> Si vous tentez de jouer une variante que vous avez déjà complétée précédemment, l'application vous l'indique et vous replace pour explorer une autre branche non terminée.</li>
+                    <li><strong>Échiquier Sticky :</strong> Sur mobile, l'échiquier reste fixé en haut pour ne jamais le perdre de vue.</li>
+                    <li><strong>Solution :</strong> Affiche la flèche d'aide (compte comme une erreur en mode Révision).</li>
+                    <li><strong>Notes :</strong> Affiche les commentaires PGN importés de Lichess.</li>
+                    <li><strong>Navigation :</strong> Utilisez les flèches ⬅️ ➡️ ou cliquez directement sur les coups dans la notation pour naviguer.</li>
                 </ul>
             </div>
         </div>
