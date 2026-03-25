@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>La Boîte à Ouvertures</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+    <link rel="icon" href="Logo.jpeg">
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessground@9.0.5/assets/chessground.base.css">
@@ -190,8 +190,8 @@
             border-bottom: 1px solid var(--border-color); position: fixed;
             top: 0; left: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
-        header .logo { font-weight: 700; color: var(--primary); font-size: 1.2rem; letter-spacing: -0.5px; }
-        header .user-badge { display: flex; align-items: center; gap: 15px; font-size: 14px; }
+        header .logo { font-weight: 700; color: var(--primary); font-size: 1.2rem; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
+        header .logo img { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; }
 
         /* =========================================
            SETUP VIEW (Dashboard)
@@ -199,7 +199,8 @@
         #setup-view {
             width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 24px;
         }
-        .header-title { text-align: center; margin: 0 0 10px 0; color: var(--primary); font-weight: 700; }
+        .header-title { text-align: center; margin: 0 0 10px 0; color: var(--primary); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .header-title img { width: 48px; height: 48px; border-radius: 8px; }
 
         .setup-card {
             background: var(--card-bg); padding: 24px; border-radius: 12px;
@@ -367,7 +368,7 @@
 <body>
 
     <header id="top-bar" class="hidden fade-in">
-        <div class="logo">La Boîte à Ouvertures</div>
+        <div class="logo"><img src="Logo.jpeg" alt="Logo"> La Boîte à Ouvertures</div>
         <div class="user-badge">
             <button id="helpBtn" class="secondary" style="padding: 6px; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;" title="Aide">?</button>
             <span style="color: var(--text-muted);">Bonjour, <strong id="displayUsername" style="color: var(--text-main);"></strong></span>
@@ -414,7 +415,7 @@
     </div>
 
     <div id="setup-view" class="fade-in">
-        <h1 class="header-title hidden" id="main-title">La Boîte à Ouvertures</h1>
+        <h1 class="header-title hidden" id="main-title"><img src="Logo.jpeg" alt="Logo"> La Boîte à Ouvertures</h1>
 
         <!-- AUTH SECTION -->
         <div id="auth-section" class="setup-card">
