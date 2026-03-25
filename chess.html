@@ -336,7 +336,29 @@
         .cg-wrap piece.dragging { cursor: grabbing !important; }
         cg-board square.move-dest { background: radial-gradient(rgba(0, 0, 0, 0.15) 20%, transparent 20%); }
 
-        @media (max-width: 768px) { #training-view { flex-direction: column-reverse; } .board-wrapper { max-width: 100%; } }
+        @media (max-width: 768px) { 
+            body { padding: 10px; padding-top: 70px; }
+            header { padding: 10px 15px; }
+            header .user-badge span { display: none; }
+            
+            .setup-card { padding: 16px; }
+            
+            .chapter-row { grid-template-columns: 1fr 1fr; gap: 12px 8px; }
+            .chapter-row > div:first-child { grid-column: span 2; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+            
+            .modal-content { width: 95%; max-height: 90vh; }
+            .modal-body { padding: 16px; }
+            
+            #training-view { flex-direction: column-reverse; gap: 16px; } 
+            .board-wrapper { max-width: 100%; position: sticky; top: 60px; z-index: 10; }
+            .sidebar { min-width: 100%; max-width: 100%; gap: 12px; }
+            
+            .active-line { max-height: 90px; overflow-y: auto; }
+            
+            .row-buttons { flex-wrap: wrap; }
+            .row-buttons button, .row-buttons .btn-link { flex: 1 1 calc(33% - 8px); }
+            .row-buttons .nav-btn { flex: 1 1 calc(15% - 8px); }
+        }
 
     </style>
 </head>
