@@ -191,7 +191,7 @@
             top: 0; left: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
         header .logo { font-weight: 700; color: var(--primary); font-size: 1.2rem; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
-        header .logo img { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; }
+        .logo-icon { width: 32px; height: 32px; }
 
         /* =========================================
            SETUP VIEW (Dashboard)
@@ -200,7 +200,7 @@
             width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 24px;
         }
         .header-title { text-align: center; margin: 0 0 10px 0; color: var(--primary); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 15px; }
-        .header-title img { width: 48px; height: 48px; border-radius: 8px; }
+        .header-title .logo-icon { width: 48px; height: 48px; }
 
         .setup-card {
             background: var(--card-bg); padding: 24px; border-radius: 12px;
@@ -368,7 +368,16 @@
 <body>
 
     <header id="top-bar" class="hidden fade-in">
-        <div class="logo"><img src="Logo.jpeg" alt="Logo"> La Boîte à Ouvertures</div>
+        <div class="logo">
+            <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 40 L50 25 L80 40 L50 55 Z" fill="#10b981"/>
+                <path d="M20 40 L50 55 L50 85 L20 70 Z" fill="#059669"/>
+                <path d="M50 55 L80 40 L80 70 L50 85 Z" fill="#047857"/>
+                <path d="M35 38 L50 45 L65 38 L50 31 Z" fill="white" opacity="0.3"/>
+                <path d="M45 45 L55 45 L55 65 L45 65 Z" fill="white" opacity="0.5"/>
+            </svg>
+            La Boîte à Ouvertures
+        </div>
         <div class="user-badge">
             <button id="helpBtn" class="secondary" style="padding: 6px; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;" title="Aide">?</button>
             <span style="color: var(--text-muted);">Bonjour, <strong id="displayUsername" style="color: var(--text-main);"></strong></span>
@@ -415,7 +424,16 @@
     </div>
 
     <div id="setup-view" class="fade-in">
-        <h1 class="header-title hidden" id="main-title"><img src="Logo.jpeg" alt="Logo"> La Boîte à Ouvertures</h1>
+        <h1 class="header-title hidden" id="main-title">
+            <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 40 L50 25 L80 40 L50 55 Z" fill="#10b981"/>
+                <path d="M20 40 L50 55 L50 85 L20 70 Z" fill="#059669"/>
+                <path d="M50 55 L80 40 L80 70 L50 85 Z" fill="#047857"/>
+                <path d="M35 38 L50 45 L65 38 L50 31 Z" fill="white" opacity="0.3"/>
+                <path d="M45 45 L55 45 L55 65 L45 65 Z" fill="white" opacity="0.5"/>
+            </svg>
+            La Boîte à Ouvertures
+        </h1>
 
         <!-- AUTH SECTION -->
         <div id="auth-section" class="setup-card">
