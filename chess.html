@@ -250,11 +250,20 @@
         .chapters-detail.open { max-height: 600px; padding: 12px; overflow-y: auto; }
         
         .chapter-row {
-            padding: 12px; border-radius: 8px; display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr;
-            align-items: center; font-size: 13px; cursor: pointer; transition: background 0.2s;
-            margin-bottom: 4px; border: 1px solid transparent;
+            padding: 12px; border-radius: 8px; display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 40px;
+            align-items: center; font-size: 13px; cursor: pointer; transition: all 0.2s ease;
+            margin-bottom: 4px; border: 1px solid transparent; position: relative;
         }
-        .chapter-row:hover { background: var(--card-hover); border-color: var(--border-color); }
+        .chapter-row:hover { 
+            background: var(--card-hover); 
+            border-color: var(--primary);
+            transform: translateX(4px);
+        }
+        .chapter-row .play-icon {
+            opacity: 0; transform: scale(0.8); transition: all 0.2s ease;
+            color: var(--primary); display: flex; justify-content: center;
+        }
+        .chapter-row:hover .play-icon { opacity: 1; transform: scale(1); }
         .chapter-row .label { color: var(--text-muted); font-size: 11px; display: block; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
         .chapter-row strong { font-size: 14px; color: var(--text-main); }
         
@@ -402,34 +411,32 @@
     <div id="helpModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Comment utiliser l'application ?</h2>
+                <h2>Guide d'utilisation</h2>
                 <button class="close-modal-btn" id="closeHelpBtn">&times;</button>
             </div>
             <div class="modal-body">
-                <h3>📚 Le Tableau de Bord</h3>
-                <p>Votre tableau de bord conserve l'historique de vos révisions. Pour chaque répertoire, vous pouvez voir vos chapitres, le nombre de coups, et votre taux de réussite.</p>
+                <h3>🚀 Démarrage Rapide</h3>
+                <p>Copiez l'URL d'une <strong>étude Lichess publique</strong> (ou d'un chapitre) et collez-la dans la zone "Charger une étude".</p>
+                
+                <h3>📊 Votre Historique</h3>
+                <p>Vos répertoires sont sauvegardés automatiquement. Vous pouvez suivre votre progression et vos succès par chapitre.</p>
                 <ul>
-                    <li><strong>Vitesse & Cache :</strong> L'application mémorise les données des études pendant 1 heure. Cela permet une navigation instantanée.</li>
-                    <li><strong>Synchronisation :</strong> Si vous avez modifié votre étude sur Lichess, cliquez sur le bouton "Synchroniser" en bas d'un répertoire pour forcer la mise à jour des données.</li>
-                    <li><strong>Badge "MAJ" :</strong> Si une modification est détectée (nouveaux coups), un badge "MAJ" apparaît et votre pourcentage de réussite est ajusté automatiquement.</li>
-                    <li><strong>Suppression :</strong> Vous pouvez nettoyer votre historique via le bouton "Supprimer" dans les détails d'un répertoire.</li>
+                    <li><strong>Accès Direct :</strong> Cliquez sur n'importe quel chapitre dans votre historique pour le charger instantanément et démarrer une révision.</li>
+                    <li><strong>Synchronisation :</strong> Le bouton "Synchroniser" met à jour votre répertoire si vous avez ajouté de nouveaux coups sur Lichess.</li>
+                    <li><strong>Badge "MAJ" :</strong> Apparaît si de nouveaux coups ont été détectés depuis votre dernière révision.</li>
                 </ul>
 
-                <h3>🔗 Charger une étude</h3>
-                <p>Copiez/collez l'URL d'une étude Lichess publique. Vous pouvez aussi utiliser l'URL d'un chapitre spécifique. <em>Note : Les études doivent être "Publiques" ou "Non répertoriées" sur Lichess.</em></p>
-
-                <h3>🎯 Modes d'entraînement</h3>
+                <h3>🎯 Modes d'Entraînement</h3>
                 <ul>
-                    <li><strong>Mode Découverte :</strong> Idéal pour apprendre. Une flèche verte indique le prochain coup. Les erreurs ne sont pas comptabilisées.</li>
-                    <li><strong>Mode Révision :</strong> Testez vos connaissances sans aide. Les erreurs impactent votre taux de réussite. L'entraînement se termine une fois toutes les variantes validées.</li>
+                    <li><strong>Mode Découverte :</strong> Apprenez en suivant la flèche verte. Les erreurs ne comptent pas.</li>
+                    <li><strong>Mode Révision :</strong> Testez vos connaissances. Chaque erreur impacte votre score de réussite.</li>
                 </ul>
 
-                <h3>💡 Fonctionnalités en jeu</h3>
+                <h3>💡 Astuces en jeu</h3>
                 <ul>
-                    <li><strong>Échiquier Sticky :</strong> Sur mobile, l'échiquier reste fixé en haut pour ne jamais le perdre de vue.</li>
-                    <li><strong>Solution :</strong> Affiche la flèche d'aide (compte comme une erreur en mode Révision).</li>
-                    <li><strong>Notes :</strong> Affiche les commentaires PGN importés de Lichess.</li>
-                    <li><strong>Navigation :</strong> Utilisez les flèches ⬅️ ➡️ ou cliquez directement sur les coups dans la notation pour naviguer.</li>
+                    <li><strong>Échiquier :</strong> Sur mobile, l'échiquier reste visible en haut pendant que vous faites défiler la notation.</li>
+                    <li><strong>Solution :</strong> Le bouton "Solution" affiche le coup attendu (compte comme une erreur en révision).</li>
+                    <li><strong>Navigation :</strong> Utilisez les flèches du clavier (⬅️ ➡️) ou cliquez sur les coups pour naviguer dans la variante.</li>
                 </ul>
             </div>
         </div>
@@ -964,10 +971,8 @@
                                     }
                                 }
 
-                                const successClass = hasData ? (finalSuccessRate >= 80 ? 'success-rate' : (finalSuccessRate < 50 ? 'low-success' : '')) : '';
                                 const chapRow = document.createElement('div');
                                 chapRow.className = 'chapter-row';
-                                if (!hasData) chapRow.style.opacity = '0.5';
                                 
                                 let progressHtml = hasData ? `<div class="mini-progress-bg"><div class="mini-progress-fill" style="width: ${finalSuccessRate}%; background: ${finalSuccessRate >= 80 ? 'var(--success)' : (finalSuccessRate < 50 ? 'var(--danger)' : 'var(--warning)')}"></div></div>` : '';
                                 const chapTitleHtml = isUpdated ? `<strong>${chap.title.replace(rep.title + ": ", "")} <span style="color: var(--warning); font-size: 10px; border: 1px solid var(--warning); padding: 1px 4px; border-radius: 4px; margin-left: 4px;">MAJ</span></strong>` : `<strong>${chap.title.replace(rep.title + ": ", "")}</strong>`;
@@ -975,7 +980,8 @@
                                 chapRow.innerHTML = `<div><span class="label">Chapitre</span>${chapTitleHtml}</div>
                                     <div><span class="label">Succès</span><span class="${successClass}">${hasData ? finalSuccessRate + '%' : '-'}</span>${progressHtml}</div>
                                     <div><span class="label">Coups</span><strong style="color: var(--text-main); font-weight: normal;">${moveCount}</strong></div>
-                                    <div><span class="label">Dernière</span><span style="color: var(--text-muted);">${formatRelativeTime(latest ? latest.date : null)}</span></div>`;
+                                    <div><span class="label">Dernière</span><span style="color: var(--text-muted);">${formatRelativeTime(latest ? latest.date : null)}</span></div>
+                                    <div class="play-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>`;
                                 chapRow.onclick = (e) => { e.stopPropagation(); relaunchStudy(rep.study_id || extractedId, chap.title, rep.color); };
                                 detail.appendChild(chapRow);
                             });
@@ -1041,6 +1047,7 @@
             document.getElementById('lichessInput').value = studyId;
             setToggleState('colorToggle', color);
             setToggleState('modeToggle', 'revision');
+            showToast(`Chargement : ${chapterTitle}`, 'info');
             await loadLichessStudy(studyId, chapterTitle);
         };
 
