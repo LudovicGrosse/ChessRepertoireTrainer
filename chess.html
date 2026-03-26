@@ -971,6 +971,7 @@
                                     }
                                 }
 
+                                const successClass = hasData ? (finalSuccessRate >= 80 ? 'success-rate' : (finalSuccessRate < 50 ? 'low-success' : '')) : '';
                                 const chapRow = document.createElement('div');
                                 chapRow.className = 'chapter-row';
                                 
