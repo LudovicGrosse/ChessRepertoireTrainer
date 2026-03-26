@@ -353,8 +353,8 @@
             
             .toggle-row { flex-direction: column; gap: 10px; }
             
-            .chapter-row { grid-template-columns: 1fr 1fr; gap: 12px 8px; }
-            .chapter-row > div:first-child { grid-column: span 2; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+            .chapter-row { grid-template-columns: repeat(3, 1fr); gap: 12px 8px; }
+            .chapter-row > div:first-child { grid-column: span 3; border-bottom: 1px solid #334155; padding-bottom: 8px; }
             
             .header-title { font-size: 1.4rem; gap: 10px; margin-top: 10px; }
             .header-title .logo-icon { width: 36px; height: 36px; }
@@ -668,6 +668,25 @@
             });
         };
 
+        const formatRelativeTime = (date) => {
+            if (!date) return 'Jamais';
+            const now = new Date();
+            const diff = now - new Date(date);
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            const months = Math.floor(days / 30);
+            const years = Math.floor(days / 365);
+
+            if (seconds < 60) return "À l'instant";
+            if (minutes < 60) return `Il y a ${minutes} min`;
+            if (hours < 24) return `Il y a ${hours} ${hours > 1 ? 'heures' : 'heure'}`;
+            if (days < 30) return `Il y a ${days} ${days > 1 ? 'jours' : 'jour'}`;
+            if (months < 12) return `Il y a ${months} mois`;
+            return `Il y a ${years} ${years > 1 ? 'ans' : 'an'}`;
+        };
+
         document.querySelectorAll('.toggle-container').forEach(container => {
             container.querySelectorAll('.toggle-option').forEach(option => {
                 option.addEventListener('click', (e) => setToggleState(container.id, e.target.dataset.val));
@@ -896,7 +915,7 @@
             Object.values(repertoires).sort((a,b) => (b.last_revision ? new Date(b.last_revision) : 0) - (a.last_revision ? new Date(a.last_revision) : 0)).forEach(rep => {
                 const repItem = document.createElement('div');
                 repItem.className = 'repertoire-item fade-in';
-                const lastDate = rep.last_revision ? new Date(rep.last_revision).toLocaleDateString('fr-FR') : 'Jamais';
+                const lastDate = formatRelativeTime(rep.last_revision);
                 repItem.innerHTML = `
                     <div class="repertoire-header">
                         <div>
@@ -956,7 +975,7 @@
                                 chapRow.innerHTML = `<div><span class="label">Chapitre</span>${chapTitleHtml}</div>
                                     <div><span class="label">Succès</span><span class="${successClass}">${hasData ? finalSuccessRate + '%' : '-'}</span>${progressHtml}</div>
                                     <div><span class="label">Coups</span><strong style="color: var(--text-main); font-weight: normal;">${moveCount}</strong></div>
-                                    <div><span class="label">Dernière</span><span style="color: var(--text-muted);">${hasData ? new Date(latest.date).toLocaleDateString('fr-FR') : 'Jamais'}</span></div>`;
+                                    <div><span class="label">Dernière</span><span style="color: var(--text-muted);">${formatRelativeTime(latest ? latest.date : null)}</span></div>`;
                                 chapRow.onclick = (e) => { e.stopPropagation(); relaunchStudy(rep.study_id || extractedId, chap.title, rep.color); };
                                 detail.appendChild(chapRow);
                             });
