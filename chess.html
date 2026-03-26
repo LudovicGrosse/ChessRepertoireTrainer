@@ -364,6 +364,9 @@
             
             .chapter-row { grid-template-columns: repeat(3, 1fr); gap: 12px 8px; }
             .chapter-row > div:first-child { grid-column: span 3; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+            .chapter-row .play-icon { display: none; }
+            .chapter-row:active { background: var(--card-hover); }
+            .chapter-row:hover { transform: none; }
             
             .header-title { font-size: 1.4rem; gap: 10px; margin-top: 10px; }
             .header-title .logo-icon { width: 36px; height: 36px; }
@@ -1048,7 +1051,6 @@
             document.getElementById('lichessInput').value = studyId;
             setToggleState('colorToggle', color);
             setToggleState('modeToggle', 'revision');
-            showToast(`Chargement : ${chapterTitle}`, 'info');
             await loadLichessStudy(studyId, chapterTitle);
         };
 
