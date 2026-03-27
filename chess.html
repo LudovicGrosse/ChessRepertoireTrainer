@@ -621,7 +621,7 @@
                     <button id="nextBtn" class="secondary nav-btn" disabled>▶</button>
                     <button id="toggleCommentsBtn" class="secondary">Notes</button>
                     <button id="hintBtn" class="secondary">Solution</button>
-                    <a id="analysisLink" href="#" target="_blank" class="secondary btn-link" title="Ouvrir dans l'étude Lichess">Étude <svg style="margin-left: 4px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>
+                    <a id="analysisLink" href="#" target="_blank" class="secondary btn-link" title="Ouvrir dans l'étude Lichess">Analyse <svg style="margin-left: 4px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>
                 </div>
                 <button id="stopBtn" class="danger" style="margin-top: 8px;">Quitter l'entraînement</button>
                 <div id="trainingActions" class="hidden" style="margin-top: 8px; display: flex; flex-direction: column;"></div>
@@ -1324,7 +1324,8 @@
             if (next) {
                 game.move(next.san); cg.set({ fen: game.fen(), lastMove: [next.from, next.to] });
                 currentNode = next; currentNode.isVisited = true; currentPath.push(currentNode); viewIndex = currentPath.length - 1;
-                renderPgnHtml(); if (currentNode.isLeaf) { markCompleted(currentNode); handleEnd(); } else preparePlayerTurn();
+                renderPgnHtml(); updateAnalysisLink();
+                if (currentNode.isLeaf) { markCompleted(currentNode); handleEnd(); } else preparePlayerTurn();
             }
         };
 
