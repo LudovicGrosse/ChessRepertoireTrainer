@@ -22,7 +22,11 @@ export const parseMultiPgn = (rawPgn) => {
         } else if (eventMatch && eventMatch[1] && eventMatch[1] !== "?") {
             title = eventMatch[1];
         }
-        chapters.push({ id: `chap_${Date.now()}_${index}`, title: title, pgn: part.trim() });
+        
+        const siteMatch = part.match(/\[Site\s+"([^"]+)"\]/);
+        const studyUrl = siteMatch ? siteMatch[1] : null;
+        
+        chapters.push({ id: `chap_${Date.now()}_${index}`, title: title, pgn: part.trim(), studyUrl: studyUrl });
     });
     if (chapters.length === 0 && rawPgn.trim().length > 0) {
          chapters.push({ id: `chap_${Date.now()}_0`, title: "Chapitre 1", pgn: rawPgn.trim() });
