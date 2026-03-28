@@ -39,7 +39,11 @@ export const parseMultiPgn = (rawPgn) => {
  */
 export const buildRepertoireTree = (pgnText) => {
     const startFen = (pgnText.match(/\[FEN\s+"([^"]+)"\]/i) || [])[1] || new Chess().fen();
-    const tokens = pgnText.replace(/\[.*?\]\s*/g, '').trim().match(/[a-zA-Z0-9\-+=#KQRBN]+|\(|\)|\{[^}]*\}|\$\d+|\d+\.+/g) || [];
+    
+    // Safely remove only standard PGN headers: [Word "Value"]
+    let cleanedText = pgnText.replace(/\[[a-zA-Z]+\s+"[^"]*"\]\s*/g, '').trim();
+    
+    const tokens = cleanedText.match(/[a-zA-Z0-9\-+=#KQRBN]+|\(|\)|\{[^}]*\}|\$\d+|\d+\.+/g) || [];
     const root = { id: 'root', san: 'root', fen: startFen, comment: null, shapes: [], children: [], parent: null, isCompleted: false, isVisited: true, isLeaf: false };
     let current = root, tempGame = new Chess(startFen), nodeStack = [], idCounter = 0;
     
