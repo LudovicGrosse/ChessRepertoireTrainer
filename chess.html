@@ -873,6 +873,14 @@
         };
 
         document.getElementById('logoutBtn').onclick = () => {
+            // Reset and hide training view if active
+            isTraining = false;
+            trainingView.classList.add('hidden');
+            setupView.classList.remove('hidden');
+            setupView.classList.add('fade-in');
+            game.reset();
+            if (cg) cg.set({ drawable: { autoShapes: [] } });
+
             authToken = null;
             localStorage.removeItem('chess_token');
             localStorage.removeItem('chess_user');
