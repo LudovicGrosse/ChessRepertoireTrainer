@@ -62,14 +62,18 @@ export const buildRepertoireTree = (pgnText) => {
             const calMatch = cmt.match(/\[%cal\s+(.*?)\]/);
             if (calMatch) {
                 calMatch[1].split(',').forEach(s => {
-                    const colorCode = s[0];
-                    const orig = s.substring(1, 3);
-                    const dest = s.substring(3, 5);
-                    let brush = 'green';
-                    if (colorCode === 'R') brush = 'red';
-                    if (colorCode === 'B') brush = 'blue';
-                    if (colorCode === 'O') brush = 'orange';
-                    shapes.push({ orig, dest, brush });
+                    const item = s.trim();
+                    if (item.length >= 5) {
+                        const colorCode = item[0];
+                        const orig = item.substring(1, 3);
+                        const dest = item.substring(3, 5);
+                        let brush = 'green';
+                        if (colorCode === 'R') brush = 'red';
+                        if (colorCode === 'B') brush = 'blue';
+                        if (colorCode === 'O') brush = 'orange';
+                        if (colorCode === 'Y') brush = 'yellow';
+                        shapes.push({ orig, dest, brush });
+                    }
                 });
             }
 
@@ -77,13 +81,17 @@ export const buildRepertoireTree = (pgnText) => {
             const cslMatch = cmt.match(/\[%csl\s+(.*?)\]/);
             if (cslMatch) {
                 cslMatch[1].split(',').forEach(s => {
-                    const colorCode = s[0];
-                    const orig = s.substring(1, 3);
-                    let brush = 'green';
-                    if (colorCode === 'R') brush = 'red';
-                    if (colorCode === 'B') brush = 'blue';
-                    if (colorCode === 'O') brush = 'orange';
-                    shapes.push({ orig, brush });
+                    const item = s.trim();
+                    if (item.length >= 3) {
+                        const colorCode = item[0];
+                        const orig = item.substring(1, 3);
+                        let brush = 'green';
+                        if (colorCode === 'R') brush = 'red';
+                        if (colorCode === 'B') brush = 'blue';
+                        if (colorCode === 'O') brush = 'orange';
+                        if (colorCode === 'Y') brush = 'yellow';
+                        shapes.push({ orig, brush });
+                    }
                 });
             }
 

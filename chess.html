@@ -1321,6 +1321,12 @@
             game.move(move.san); cg.set({ fen: game.fen(), lastMove: [orig, dest], movable: { dests: new Map() }, drawable: { autoShapes: [] } });
             currentNode = child; if (!currentNode.isVisited) { currentNode.isVisited = true; learnedMoves++; updateStatsUI(); }
             currentPath.push(currentNode); viewIndex = currentPath.length - 1; renderPgnHtml(); updateAnalysisLink();
+            
+            if (trainingMode === 'decouverte') {
+                const shapes = [...(currentNode.shapes || [])];
+                cg.set({ drawable: { autoShapes: shapes } });
+            }
+
             if (currentNode.isLeaf) { markCompleted(currentNode); handleEnd(); } else setTimeout(() => playOpponent(), 300);
         };
 
