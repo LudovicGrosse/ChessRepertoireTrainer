@@ -1246,7 +1246,9 @@
             const newIdx = viewIndex + step;
             if (!isTraining || newIdx < 0 || newIdx >= currentPath.length) return;
             viewIndex = newIdx; renderPgnHtml(); game.load(currentPath[viewIndex].fen);
-            cg.set({ fen: game.fen(), lastMove: viewIndex > 0 ? [currentPath[viewIndex].from, currentPath[viewIndex].to] : null, drawable: { autoShapes: [] } });
+            
+            const shapes = [...(currentPath[viewIndex].shapes || [])];
+            cg.set({ fen: game.fen(), lastMove: viewIndex > 0 ? [currentPath[viewIndex].from, currentPath[viewIndex].to] : null, drawable: { autoShapes: shapes } });
             updateAnalysisLink();
             
             if (viewIndex === currentPath.length - 1 && !currentPath[viewIndex].isCompleted && game.turn() === playerColor[0]) {
@@ -1287,9 +1289,12 @@
         const preparePlayerTurn = () => {
             const dests = new Map(); game.moves({ verbose: true }).forEach(m => { if (!dests.has(m.from)) dests.set(m.from, []); dests.get(m.from).push(m.to); });
             cg.set({ turnColor: playerColor, movable: { color: playerColor, free: false, showDests: true, dests, events: { after: onUserMove } } });
+            
             if (trainingMode === 'decouverte') {
+                const shapes = [...(currentNode.shapes || [])];
                 const next = currentNode.children.find(c => !c.isCompleted);
-                if (next) cg.set({ drawable: { autoShapes: [{ orig: next.from, dest: next.to, brush: 'green' }] } });
+                if (next) shapes.push({ orig: next.from, dest: next.to, brush: 'green' });
+                cg.set({ drawable: { autoShapes: shapes } });
             }
         };
 

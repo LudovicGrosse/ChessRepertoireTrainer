@@ -40,21 +40,81 @@ export const parseMultiPgn = (rawPgn) => {
 export const buildRepertoireTree = (pgnText) => {
     const startFen = (pgnText.match(/\[FEN\s+"([^"]+)"\]/i) || [])[1] || new Chess().fen();
     const tokens = pgnText.replace(/\[.*?\]\s*/g, '').trim().match(/[a-zA-Z0-9\-+=#KQRBN]+|\(|\)|\{[^}]*\}|\$\d+|\d+\.+/g) || [];
-    const root = { id: 'root', san: 'root', fen: startFen, comment: null, children: [], parent: null, isCompleted: false, isVisited: true, isLeaf: false };
+    const root = { id: 'root', san: 'root', fen: startFen, comment: null, shapes: [], children: [], parent: null, isCompleted: false, isVisited: true, isLeaf: false };
     let current = root, tempGame = new Chess(startFen), nodeStack = [], idCounter = 0;
+    
     for (let token of tokens) {
         if (/^\d+\.+$/.test(token) || /^\$\d+$/.test(token)) continue;
-        if (token === '(') { nodeStack.push(current); current = current.parent; tempGame.load(current.fen); } 
-        else if (token === ')') { current = nodeStack.pop(); tempGame.load(current.fen); } 
+        if (token === '(') { 
+            nodeStack.push(current); 
+            current = current.parent; 
+            tempGame.load(current.fen); 
+        } 
+        else if (token === ')') { 
+            current = nodeStack.pop(); 
+            tempGame.load(current.fen); 
+        } 
         else if (token.startsWith('{')) {
-            const cmt = token.slice(1, -1).trim();
-            if (current) current.comment = current.comment ? current.comment + " " + cmt : cmt;
+            let cmt = token.slice(1, -1).trim();
+            const shapes = [];
+
+            // Extract Lichess arrows: [%cal Gg1f3,Re2e4]
+            const calMatch = cmt.match(/\[%cal\s+(.*?)\]/);
+            if (calMatch) {
+                calMatch[1].split(',').forEach(s => {
+                    const colorCode = s[0];
+                    const orig = s.substring(1, 3);
+                    const dest = s.substring(3, 5);
+                    let brush = 'green';
+                    if (colorCode === 'R') brush = 'red';
+                    if (colorCode === 'B') brush = 'blue';
+                    if (colorCode === 'O') brush = 'orange';
+                    shapes.push({ orig, dest, brush });
+                });
+            }
+
+            // Extract Lichess circles: [%csl Gg1,Re2]
+            const cslMatch = cmt.match(/\[%csl\s+(.*?)\]/);
+            if (cslMatch) {
+                cslMatch[1].split(',').forEach(s => {
+                    const colorCode = s[0];
+                    const orig = s.substring(1, 3);
+                    let brush = 'green';
+                    if (colorCode === 'R') brush = 'red';
+                    if (colorCode === 'B') brush = 'blue';
+                    if (colorCode === 'O') brush = 'orange';
+                    shapes.push({ orig, brush });
+                });
+            }
+
+            // Clean comment
+            cmt = cmt.replace(/\[%cal\s+.*?\]/g, '').replace(/\[%csl\s+.*?\]/g, '').trim();
+
+            if (current) {
+                current.comment = current.comment ? current.comment + " " + cmt : cmt;
+                if (shapes.length > 0) current.shapes = (current.shapes || []).concat(shapes);
+            }
         } else {
             try {
                 const moveObj = tempGame.move(token);
                 if (moveObj) {
-                    const newNode = { id: 'node_'+(idCounter++), san: moveObj.san, from: moveObj.from, to: moveObj.to, fen: tempGame.fen(), color: moveObj.color === 'w' ? 'white' : 'black', comment: null, children: [], parent: current, isCompleted: false, isVisited: false, isLeaf: false };
-                    current.children.push(newNode); current = newNode;
+                    const newNode = { 
+                        id: 'node_'+(idCounter++), 
+                        san: moveObj.san, 
+                        from: moveObj.from, 
+                        to: moveObj.to, 
+                        fen: tempGame.fen(), 
+                        color: moveObj.color === 'w' ? 'white' : 'black', 
+                        comment: null, 
+                        shapes: [], 
+                        children: [], 
+                        parent: current, 
+                        isCompleted: false, 
+                        isVisited: false, 
+                        isLeaf: false 
+                    };
+                    current.children.push(newNode); 
+                    current = newNode;
                 }
             } catch (e) {}
         }
