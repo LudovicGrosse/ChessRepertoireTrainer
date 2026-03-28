@@ -419,27 +419,27 @@
             </div>
             <div class="modal-body">
                 <h3>🚀 Démarrage Rapide</h3>
-                <p>Copiez l'URL d'une <strong>étude Lichess publique</strong> (ou d'un chapitre) et collez-la dans la zone "Charger une étude".</p>
+                <p>Importez n'importe quelle <strong>étude Lichess publique</strong> en collant son URL. L'application récupère automatiquement tous les chapitres.</p>
                 
-                <h3>📊 Votre Historique</h3>
-                <p>Vos répertoires sont sauvegardés automatiquement. Vous pouvez suivre votre progression et vos succès par chapitre.</p>
+                <h3>📊 Gestion du Répertoire</h3>
+                <p>Vos ouvertures sont classées par couleur dans votre historique pour un accès rapide.</p>
                 <ul>
-                    <li><strong>Accès Direct :</strong> Cliquez sur n'importe quel chapitre dans votre historique pour le charger instantanément et démarrer une révision.</li>
-                    <li><strong>Synchronisation :</strong> Le bouton "Synchroniser" met à jour votre répertoire si vous avez ajouté de nouveaux coups sur Lichess.</li>
-                    <li><strong>Badge "MAJ" :</strong> Apparaît si de nouveaux coups ont été détectés depuis votre dernière révision.</li>
+                    <li><strong>Synchronisation :</strong> Mettez à jour votre répertoire en un clic si vous avez ajouté des coups sur Lichess.</li>
+                    <li><strong>Indicateur MAJ :</strong> Un badge orange vous signale les chapitres ayant été modifiés sur Lichess depuis votre dernière visite.</li>
+                    <li><strong>Suivi de réussite :</strong> Visualisez votre taux de succès par chapitre pour identifier vos points faibles.</li>
                 </ul>
 
                 <h3>🎯 Modes d'Entraînement</h3>
                 <ul>
-                    <li><strong>Mode Découverte :</strong> Apprenez en suivant la flèche verte. Les erreurs ne comptent pas.</li>
-                    <li><strong>Mode Révision :</strong> Testez vos connaissances. Chaque erreur impacte votre score de réussite.</li>
+                    <li><strong>Mode Découverte :</strong> Idéal pour apprendre une ligne. Suivez la flèche d'aide grise sans pression.</li>
+                    <li><strong>Mode Révision :</strong> Testez votre mémoire. L'application joue les coups adverses et enregistre vos erreurs pour calculer votre score.</li>
                 </ul>
 
-                <h3>💡 Astuces en jeu</h3>
+                <h3>💡 Fonctionnalités Utiles</h3>
                 <ul>
-                    <li><strong>Échiquier :</strong> Sur mobile, l'échiquier reste visible en haut pendant que vous faites défiler la notation.</li>
-                    <li><strong>Solution :</strong> Le bouton "Solution" affiche le coup attendu (compte comme une erreur en révision).</li>
-                    <li><strong>Navigation :</strong> Utilisez les flèches du clavier (⬅️ ➡️) ou cliquez sur les coups pour naviguer dans la variante.</li>
+                    <li><strong>Solution :</strong> En cas d'oubli, affichez le coup attendu (compte comme une erreur en révision).</li>
+                    <li><strong>Navigation :</strong> Utilisez les flèches du clavier ou cliquez sur la notation pour explorer les variantes.</li>
+                    <li><strong>Analyse Lichess :</strong> Basculez vers l'outil d'analyse Lichess à tout moment pour approfondir une position.</li>
                 </ul>
             </div>
         </div>
@@ -541,7 +541,7 @@
         <div id="main-setup-content" class="hidden" style="display: flex; flex-direction: column; gap: 24px;">
             <div class="setup-card" id="dashboard-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <h2 style="margin:0; border:none; padding:0;">Vos Répertoires</h2>
+                    <h2 style="margin:0; border:none; padding:0;">Répertoires</h2>
                 </div>
                 <div id="repertoireList">
                     <div style="text-align: center; color: var(--text-muted); padding: 20px;">Chargement de l'historique...</div>
@@ -1101,11 +1101,11 @@
             };
 
             if (whiteReps.length > 0) {
-                repertoireListEl.appendChild(createSectionHeader('Répertoires Blancs'));
+                repertoireListEl.appendChild(createSectionHeader('Blancs'));
                 renderRepList(whiteReps);
             }
             if (blackReps.length > 0) {
-                repertoireListEl.appendChild(createSectionHeader('Répertoires Noirs'));
+                repertoireListEl.appendChild(createSectionHeader('Noirs'));
                 renderRepList(blackReps);
             }
         };
