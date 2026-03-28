@@ -390,7 +390,7 @@
 <body>
 
     <header id="top-bar" class="hidden fade-in">
-        <div class="logo">
+        <div class="logo" id="homeBtn" style="cursor: pointer;" title="Retour au menu principal">
             <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <path d="M50 35 L80 50 L50 65 L20 50 Z" fill="#064e3b" />
                 <path d="M20 50 L50 65 L50 90 L20 75 Z" fill="#059669" />
@@ -623,7 +623,10 @@
                     <button id="hintBtn" class="secondary">Solution</button>
                     <a id="analysisLink" href="#" target="_blank" class="secondary btn-link" title="Ouvrir dans l'étude Lichess">Analyse <svg style="margin-left: 4px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>
                 </div>
-                <button id="stopBtn" class="danger" style="margin-top: 8px;">Quitter l'entraînement</button>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button id="restartBtn" class="secondary hidden" style="flex: 1;">Recommencer</button>
+                    <button id="stopBtn" class="danger" style="flex: 1;">Quitter</button>
+                </div>
                 <div id="trainingActions" class="hidden" style="margin-top: 8px; display: flex; flex-direction: column;"></div>
             </div>
         </div>
@@ -899,6 +902,14 @@
         closeHelpBtn.onclick = () => helpModal.classList.remove('show');
         helpModal.onclick = (e) => { if (e.target === helpModal) helpModal.classList.remove('show'); };
 
+        document.getElementById('homeBtn').onclick = () => {
+            if (isTraining) {
+                document.getElementById('stopBtn').click();
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        };
+
         // =========================================
         // DASHBOARD & REPERTOIRE LOGIC
         // =========================================
@@ -1162,6 +1173,7 @@
             document.getElementById('errorStatRow').classList.toggle('hidden', trainingMode === 'decouverte');
             document.getElementById('hintBtn').classList.toggle('hidden', trainingMode === 'decouverte');
             document.getElementById('analysisLink').classList.toggle('hidden', trainingMode === 'revision');
+            document.getElementById('restartBtn').classList.toggle('hidden', trainingMode !== 'decouverte');
             
             isTraining = true; 
             setupView.classList.add('hidden'); 
@@ -1169,7 +1181,23 @@
             trainingView.classList.add('fade-in');
             
             setTimeout(() => {
-                if (!cg) cg = Chessground(document.getElementById('board'), { coordinates: true, movable: { color: undefined, dests: new Map() } });
+                if (!cg) cg = Chessground(document.getElementById('board'), { 
+                    coordinates: true, 
+                    movable: { color: undefined, dests: new Map() },
+                    drawable: {
+                        brushes: {
+                            green: { key: 'g', color: '#15781B', opacity: 1, lineWidth: 10 },
+                            red: { key: 'r', color: '#882020', opacity: 1, lineWidth: 10 },
+                            blue: { key: 'b', color: '#003088', opacity: 1, lineWidth: 10 },
+                            yellow: { key: 'y', color: '#e68f00', opacity: 1, lineWidth: 10 },
+                            paleBlue: { key: 'pb', color: '#003088', opacity: 0.4, lineWidth: 15 },
+                            paleGreen: { key: 'pg', color: '#15781B', opacity: 0.4, lineWidth: 15 },
+                            paleRed: { key: 'pr', color: '#882020', opacity: 0.4, lineWidth: 15 },
+                            paleGrey: { key: 'pgr', color: '#4a4a4a', opacity: 0.35, lineWidth: 15 },
+                            hint: { key: 'h', color: '#cbd5e1', opacity: 0.7, lineWidth: 22 } // Custom fat grey brush
+                        }
+                    }
+                });
                 cg.set({ orientation: playerColor }); game.load(rootNode.fen); 
                 showToast(trainingMode === 'decouverte' ? "Mode Découverte activé" : "Mode Révision activé", "info");
                 startNextVariation();
@@ -1199,7 +1227,7 @@
 
             const next = currentNode.children.find(c => !c.isCompleted);
             if (next) {
-                cg.set({ drawable: { autoShapes: [{ orig: next.from, dest: next.to, brush: 'green' }] } });
+                cg.set({ drawable: { autoShapes: [{ orig: next.from, dest: next.to, brush: 'hint' }] } });
                 showToast("Solution affichée !", "info", 1500);
                 if (!currentMoveErrorLogged) {
                     errorCount++;
@@ -1301,7 +1329,7 @@
             if (trainingMode === 'decouverte') {
                 const shapes = [...(currentNode.shapes || [])];
                 const next = currentNode.children.find(c => !c.isCompleted);
-                if (next) shapes.push({ orig: next.from, dest: next.to, brush: 'green' });
+                if (next) shapes.push({ orig: next.from, dest: next.to, brush: 'hint' });
                 cg.set({ drawable: { autoShapes: shapes } });
             }
         };
