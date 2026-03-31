@@ -1011,35 +1011,32 @@
                     let totalRevisionMoves = 0;
                     
                     const cache = getFromCache(rep.study_id + '_' + rep.color);
-                    const workedCount = Object.keys(rep.chaptersHistory).length;
                     
                     if (cache && cache.data && cache.data.chapters) {
-                        // Use exact move counts from cache if available
+                        // PRECISE CALCULATION: Use exact move counts from sync cache
                         cache.data.chapters.forEach(chap => {
-                            totalRevisionMoves += chap.moveCount;
+                            const moveCount = chap.moveCount || 0;
+                            totalRevisionMoves += moveCount;
+                            
                             const hist = rep.chaptersHistory[chap.title];
                             const latest = hist && hist.revisions.length > 0 ? hist.revisions[0] : null;
                             if (latest) {
-                                totalSuccessMoves += Math.max(0, latest.total_moves - latest.errors);
+                                // Important: We cap success to moveCount to handle PGN updates
+                                const success = Math.max(0, latest.total_moves - latest.errors);
+                                totalSuccessMoves += Math.min(moveCount, success);
                             }
                         });
                     } else {
-                        // Estimate based on worked chapters and total_chapters count
-                        let workedTotalMoves = 0;
+                        // FALLBACK: Only if sync cache is missing
                         Object.values(rep.chaptersHistory).forEach(chapHist => {
                             const latest = chapHist.revisions.length > 0 ? chapHist.revisions[0] : null;
                             if (latest && latest.total_moves > 0) {
                                 totalSuccessMoves += Math.max(0, latest.total_moves - latest.errors);
-                                workedTotalMoves += latest.total_moves;
+                                totalRevisionMoves += latest.total_moves;
                             }
                         });
-                        
-                        // If we have unworked chapters, estimate their move count as the average of worked chapters
-                        if (rep.total_chapters > 0 && workedCount > 0) {
-                            totalRevisionMoves = workedTotalMoves * (rep.total_chapters / workedCount);
-                        } else {
-                            totalRevisionMoves = workedTotalMoves;
-                        }
+                        // If we have unworked chapters but no cache, we can't be precise.
+                        // We'll just show the score of the worked part for now.
                     }
 
                     const globalRate = totalRevisionMoves > 0 ? Math.round((totalSuccessMoves / totalRevisionMoves) * 100) : 0;
@@ -1174,17 +1171,18 @@
                                     
                                     saveToCache(extractedId + '_' + rep.color, { chapters: chaptersWithMoves, title: currentStudyName });
                                     
-                                    // If titles changed, we should trigger a history update on next save or manually here
-                                    // For now, updating the local rep object and re-rendering is enough for the UI
                                     rep.title = currentStudyName;
                                     rep.total_chapters = chaptersWithMoves.length;
                                     
                                     renderChapters(chaptersWithMoves);
                                     
-                                    // Optional: If title changed, refresh the whole dashboard to show new title in header
-                                    if (currentStudyName !== rep.title) fetchHistory();
+                                    // Refresh the whole dashboard to update the global success badge with new counts
+                                    fetchHistory();
                                     
-                                } catch (err) { detail.innerHTML = `<div style="padding: 15px; text-align: center; color: var(--danger);">Erreur lors de la synchronisation.</div>`; }
+                                } catch (err) { 
+                                    console.error("Sync error:", err);
+                                    detail.innerHTML = `<div style="padding: 15px; text-align: center; color: var(--danger);">Erreur lors de la synchronisation.</div>`; 
+                                }
                             };
 
                             syncFromLichess();
