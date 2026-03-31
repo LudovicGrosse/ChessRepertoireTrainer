@@ -972,6 +972,10 @@
                     rep.last_date = entry.date;
                 }
 
+                if (entry.total_chapters > rep.total_chapters) {
+                    rep.total_chapters = entry.total_chapters;
+                }
+
                 if (entry.is_revision && (!rep.last_revision || new Date(entry.date) > new Date(rep.last_revision))) {
                     rep.last_revision = entry.date;
                 }
@@ -1005,16 +1009,41 @@
                     // Calculate global success rate (weighted average)
                     let totalSuccessMoves = 0;
                     let totalRevisionMoves = 0;
-                    Object.values(rep.chaptersHistory).forEach(chapHist => {
-                        const latest = chapHist.revisions.length > 0 ? chapHist.revisions[0] : null;
-                        if (latest && latest.total_moves > 0) {
-                            totalSuccessMoves += Math.max(0, latest.total_moves - latest.errors);
-                            totalRevisionMoves += latest.total_moves;
+                    
+                    const cache = getFromCache(rep.study_id + '_' + rep.color);
+                    const workedCount = Object.keys(rep.chaptersHistory).length;
+                    
+                    if (cache && cache.data && cache.data.chapters) {
+                        // Use exact move counts from cache if available
+                        cache.data.chapters.forEach(chap => {
+                            totalRevisionMoves += chap.moveCount;
+                            const hist = rep.chaptersHistory[chap.title];
+                            const latest = hist && hist.revisions.length > 0 ? hist.revisions[0] : null;
+                            if (latest) {
+                                totalSuccessMoves += Math.max(0, latest.total_moves - latest.errors);
+                            }
+                        });
+                    } else {
+                        // Estimate based on worked chapters and total_chapters count
+                        let workedTotalMoves = 0;
+                        Object.values(rep.chaptersHistory).forEach(chapHist => {
+                            const latest = chapHist.revisions.length > 0 ? chapHist.revisions[0] : null;
+                            if (latest && latest.total_moves > 0) {
+                                totalSuccessMoves += Math.max(0, latest.total_moves - latest.errors);
+                                workedTotalMoves += latest.total_moves;
+                            }
+                        });
+                        
+                        // If we have unworked chapters, estimate their move count as the average of worked chapters
+                        if (rep.total_chapters > 0 && workedCount > 0) {
+                            totalRevisionMoves = workedTotalMoves * (rep.total_chapters / workedCount);
+                        } else {
+                            totalRevisionMoves = workedTotalMoves;
                         }
-                    });
+                    }
 
-                    const globalRate = totalRevisionMoves > 0 ? Math.round((totalSuccessMoves / totalRevisionMoves) * 100) : null;
-                    const rateClass = globalRate !== null ? (globalRate >= 80 ? 'high' : (globalRate < 50 ? 'low' : 'medium')) : '';
+                    const globalRate = totalRevisionMoves > 0 ? Math.round((totalSuccessMoves / totalRevisionMoves) * 100) : 0;
+                    const rateClass = globalRate >= 80 ? 'high' : (globalRate < 50 ? 'low' : 'medium');
 
                     const repItem = document.createElement('div');
                     repItem.className = 'repertoire-item fade-in';
@@ -1131,14 +1160,30 @@
                                 try {
                                     const response = await fetch(`https://lichess.org/api/study/${extractedId}.pgn?v=${Date.now()}`);
                                     if (!response.ok) throw new Error("Lichess error");
-                                    const allChapters = parseMultiPgn(await response.text());
+                                    const pgnText = await response.text();
+                                    const allChapters = parseMultiPgn(pgnText);
+                                    
+                                    // Extract current study name from PGN
+                                    const currentStudyName = pgnText.match(/\[StudyName "(.*?)"\]/)?.[1] || rep.title;
+                                    
                                     const chaptersWithMoves = allChapters.map(chap => {
                                         let moveCount = 0;
                                         try { const tempRoot = buildRepertoireTree(chap.pgn); const countMoves = (n) => { if (n.id !== 'root' && n.color === rep.color) moveCount++; n.children.forEach(countMoves); }; countMoves(tempRoot); } catch(e) {}
                                         return { title: chap.title, moveCount, pgn: chap.pgn };
                                     });
-                                    saveToCache(extractedId + '_' + rep.color, { chapters: chaptersWithMoves });
+                                    
+                                    saveToCache(extractedId + '_' + rep.color, { chapters: chaptersWithMoves, title: currentStudyName });
+                                    
+                                    // If titles changed, we should trigger a history update on next save or manually here
+                                    // For now, updating the local rep object and re-rendering is enough for the UI
+                                    rep.title = currentStudyName;
+                                    rep.total_chapters = chaptersWithMoves.length;
+                                    
                                     renderChapters(chaptersWithMoves);
+                                    
+                                    // Optional: If title changed, refresh the whole dashboard to show new title in header
+                                    if (currentStudyName !== rep.title) fetchHistory();
+                                    
                                 } catch (err) { detail.innerHTML = `<div style="padding: 15px; text-align: center; color: var(--danger);">Erreur lors de la synchronisation.</div>`; }
                             };
 
