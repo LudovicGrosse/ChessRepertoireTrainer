@@ -270,6 +270,15 @@
         .success-rate { font-weight: 700; color: var(--success); }
         .low-success { font-weight: 700; color: var(--danger); }
         
+        .global-score-badge {
+            padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;
+            display: flex; align-items: center; gap: 6px; background: #0f172a;
+            border: 1px solid var(--border-color);
+        }
+        .global-score-badge.high { color: var(--success); border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.05); }
+        .global-score-badge.medium { color: var(--warning); border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.05); }
+        .global-score-badge.low { color: var(--danger); border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); }
+        
         .mini-progress-bg { width: 100%; max-width: 60px; height: 4px; background: #334155; border-radius: 2px; margin-top: 4px; overflow: hidden; }
         .mini-progress-fill { height: 100%; border-radius: 2px; }
 
@@ -986,19 +995,39 @@
 
             const renderRepList = (list) => {
                 list.forEach(rep => {
+                    // Calculate global success rate (weighted average)
+                    let totalSuccessMoves = 0;
+                    let totalRevisionMoves = 0;
+                    Object.values(rep.chaptersHistory).forEach(chapHist => {
+                        const latest = chapHist.revisions.length > 0 ? chapHist.revisions[0] : null;
+                        if (latest && latest.total_moves > 0) {
+                            totalSuccessMoves += Math.max(0, latest.total_moves - latest.errors);
+                            totalRevisionMoves += latest.total_moves;
+                        }
+                    });
+
+                    const globalRate = totalRevisionMoves > 0 ? Math.round((totalSuccessMoves / totalRevisionMoves) * 100) : null;
+                    const rateClass = globalRate !== null ? (globalRate >= 80 ? 'high' : (globalRate < 50 ? 'low' : 'medium')) : '';
+
                     const repItem = document.createElement('div');
                     repItem.className = 'repertoire-item fade-in';
                     const lastDate = formatRelativeTime(rep.last_revision);
                     repItem.innerHTML = `
                         <div class="repertoire-header">
-                            <div>
+                            <div style="flex: 1;">
                                 <strong style="color: var(--text-main); font-size: 15px;">${rep.title} <span style="color: var(--text-muted); font-weight: normal; font-size: 0.85rem;">(${rep.total_chapters} chapitre${rep.total_chapters > 1 ? 's' : ''})</span></strong>
                                 <div class="meta">
-                                    <span><span class="color-dot ${rep.color === 'white' ? 'color-white' : 'color-black'}"></span> ${rep.color === 'white' ? 'Blancs' : 'Noirs'}</span>
-                                    <span>Dernière révision: ${lastDate}</span>
+                                    <span>Dernière révision : ${lastDate}</span>
                                 </div>
                             </div>
-                            <div class="toggle-icon" style="color: var(--text-muted); font-size: 18px;">+</div>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                ${globalRate !== null ? `
+                                    <div class="global-score-badge ${rateClass}" title="Taux de réussite global">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                        ${globalRate}%
+                                    </div>` : ''}
+                                <div class="toggle-icon" style="color: var(--text-muted); font-size: 18px;">+</div>
+                            </div>
                         </div>
                         <div class="chapters-detail"></div>
                     `;
