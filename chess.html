@@ -1053,24 +1053,26 @@
                     
                     header.onclick = async () => {
                         const isOpen = detail.classList.contains('open');
+                        
+                        // Close all others
                         document.querySelectorAll('.chapters-detail').forEach(d => d.classList.remove('open'));
                         document.querySelectorAll('.toggle-icon').forEach(i => i.textContent = '+');
                         
                         if (!isOpen) {
                             currentlyOpenRepId = repKey;
-                            detail.classList.add('open'); icon.textContent = '−';
-                            // ... rest of the logic (renderChapters, syncFromLichess)
+                            detail.classList.add('open'); 
+                            icon.textContent = '−';
+                            expandRepertoire(rep, detail, normalizedId);
                         } else {
                             currentlyOpenRepId = null;
                         }
                     };
 
-                    // Auto-trigger expand if it was open
+                    // Auto-restore state if it was open
                     if (currentlyOpenRepId === repKey) {
-                        setTimeout(() => {
-                            // We need to trigger the logic inside header.onclick without the toggle part
-                            expandRepertoire(rep, detail, normalizedId);
-                        }, 0);
+                        detail.classList.add('open');
+                        icon.textContent = '−';
+                        setTimeout(() => expandRepertoire(rep, detail, normalizedId), 0);
                     }
 
                     repertoireListEl.appendChild(repItem);
