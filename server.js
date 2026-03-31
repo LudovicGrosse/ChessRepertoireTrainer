@@ -190,6 +190,14 @@ app.post('/api/history', authenticateToken, async (req, res) => {
     const date = new Date().toISOString();
 
     try {
+        // Update all previous entries for this study to have the new title if it changed
+        if (study_id && repertoire_title) {
+            await db.query(`
+                UPDATE history SET repertoire_title = $1 
+                WHERE user_id = $2 AND study_id = $3
+            `, [repertoire_title, req.user.id, study_id]);
+        }
+
         await db.query(`
             INSERT INTO history (user_id, repertoire_title, chapter_title, study_id, color, date, moves_learned, total_moves, errors, total_chapters, is_revision)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -213,8 +221,9 @@ app.get('/api/history', authenticateToken, async (req, res) => {
 
 app.delete('/api/history/repertoire', authenticateToken, async (req, res) => {
     try {
-        await db.query('DELETE FROM history WHERE user_id = $1 AND repertoire_title = $2 AND color = $3', 
-        [req.user.id, req.query.title, req.query.color]);
+        const { study_id, color } = req.query;
+        await db.query('DELETE FROM history WHERE user_id = $1 AND study_id = $2 AND color = $3', 
+        [req.user.id, study_id, color]);
         res.sendStatus(200);
     } catch (err) {
         console.error("Delete history error:", err);

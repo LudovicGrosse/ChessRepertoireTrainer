@@ -950,10 +950,10 @@
                 return;
             }
 
-            // Group entries into repertoires
+            // Group entries into repertoires by study_id and color
             const repertoires = {};
             history.forEach(entry => {
-                const repKey = entry.repertoire_title + '_' + entry.color;
+                const repKey = entry.study_id + '_' + entry.color;
                 if (!repertoires[repKey]) {
                     repertoires[repKey] = { 
                         title: entry.repertoire_title, 
@@ -965,6 +965,13 @@
                     };
                 }
                 const rep = repertoires[repKey];
+                
+                // Always use the most recent title found in history (since server updates them)
+                if (!rep.last_date || new Date(entry.date) > new Date(rep.last_date)) {
+                    rep.title = entry.repertoire_title;
+                    rep.last_date = entry.date;
+                }
+
                 if (entry.is_revision && (!rep.last_revision || new Date(entry.date) > new Date(rep.last_revision))) {
                     rep.last_revision = entry.date;
                 }
@@ -1104,7 +1111,7 @@
                                 delBtn.onclick = async (e) => {
                                     e.stopPropagation(); e.preventDefault();
                                     if (!confirm("Voulez-vous vraiment supprimer ce répertoire ?")) return;
-                                    const res = await fetch(`/api/history/repertoire?title=${encodeURIComponent(rep.title)}&color=${encodeURIComponent(rep.color)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` } });
+                                    const res = await fetch(`/api/history/repertoire?study_id=${encodeURIComponent(rep.study_id)}&color=${encodeURIComponent(rep.color)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` } });
                                     if (res.ok) { showToast("Répertoire supprimé", "success"); fetchHistory(); }
                                     else if (res.status === 401 || res.status === 403) {
                                         document.getElementById('logoutBtn').click();
