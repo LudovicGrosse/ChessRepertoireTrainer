@@ -762,13 +762,19 @@
         // =========================================
         const updateAuthUI = () => {
             if (authToken) {
+                const user = JSON.parse(localStorage.getItem('chess_user'));
+                if (!user) {
+                    authToken = null;
+                    localStorage.removeItem('chess_token');
+                    updateAuthUI();
+                    return;
+                }
                 authSection.classList.add('hidden');
                 document.getElementById('main-title').classList.add('hidden');
                 mainSetupContent.classList.remove('hidden');
                 mainSetupContent.classList.add('fade-in');
                 topBar.classList.remove('hidden');
-                const user = JSON.parse(localStorage.getItem('chess_user'));
-                displayUsername.textContent = user ? user.username : 'Utilisateur';
+                displayUsername.textContent = user.username || 'Utilisateur';
                 fetchHistory();
             } else {
                 authSection.classList.remove('hidden');
@@ -922,6 +928,10 @@
             try {
                 const res = await fetch('/api/history', { headers: { 'Authorization': `Bearer ${authToken}` } });
                 if (res.ok) renderInteractiveDashboard(await res.json());
+                else if (res.status === 401 || res.status === 403) {
+                    console.warn("Session expired or invalid. Logging out...");
+                    document.getElementById('logoutBtn').click();
+                }
             } catch (err) { console.error("Failed to fetch history:", err); }
         };
 
@@ -1067,6 +1077,9 @@
                                     if (!confirm("Voulez-vous vraiment supprimer ce répertoire ?")) return;
                                     const res = await fetch(`/api/history/repertoire?title=${encodeURIComponent(rep.title)}&color=${encodeURIComponent(rep.color)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` } });
                                     if (res.ok) { showToast("Répertoire supprimé", "success"); fetchHistory(); }
+                                    else if (res.status === 401 || res.status === 403) {
+                                        document.getElementById('logoutBtn').click();
+                                    }
                                 };
                                 footer.appendChild(delBtn);
                                 detail.appendChild(footer);
@@ -1119,17 +1132,23 @@
 
         const saveHistory = async (stats) => {
             if (!authToken) return;
-            await fetch('/api/history', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-                body: JSON.stringify({ 
-                    ...stats, 
-                    study_id: document.getElementById('lichessInput').value.trim(), 
-                    color: playerColor, 
-                    total_chapters: currentRepertoire ? currentRepertoire.chapters.length : 0
-                })
-            });
-            fetchHistory();
+            try {
+                const res = await fetch('/api/history', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ 
+                        ...stats, 
+                        study_id: document.getElementById('lichessInput').value.trim(), 
+                        color: playerColor, 
+                        total_chapters: currentRepertoire ? currentRepertoire.chapters.length : 0
+                    })
+                });
+                if (res.status === 401 || res.status === 403) {
+                    document.getElementById('logoutBtn').click();
+                } else {
+                    fetchHistory();
+                }
+            } catch (err) { console.error("Save history error:", err); }
         };
 
         updateAuthUI();
