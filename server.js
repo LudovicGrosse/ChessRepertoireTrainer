@@ -219,6 +219,23 @@ app.get('/api/history', authenticateToken, async (req, res) => {
     }
 });
 
+app.put('/api/history/repertoire/title', authenticateToken, async (req, res) => {
+    try {
+        const { study_id, new_title } = req.body;
+        if (!study_id || !new_title) return res.status(400).json({ error: 'Missing study_id or new_title' });
+        
+        await db.query(`
+            UPDATE history SET repertoire_title = $1 
+            WHERE user_id = $2 AND study_id = $3
+        `, [new_title, req.user.id, study_id]);
+        
+        res.sendStatus(200);
+    } catch (err) {
+        console.error("Update title error:", err);
+        res.status(500).json({ error: 'Failed to update repertoire title' });
+    }
+});
+
 app.delete('/api/history/repertoire', authenticateToken, async (req, res) => {
     try {
         const { study_id, color } = req.query;

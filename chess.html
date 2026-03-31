@@ -1163,6 +1163,17 @@
                                     // Extract current study name from PGN
                                     const currentStudyName = pgnText.match(/\[StudyName "(.*?)"\]/)?.[1] || rep.title;
                                     
+                                    // If title changed, update it in the database immediately
+                                    if (currentStudyName !== rep.title && authToken) {
+                                        try {
+                                            await fetch('/api/history/repertoire/title', {
+                                                method: 'PUT',
+                                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                                                body: JSON.stringify({ study_id: extractedId, new_title: currentStudyName })
+                                            });
+                                        } catch (e) { console.error("Failed to update title in DB:", e); }
+                                    }
+
                                     const chaptersWithMoves = allChapters.map(chap => {
                                         let moveCount = 0;
                                         try { const tempRoot = buildRepertoireTree(chap.pgn); const countMoves = (n) => { if (n.id !== 'root' && n.color === rep.color) moveCount++; n.children.forEach(countMoves); }; countMoves(tempRoot); } catch(e) {}
