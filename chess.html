@@ -674,6 +674,16 @@
         // =========================================
         // UTILS
         // =========================================
+        const extractStudyId = (input) => {
+            if (!input) return null;
+            if (input.includes('lichess.org/study/')) {
+                const match = input.match(/lichess\.org\/study\/([a-zA-Z0-9]{8})/);
+                return match ? match[1] : input;
+            }
+            if (input.includes('/')) return input.split('/')[0];
+            return input.trim();
+        };
+
         const getToggleState = (id) => {
             const activeOpt = document.getElementById(id).querySelector('.toggle-option.active');
             return activeOpt ? activeOpt.dataset.val : null;
@@ -950,14 +960,15 @@
                 return;
             }
 
-            // Group entries into repertoires by study_id and color
+            // Group entries into repertoires by normalized study_id and color
             const repertoires = {};
             history.forEach(entry => {
-                const repKey = entry.study_id + '_' + entry.color;
+                const normalizedId = extractStudyId(entry.study_id);
+                const repKey = normalizedId + '_' + entry.color;
                 if (!repertoires[repKey]) {
                     repertoires[repKey] = { 
                         title: entry.repertoire_title, 
-                        study_id: entry.study_id, 
+                        study_id: normalizedId, 
                         color: entry.color, 
                         chaptersHistory: {}, 
                         last_revision: null, 
@@ -966,7 +977,7 @@
                 }
                 const rep = repertoires[repKey];
                 
-                // Always use the most recent title found in history (since server updates them)
+                // Always use the most recent title found in history
                 if (!rep.last_date || new Date(entry.date) > new Date(rep.last_date)) {
                     rep.title = entry.repertoire_title;
                     rep.last_date = entry.date;
@@ -1010,7 +1021,9 @@
                     let totalSuccessMoves = 0;
                     let totalRevisionMoves = 0;
                     
-                    const cache = getFromCache(rep.study_id + '_' + rep.color);
+                    // NORMALIZED ID for cache lookup
+                    const normalizedId = extractStudyId(rep.study_id);
+                    const cache = getFromCache(normalizedId + '_' + rep.color);
                     
                     if (cache && cache.data && cache.data.chapters) {
                         // PRECISE CALCULATION: Use exact move counts from sync cache
@@ -1021,7 +1034,6 @@
                             const hist = rep.chaptersHistory[chap.title];
                             const latest = hist && hist.revisions.length > 0 ? hist.revisions[0] : null;
                             if (latest) {
-                                // Important: We cap success to moveCount to handle PGN updates
                                 const success = Math.max(0, latest.total_moves - latest.errors);
                                 totalSuccessMoves += Math.min(moveCount, success);
                             }
@@ -1035,8 +1047,6 @@
                                 totalRevisionMoves += latest.total_moves;
                             }
                         });
-                        // If we have unworked chapters but no cache, we can't be precise.
-                        // We'll just show the score of the worked part for now.
                     }
 
                     const globalRate = totalRevisionMoves > 0 ? Math.round((totalSuccessMoves / totalRevisionMoves) * 100) : 0;
@@ -1071,13 +1081,7 @@
                         document.querySelectorAll('.toggle-icon').forEach(i => i.textContent = '+');
                         if (!isOpen) {
                             detail.classList.add('open'); icon.textContent = '−';
-                            let extractedId = rep.study_id;
-                            if (extractedId && extractedId.includes('lichess.org/study/')) {
-                                const match = extractedId.match(/lichess\.org\/study\/([a-zA-Z0-9]{8})/);
-                                if (match) extractedId = match[1];
-                            } else if (extractedId && extractedId.includes('/')) {
-                                extractedId = extractedId.split('/')[0];
-                            }
+                            const normalizedId = extractStudyId(rep.study_id);
 
                             const renderChapters = (chaptersData) => {
                                 detail.innerHTML = '';
@@ -1111,7 +1115,7 @@
                                         <div><span class="label">Coups</span><strong style="color: var(--text-main); font-weight: normal;">${moveCount}</strong></div>
                                         <div><span class="label">Dernière</span><span style="color: var(--text-muted);">${formatRelativeTime(latest ? latest.date : null)}</span></div>
                                         <div class="play-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>`;
-                                    chapRow.onclick = (e) => { e.stopPropagation(); relaunchStudy(rep.study_id || extractedId, chap.title, rep.color); };
+                                    chapRow.onclick = (e) => { e.stopPropagation(); relaunchStudy(normalizedId, chap.title, rep.color); };
                                     detail.appendChild(chapRow);
                                 });
                                 
@@ -1137,7 +1141,7 @@
                                 delBtn.onclick = async (e) => {
                                     e.stopPropagation(); e.preventDefault();
                                     if (!confirm("Voulez-vous vraiment supprimer ce répertoire ?")) return;
-                                    const res = await fetch(`/api/history/repertoire?study_id=${encodeURIComponent(rep.study_id)}&color=${encodeURIComponent(rep.color)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` } });
+                                    const res = await fetch(`/api/history/repertoire?study_id=${encodeURIComponent(normalizedId)}&color=${encodeURIComponent(rep.color)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` } });
                                     if (res.ok) { showToast("Répertoire supprimé", "success"); fetchHistory(); }
                                     else if (res.status === 401 || res.status === 403) {
                                         document.getElementById('logoutBtn').click();
@@ -1149,27 +1153,25 @@
 
                             const syncFromLichess = async (force = false) => {
                                 if (!force) {
-                                    const cache = getFromCache(extractedId + '_' + rep.color);
+                                    const cache = getFromCache(normalizedId + '_' + rep.color);
                                     if (cache && !cache.isExpired) { renderChapters(cache.data.chapters); return; }
                                 }
                                 
                                 detail.innerHTML = '<div style="padding: 15px; text-align: center; color: var(--text-muted);">Synchronisation Lichess...</div>';
                                 try {
-                                    const response = await fetch(`https://lichess.org/api/study/${extractedId}.pgn?v=${Date.now()}`);
+                                    const response = await fetch(`https://lichess.org/api/study/${normalizedId}.pgn?v=${Date.now()}`);
                                     if (!response.ok) throw new Error("Lichess error");
                                     const pgnText = await response.text();
                                     const allChapters = parseMultiPgn(pgnText);
                                     
-                                    // Extract current study name from PGN
                                     const currentStudyName = pgnText.match(/\[StudyName "(.*?)"\]/)?.[1] || rep.title;
                                     
-                                    // If title changed, update it in the database immediately
                                     if (currentStudyName !== rep.title && authToken) {
                                         try {
                                             await fetch('/api/history/repertoire/title', {
                                                 method: 'PUT',
                                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-                                                body: JSON.stringify({ study_id: extractedId, new_title: currentStudyName })
+                                                body: JSON.stringify({ study_id: normalizedId, new_title: currentStudyName })
                                             });
                                         } catch (e) { console.error("Failed to update title in DB:", e); }
                                     }
@@ -1180,16 +1182,8 @@
                                         return { title: chap.title, moveCount, pgn: chap.pgn };
                                     });
                                     
-                                    saveToCache(extractedId + '_' + rep.color, { chapters: chaptersWithMoves, title: currentStudyName });
-                                    
-                                    rep.title = currentStudyName;
-                                    rep.total_chapters = chaptersWithMoves.length;
-                                    
-                                    renderChapters(chaptersWithMoves);
-                                    
-                                    // Refresh the whole dashboard to update the global success badge with new counts
+                                    saveToCache(normalizedId + '_' + rep.color, { chapters: chaptersWithMoves, title: currentStudyName });
                                     fetchHistory();
-                                    
                                 } catch (err) { 
                                     console.error("Sync error:", err);
                                     detail.innerHTML = `<div style="padding: 15px; text-align: center; color: var(--danger);">Erreur lors de la synchronisation.</div>`; 
