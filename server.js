@@ -224,9 +224,10 @@ app.put('/api/history/repertoire/title', authenticateToken, async (req, res) => 
         const { study_id, new_title } = req.body;
         if (!study_id || !new_title) return res.status(400).json({ error: 'Missing study_id or new_title' });
         
+        // Robust match: works if DB has short ID or full URL
         await db.query(`
             UPDATE history SET repertoire_title = $1 
-            WHERE user_id = $2 AND study_id = $3
+            WHERE user_id = $2 AND (study_id = $3 OR study_id LIKE '%' || $3)
         `, [new_title, req.user.id, study_id]);
         
         res.sendStatus(200);
@@ -239,12 +240,31 @@ app.put('/api/history/repertoire/title', authenticateToken, async (req, res) => 
 app.delete('/api/history/repertoire', authenticateToken, async (req, res) => {
     try {
         const { study_id, color } = req.query;
-        await db.query('DELETE FROM history WHERE user_id = $1 AND study_id = $2 AND color = $3', 
-        [req.user.id, study_id, color]);
+        await db.query(`
+            DELETE FROM history 
+            WHERE user_id = $1 AND (study_id = $2 OR study_id LIKE '%' || $2) AND color = $3
+        `, [req.user.id, study_id, color]);
         res.sendStatus(200);
     } catch (err) {
         console.error("Delete history error:", err);
         res.status(500).json({ error: 'Failed to delete history' });
+    }
+});
+
+app.put('/api/history/chapter/title', authenticateToken, async (req, res) => {
+    try {
+        const { study_id, old_title, new_title } = req.body;
+        if (!study_id || !old_title || !new_title) return res.status(400).json({ error: 'Missing parameters' });
+        
+        await db.query(`
+            UPDATE history SET chapter_title = $1 
+            WHERE user_id = $2 AND (study_id = $3 OR study_id LIKE '%' || $3) AND chapter_title = $4
+        `, [new_title, req.user.id, study_id, old_title]);
+        
+        res.sendStatus(200);
+    } catch (err) {
+        console.error("Update chapter title error:", err);
+        res.status(500).json({ error: 'Failed to update chapter title' });
     }
 });
 
