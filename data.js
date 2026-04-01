@@ -1,99 +1,135 @@
 // data.js
 import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.0.0-beta.8/+esm';
 
-/**
- * ============================================================================
- * PGN PARSING & TREE BUILDING
- * ============================================================================
- */
+// =========================================
+// PGN PARSING & TREE BUILDING
+// =========================================
 
 /**
- * Parses a multi-chapter PGN string from Lichess into an array of chapter objects.
- * 
- * @param {string} pgnString - The raw PGN content containing one or multiple chapters.
- * @returns {Array} List of chapters { title, pgn }
+ * Parses multiple games/chapters from a single PGN text
  */
-export const parseMultiPgn = (pgnString) => {
-    if (!pgnString) return [];
-    
-    // Chapters in Lichess PGN exports are separated by 3+ newlines
-    const chapters = pgnString.split(/\n\n\n+/);
-    
-    return chapters
-        .filter(pgn => pgn.trim().length > 0)
-        .map(pgn => {
-            // Extract the chapter title from the [Event "Title"] tag
-            const titleMatch = pgn.match(/\[Event "(.*?)"\]/);
-            return {
-                title: titleMatch ? titleMatch[1] : 'Untitled Chapter',
-                pgn: pgn.trim()
-            };
-        });
+export const parseMultiPgn = (rawPgn) => {
+    const chapters = [];
+    const parts = rawPgn.split(/(?=\[Event ")/);
+    parts.forEach((part, index) => {
+        if (!part.trim()) return;
+        let title = `Chapitre ${index + 1}`;
+        const chapterNameMatch = part.match(/\[ChapterName\s+"([^"]+)"\]/);
+        const eventMatch = part.match(/\[Event\s+"([^"]+)"\]/);
+        
+        if (chapterNameMatch && chapterNameMatch[1]) {
+            title = chapterNameMatch[1];
+        } else if (eventMatch && eventMatch[1] && eventMatch[1] !== "?") {
+            title = eventMatch[1];
+        }
+        
+        const siteMatch = part.match(/\[Site\s+"([^"]+)"\]/);
+        const studyUrl = siteMatch ? siteMatch[1] : null;
+        
+        chapters.push({ id: `chap_${Date.now()}_${index}`, title: title, pgn: part.trim(), studyUrl: studyUrl });
+    });
+    if (chapters.length === 0 && rawPgn.trim().length > 0) {
+         chapters.push({ id: `chap_${Date.now()}_0`, title: "Chapitre 1", pgn: rawPgn.trim() });
+    }
+    return chapters;
 };
 
 /**
- * Builds a recursive move tree from a single PGN string.
- * This tree is used by Chessground for interactive navigation and training.
- * 
- * @param {string} pgn - The PGN content of a single chapter.
- * @returns {Object} The root node of the move tree.
+ * Builds a nested move tree from PGN text
  */
-export const buildRepertoireTree = (pgn) => {
-    const game = new Chess();
-    try {
-        game.loadPgn(pgn);
-    } catch (e) {
-        console.error("Error loading PGN into Chess.js:", e);
-        throw e;
-    }
-
-    const history = game.history({ verbose: true });
+export const buildRepertoireTree = (pgnText) => {
+    const startFen = (pgnText.match(/\[FEN\s+"([^"]+)"\]/i) || [])[1] || new Chess().fen();
     
-    /**
-     * Root node structure:
-     * - id: 'root'
-     * - fen: initial position
-     * - children: array of first moves
-     */
-    const root = { 
-        id: 'root', 
-        fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 
-        children: [] 
-    };
+    // Safely remove only standard PGN headers: [Word "Value"]
+    let cleanedText = pgnText.replace(/\[[a-zA-Z]+\s+"[^"]*"\]\s*/g, '').trim();
+    
+    const tokens = cleanedText.match(/[a-zA-Z0-9\-+=#KQRBN]+|\(|\)|\{[^}]*\}|\$\d+|\d+\.+/g) || [];
+    const root = { id: 'root', san: 'root', fen: startFen, comment: null, shapes: [], children: [], parent: null, isCompleted: false, isVisited: true, isLeaf: false };
+    let current = root, tempGame = new Chess(startFen), nodeStack = [], idCounter = 0;
+    
+    for (let token of tokens) {
+        if (/^\d+\.+$/.test(token) || /^\$\d+$/.test(token)) continue;
+        if (token === '(') { 
+            nodeStack.push(current); 
+            current = current.parent; 
+            tempGame.load(current.fen); 
+        } 
+        else if (token === ')') { 
+            current = nodeStack.pop(); 
+            tempGame.load(current.fen); 
+        } 
+        else if (token.startsWith('{')) {
+            let cmt = token.slice(1, -1).trim();
+            const shapes = [];
 
-    let current = root;
+            // Extract Lichess arrows: [%cal Gg1f3,Re2e4]
+            const calMatch = cmt.match(/\[%cal\s+(.*?)\]/);
+            if (calMatch) {
+                calMatch[1].split(',').forEach(s => {
+                    const item = s.trim();
+                    if (item.length >= 5) {
+                        const colorCode = item[0];
+                        const orig = item.substring(1, 3);
+                        const dest = item.substring(3, 5);
+                        let brush = 'green';
+                        if (colorCode === 'R') brush = 'red';
+                        if (colorCode === 'B') brush = 'blue';
+                        if (colorCode === 'O') brush = 'orange';
+                        if (colorCode === 'Y') brush = 'yellow';
+                        shapes.push({ orig, dest, brush });
+                    }
+                });
+            }
 
-    // Process each move in the main line and variations
-    for (const move of history) {
-        // Check if the move already exists as a child of the current node
-        let child = current.children.find(c => c.san === move.san);
-        
-        if (!child) {
-            // Create a new node for this move
-            child = {
-                id: move.after, // Use FEN as unique ID for the position
-                san: move.san,
-                from: move.from,
-                to: move.to,
-                color: move.color === 'w' ? 'white' : 'black',
-                fen: move.after,
-                parent: current,
-                comment: move.comment || "",
-                shapes: move.shapes || [],
-                children: [],
-                isVisited: false,
-                isCompleted: false,
-                isLeaf: false 
-            };
-            current.children.push(child);
+            // Extract Lichess circles: [%csl Gg1,Re2]
+            const cslMatch = cmt.match(/\[%csl\s+(.*?)\]/);
+            if (cslMatch) {
+                cslMatch[1].split(',').forEach(s => {
+                    const item = s.trim();
+                    if (item.length >= 3) {
+                        const colorCode = item[0];
+                        const orig = item.substring(1, 3);
+                        let brush = 'green';
+                        if (colorCode === 'R') brush = 'red';
+                        if (colorCode === 'B') brush = 'blue';
+                        if (colorCode === 'O') brush = 'orange';
+                        if (colorCode === 'Y') brush = 'yellow';
+                        shapes.push({ orig, brush });
+                    }
+                });
+            }
+
+            // Clean comment
+            cmt = cmt.replace(/\[%cal\s+.*?\]/g, '').replace(/\[%csl\s+.*?\]/g, '').trim();
+
+            if (current) {
+                current.comment = current.comment ? current.comment + " " + cmt : cmt;
+                if (shapes.length > 0) current.shapes = (current.shapes || []).concat(shapes);
+            }
+        } else {
+            try {
+                const moveObj = tempGame.move(token);
+                if (moveObj) {
+                    const newNode = { 
+                        id: 'node_'+(idCounter++), 
+                        san: moveObj.san, 
+                        from: moveObj.from, 
+                        to: moveObj.to, 
+                        fen: tempGame.fen(), 
+                        color: moveObj.color === 'w' ? 'white' : 'black', 
+                        comment: null, 
+                        shapes: [], 
+                        children: [], 
+                        parent: current, 
+                        isCompleted: false, 
+                        isVisited: false, 
+                        isLeaf: false 
+                    };
+                    current.children.push(newNode); 
+                    current = newNode;
+                }
+            } catch (e) {}
         }
-        current = child;
     }
-
-    /**
-     * Note: This simplified builder works best for linear PGNs. 
-     * Complex PGNs with nested variations may require a more robust 
-     * recursive parser if Lichess export structure changes.
-     */
     return root;
 };

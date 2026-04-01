@@ -1,59 +1,46 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-/**
- * Database connection configuration
- * Uses DATABASE_URL from environment variables
- */
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    // Enable SSL for cloud hosting providers (like Render/Heroku)
-    ssl: {
-        rejectUnauthorized: false
-    }
+    // Rend la connexion sécurisée (nécessaire pour la plupart des hébergeurs cloud comme Render/Neon)
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-/**
- * Initializes the database schema if tables don't exist
- */
+// Initialisation des tables
 const initDB = async () => {
     try {
-        // Create users table
         await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
-                username TEXT UNIQUE NOT NULL,
-                email TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL,
-                is_verified BOOLEAN DEFAULT FALSE,
-                verification_token TEXT,
-                reset_token TEXT,
-                reset_token_expires TIMESTAMP
+                username VARCHAR(255) UNIQUE NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                is_verified INTEGER DEFAULT 0,
+                verification_token VARCHAR(255),
+                reset_token VARCHAR(255),
+                reset_token_expiry TIMESTAMP
             );
-        `);
 
-        // Create history table for tracking training sessions
-        // chapter_title and repertoire_title are updated dynamically via sync
-        await pool.query(`
             CREATE TABLE IF NOT EXISTS history (
                 id SERIAL PRIMARY KEY,
-                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-                repertoire_title TEXT NOT NULL,
-                chapter_title TEXT NOT NULL,
-                study_id TEXT,
-                color TEXT NOT NULL,
+                user_id INTEGER NOT NULL,
+                repertoire_title VARCHAR(255),
+                chapter_title VARCHAR(255),
+                study_id VARCHAR(255),
+                color VARCHAR(50),
                 date TIMESTAMP NOT NULL,
-                moves_learned INTEGER DEFAULT 0,
-                total_moves INTEGER DEFAULT 0,
-                errors INTEGER DEFAULT 0,
-                total_chapters INTEGER DEFAULT 0,
-                is_revision INTEGER DEFAULT 0 -- 0 for Discovery, 1 for Revision
+                moves_learned INTEGER,
+                total_moves INTEGER,
+                errors INTEGER,
+                total_chapters INTEGER,
+                is_revision INTEGER DEFAULT 0,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
         `);
-
-        console.log("✅ PostgreSQL Database initialized successfully");
+        console.log("PostgreSQL Database initialized");
     } catch (err) {
-        console.error("❌ Error initializing PostgreSQL database:", err);
+        console.error("Error initializing PostgreSQL database", err);
     }
 };
 
