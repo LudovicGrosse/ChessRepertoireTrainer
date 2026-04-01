@@ -1377,6 +1377,11 @@
             const node = currentPath[viewIndex]; document.getElementById('commentBox').innerHTML = node?.comment ? `<strong>Notes :</strong> ${node.comment}` : `<em>Aucun commentaire.</em>`;
         };
 
+        const updateNavigationButtons = () => {
+            document.getElementById('prevBtn').disabled = viewIndex <= 0;
+            document.getElementById('nextBtn').disabled = viewIndex >= currentPath.length - 1;
+        };
+
         const navigateView = (step) => {
             const newIdx = viewIndex + step;
             if (!isTraining || newIdx < 0 || newIdx >= currentPath.length) return;
@@ -1391,8 +1396,7 @@
             } else {
                 cg.set({ movable: { dests: new Map() } });
             }
-            document.getElementById('prevBtn').disabled = viewIndex === 0;
-            document.getElementById('nextBtn').disabled = viewIndex === currentPath.length - 1;
+            updateNavigationButtons();
         };
 
         document.getElementById('prevBtn').onclick = () => navigateView(-1);
@@ -1436,7 +1440,6 @@
         const onUserMove = (orig, dest) => {
             const move = game.moves({ verbose: true }).find(m => m.from === orig && m.to === dest);
             
-            // Check if played a variant that is already completed
             const childNodeIfAny = currentNode.children.find(c => c.san === (move?.san));
             if (childNodeIfAny && childNodeIfAny.isCompleted) {
                 showToast("Variante déjà couverte", "info", 1500);
@@ -1456,6 +1459,7 @@
             game.move(move.san); cg.set({ fen: game.fen(), lastMove: [orig, dest], movable: { dests: new Map() }, drawable: { autoShapes: [] } });
             currentNode = child; if (!currentNode.isVisited) { currentNode.isVisited = true; learnedMoves++; updateStatsUI(); }
             currentPath.push(currentNode); viewIndex = currentPath.length - 1; renderPgnHtml(); updateAnalysisLink();
+            updateNavigationButtons();
             
             if (trainingMode === 'decouverte') {
                 const shapes = [...(currentNode.shapes || [])];
@@ -1471,6 +1475,7 @@
                 game.move(next.san); cg.set({ fen: game.fen(), lastMove: [next.from, next.to] });
                 currentNode = next; currentNode.isVisited = true; currentPath.push(currentNode); viewIndex = currentPath.length - 1;
                 renderPgnHtml(); updateAnalysisLink();
+                updateNavigationButtons();
                 if (currentNode.isLeaf) { markCompleted(currentNode); handleEnd(); } else preparePlayerTurn();
             }
         };
