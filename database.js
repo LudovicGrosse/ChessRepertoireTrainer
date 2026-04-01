@@ -1,16 +1,19 @@
-const { Pool } = require('pg');
-require('dotenv').config();
+const { Pool } = require("pg");
+require("dotenv").config();
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    // Rend la connexion sécurisée (nécessaire pour la plupart des hébergeurs cloud comme Render/Neon)
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  connectionString: process.env.DATABASE_URL,
+  // Makes the connection secure (necessary for most cloud hosts like Render/Neon)
+  ssl:
+    process.env.NODE_ENV === "production"
+      ? { rejectUnauthorized: false }
+      : false,
 });
 
-// Initialisation des tables
+// Initialize tables
 const initDB = async () => {
-    try {
-        await pool.query(`
+  try {
+    await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 username VARCHAR(255) UNIQUE NOT NULL,
@@ -38,10 +41,10 @@ const initDB = async () => {
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
         `);
-        console.log("PostgreSQL Database initialized");
-    } catch (err) {
-        console.error("Error initializing PostgreSQL database", err);
-    }
+    console.log("PostgreSQL Database initialized");
+  } catch (err) {
+    console.error("Error initializing PostgreSQL database", err);
+  }
 };
 
 initDB();
