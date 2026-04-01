@@ -2232,7 +2232,7 @@
                       }
                       const pgnText = await response.text();
                       const allChapters = parseMultiPgn(pgnText);
-                      const currentStudyName = pgnText.match(/\\[StudyName "(.*?)"\\]/)?.[1] || rep.title;
+                      const currentStudyName = pgnText.match(/\[StudyName "(.*?)"\]/)?.[1] || rep.title;
 
                       if (currentStudyName !== rep.title && authToken) {
                           try {
@@ -2413,7 +2413,7 @@
                   throw new Error("Étude non trouvée.");
               }
               const pgnText = await response.text();
-              const studyName = pgnText.match(/\\[StudyName "(.*?)"\\]/)?.[1] || `Étude Lichess (${studyId})`;
+              const studyName = pgnText.match(/\[StudyName "(.*?)"\]/)?.[1] || `Étude Lichess (${studyId})`;
               currentRepertoire = { title: studyName, chapters: parseMultiPgn(pgnText) };
               document.getElementById('config-title').textContent = `Répertoire : ${studyName}`;
               document.getElementById('config-card').style.display = 'flex';
