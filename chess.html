@@ -1,1543 +1,2928 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>La Boîte à Ouvertures</title>
-    <link rel="icon" href="data:image/svg+xml,<svg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M50 35 L80 50 L50 65 L20 50 Z' fill='%23064e3b' /><path d='M20 50 L50 65 L50 90 L20 75 Z' fill='%23059669' /><path d='M50 65 L80 50 L80 75 L50 90 Z' fill='%23047857' /><path d='M20 50 L50 35 L35 25 L5 40 Z' fill='%2334d399' opacity='0.8' /><path d='M50 35 L80 50 L95 40 L65 25 Z' fill='%23059669' opacity='0.4' /><path d='M50 65 L50 90' stroke='%23064e3b' stroke-width='0.5' /></svg>">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessground@9.0.5/assets/chessground.base.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessground@9.0.5/assets/chessground.cburnett.css">
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M50 35 L80 50 L50 65 L20 50 Z' fill='%23064e3b' /><path d='M20 50 L50 65 L50 90 L20 75 Z' fill='%23059669' /><path d='M50 65 L80 50 L80 75 L50 90 Z' fill='%23047857' /><path d='M20 50 L50 35 L35 25 L5 40 Z' fill='%2334d399' opacity='0.8' /><path d='M50 35 L80 50 L95 40 L65 25 Z' fill='%23059669' opacity='0.4' /><path d='M50 65 L50 90' stroke='%23064e3b' stroke-width='0.5' /></svg>"
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/chessground@9.0.5/assets/chessground.base.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/chessground@9.0.5/assets/chessground.cburnett.css"
+    />
 
     <style>
-        :root {
-            --light-sq: #f0d9b5;
-            --dark-sq: #b58863;
-            --highlight-color: rgba(20, 184, 129, 0.41);
-            --bg-color: #0f172a; /* Slate 900 */
-            --card-bg: #1e293b; /* Slate 800 */
-            --card-hover: #334155; /* Slate 700 */
-            --border-color: #334155; /* Slate 700 */
-            --primary: #10b981; /* Emerald 500 */
-            --primary-hover: #059669; /* Emerald 600 */
-            --text-main: #f8fafc; /* Slate 50 */
-            --text-muted: #94a3b8; /* Slate 400 */
-            --danger: #ef4444; /* Red 500 */
-            --danger-hover: #dc2626; /* Red 600 */
-            --success: #10b981;
-            --warning: #f59e0b;
-        }
+      :root {
+        --light-sq: #f0d9b5;
+        --dark-sq: #b58863;
+        --highlight-color: rgba(20, 184, 129, 0.41);
+        --bg-color: #0f172a; /* Slate 900 */
+        --card-bg: #1e293b; /* Slate 800 */
+        --card-hover: #334155; /* Slate 700 */
+        --border-color: #334155; /* Slate 700 */
+        --primary: #10b981; /* Emerald 500 */
+        --primary-hover: #059669; /* Emerald 600 */
+        --text-main: #f8fafc; /* Slate 50 */
+        --text-muted: #94a3b8; /* Slate 400 */
+        --danger: #ef4444; /* Red 500 */
+        --danger-hover: #dc2626; /* Red 600 */
+        --success: #10b981;
+        --warning: #f59e0b;
+      }
 
-        * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
 
-        body {
-            margin: 0;
-            padding: 20px;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            padding-top: 80px; /* Space for fixed header */
-        }
+      body {
+        margin: 0;
+        padding: 20px;
+        font-family:
+          "Inter",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: var(--bg-color);
+        color: var(--text-main);
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        padding-top: 80px; /* Space for fixed header */
+      }
 
-        /* =========================================
+      /* =========================================
            GLOBAL COMPONENTS
         ========================================= */
-        .hidden { display: none !important; }
-        
-        .fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+      .hidden {
+        display: none !important;
+      }
 
-        button, .btn-link {
-            background: var(--primary); color: white; border: none; padding: 10px 16px;
-            border-radius: 8px; font-weight: 600; cursor: pointer;
-            transition: all 0.2s ease; text-align: center;
-            font-size: 14px; text-decoration: none; display: inline-flex;
-            justify-content: center; align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      .fade-in {
+        animation: fadeIn 0.4s ease-out forwards;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
         }
-        button:hover:not(:disabled), .btn-link:hover:not(:disabled) { 
-            background: var(--primary-hover); 
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        button:active:not(:disabled), .btn-link:active:not(:disabled) {
-            transform: translateY(0);
-        }
-        button.secondary, .btn-link.secondary { background: var(--card-hover); color: var(--text-main); }
-        button.secondary:hover:not(:disabled), .btn-link.secondary:hover:not(:disabled) { background: #475569; }
-        button.danger { background: var(--danger); }
-        button.danger:hover:not(:disabled) { background: var(--danger-hover); }
-        button:disabled, .btn-link:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; }
+      }
 
-        input[type="text"], input[type="password"], input[type="email"], select, textarea {
-            width: 100%; background: #0f172a; color: var(--text-main);
-            border: 1px solid var(--border-color); border-radius: 8px;
-            padding: 12px; font-family: inherit; font-size: 14px;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        select { cursor: pointer; background: var(--card-bg); }
-        input:focus, select:focus, textarea:focus { 
-            outline: none; 
-            border-color: var(--primary); 
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); 
-        }
+      button,
+      .btn-link {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        font-size: 14px;
+        text-decoration: none;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      button:hover:not(:disabled),
+      .btn-link:hover:not(:disabled) {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+      }
+      button:active:not(:disabled),
+      .btn-link:active:not(:disabled) {
+        transform: translateY(0);
+      }
+      button.secondary,
+      .btn-link.secondary {
+        background: var(--card-hover);
+        color: var(--text-main);
+      }
+      button.secondary:hover:not(:disabled),
+      .btn-link.secondary:hover:not(:disabled) {
+        background: #475569;
+      }
+      button.danger {
+        background: var(--danger);
+      }
+      button.danger:hover:not(:disabled) {
+        background: var(--danger-hover);
+      }
+      button:disabled,
+      .btn-link:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+      }
 
-        /* Toggle Switch CSS */
-        .toggle-row { display: flex; gap: 15px; margin-top: 10px; }
-        .toggle-container {
-            display: flex; flex: 1; align-items: center;
-            background: #0f172a; border-radius: 20px; padding: 4px;
-            position: relative; border: 1px solid var(--border-color);
-        }
-        .toggle-option {
-            flex: 1; text-align: center; padding: 8px 15px;
-            border-radius: 16px; cursor: pointer; z-index: 1;
-            transition: color 0.3s; font-weight: 600; font-size: 14px;
-            color: var(--text-muted);
-        }
-        .toggle-option.active { color: #fff; }
-        .toggle-slider {
-            position: absolute; top: 4px; bottom: 4px; width: calc(50% - 4px);
-            background: var(--card-hover); border-radius: 16px;
-            transition: left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); z-index: 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .toggle-container[data-state="left"] .toggle-slider { left: 4px; }
-        .toggle-container[data-state="right"] .toggle-slider { left: calc(50%); }
-        
-        /* Color Toggle Specifics for better contrast */
-        .toggle-container.color-toggle[data-state="left"] .toggle-slider { background: #f8fafc; } /* White slider */
-        .toggle-container.color-toggle[data-state="left"] .toggle-option[data-val="white"] { color: #0f172a; } /* Dark text on white bg */
-        .toggle-container.color-toggle[data-state="left"] .toggle-option[data-val="black"] { color: var(--text-muted); }
+      input[type="text"],
+      input[type="password"],
+      input[type="email"],
+      select,
+      textarea {
+        width: 100%;
+        background: #0f172a;
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px;
+        font-family: inherit;
+        font-size: 14px;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      select {
+        cursor: pointer;
+        background: var(--card-bg);
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+      }
 
-        .toggle-container.color-toggle[data-state="right"] .toggle-slider { background: #334155; } /* Dark slider */
-        .toggle-container.color-toggle[data-state="right"] .toggle-option[data-val="white"] { color: var(--text-muted); }
-        .toggle-container.color-toggle[data-state="right"] .toggle-option[data-val="black"] { color: #fff; } /* White text on dark bg */
+      /* Toggle Switch CSS */
+      .toggle-row {
+        display: flex;
+        gap: 15px;
+        margin-top: 10px;
+      }
+      .toggle-container {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        background: #0f172a;
+        border-radius: 20px;
+        padding: 4px;
+        position: relative;
+        border: 1px solid var(--border-color);
+      }
+      .toggle-option {
+        flex: 1;
+        text-align: center;
+        padding: 8px 15px;
+        border-radius: 16px;
+        cursor: pointer;
+        z-index: 1;
+        transition: color 0.3s;
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-muted);
+      }
+      .toggle-option.active {
+        color: #fff;
+      }
+      .toggle-slider {
+        position: absolute;
+        top: 4px;
+        bottom: 4px;
+        width: calc(50% - 4px);
+        background: var(--card-hover);
+        border-radius: 16px;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      .toggle-container[data-state="left"] .toggle-slider {
+        left: 4px;
+      }
+      .toggle-container[data-state="right"] .toggle-slider {
+        left: calc(50%);
+      }
 
-        /* Toasts Container */
-        #toast-container {
-            position: fixed; top: 20px; right: 20px; z-index: 9999;
-            display: flex; flex-direction: column; gap: 10px;
-        }
-        .toast {
-            min-width: 250px; background: var(--card-bg); color: var(--text-main);
-            padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500;
-            border-left: 4px solid var(--border-color);
-            animation: slideInRight 0.3s ease-out forwards;
-            opacity: 1; transition: opacity 0.3s ease;
-        }
-        .toast.success { border-left-color: var(--success); }
-        .toast.error { border-left-color: var(--danger); }
-        .toast.info { border-left-color: #3b82f6; }
-        .toast.warning { border-left-color: var(--warning); }
-        .toast.fade-out { opacity: 0; }
-        
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
+      /* Color Toggle Specifics for better contrast */
+      .toggle-container.color-toggle[data-state="left"] .toggle-slider {
+        background: #f8fafc;
+      } /* White slider */
+      .toggle-container.color-toggle[data-state="left"]
+        .toggle-option[data-val="white"] {
+        color: #0f172a;
+      } /* Dark text on white bg */
+      .toggle-container.color-toggle[data-state="left"]
+        .toggle-option[data-val="black"] {
+        color: var(--text-muted);
+      }
 
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px);
-            z-index: 10000; display: flex; justify-content: center; align-items: center;
-            opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s;
-        }
-        .modal-overlay.show { opacity: 1; visibility: visible; }
-        .modal-content {
-            background: var(--card-bg); width: 90%; max-width: 600px;
-            max-height: 85vh; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            border: 1px solid var(--border-color); display: flex; flex-direction: column;
-            transform: translateY(20px); transition: transform 0.3s ease;
-        }
-        .modal-overlay.show .modal-content { transform: translateY(0); }
-        .modal-header {
-            padding: 16px 24px; border-bottom: 1px solid var(--border-color);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .modal-header h2 { margin: 0; font-size: 1.25rem; color: var(--primary); }
-        .close-modal-btn {
-            background: transparent; border: none; color: var(--text-muted);
-            font-size: 24px; cursor: pointer; padding: 0; box-shadow: none; display: block;
-        }
-        .close-modal-btn:hover { color: var(--text-main); background: transparent; transform: none; box-shadow: none; }
-        .modal-body {
-            padding: 24px; overflow-y: auto; font-size: 14px; line-height: 1.6; color: #cbd5e1;
-        }
-        .modal-body h3 { color: #f8fafc; margin-top: 24px; margin-bottom: 12px; font-size: 1.1rem; }
-        .modal-body h3:first-child { margin-top: 0; }
-        .modal-body p { margin-top: 0; margin-bottom: 12px; }
-        .modal-body ul { margin-top: 0; margin-bottom: 16px; padding-left: 20px; }
-        .modal-body li { margin-bottom: 6px; }
-        .modal-body strong { color: #f8fafc; }
+      .toggle-container.color-toggle[data-state="right"] .toggle-slider {
+        background: #334155;
+      } /* Dark slider */
+      .toggle-container.color-toggle[data-state="right"]
+        .toggle-option[data-val="white"] {
+        color: var(--text-muted);
+      }
+      .toggle-container.color-toggle[data-state="right"]
+        .toggle-option[data-val="black"] {
+        color: #fff;
+      } /* White text on dark bg */
 
-        /* Top Bar Styles */
-        header {
-            width: 100%; background: var(--card-bg); padding: 0 24px; height: 64px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid var(--border-color); position: fixed;
-            top: 0; left: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      /* Toasts Container */
+      #toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .toast {
+        min-width: 250px;
+        background: var(--card-bg);
+        color: var(--text-main);
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        border-left: 4px solid var(--border-color);
+        animation: slideInRight 0.3s ease-out forwards;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+      }
+      .toast.success {
+        border-left-color: var(--success);
+      }
+      .toast.error {
+        border-left-color: var(--danger);
+      }
+      .toast.info {
+        border-left-color: #3b82f6;
+      }
+      .toast.warning {
+        border-left-color: var(--warning);
+      }
+      .toast.fade-out {
+        opacity: 0;
+      }
+
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
         }
-        header .logo { font-weight: 700; color: var(--primary); font-size: 1.1rem; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-        .logo-icon { width: 32px; height: 32px; flex-shrink: 0; }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
 
-        header .user-badge { display: flex; align-items: center; gap: 12px; }
-        header .user-badge span { font-size: 13px; }
+      /* Modal Styles */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(4px);
+        z-index: 10000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.3s ease,
+          visibility 0.3s;
+      }
+      .modal-overlay.show {
+        opacity: 1;
+        visibility: visible;
+      }
+      .modal-content {
+        background: var(--card-bg);
+        width: 90%;
+        max-width: 600px;
+        max-height: 85vh;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        transform: translateY(20px);
+        transition: transform 0.3s ease;
+      }
+      .modal-overlay.show .modal-content {
+        transform: translateY(0);
+      }
+      .modal-header {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .modal-header h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        color: var(--primary);
+      }
+      .close-modal-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        box-shadow: none;
+        display: block;
+      }
+      .close-modal-btn:hover {
+        color: var(--text-main);
+        background: transparent;
+        transform: none;
+        box-shadow: none;
+      }
+      .modal-body {
+        padding: 24px;
+        overflow-y: auto;
+        font-size: 14px;
+        line-height: 1.6;
+        color: #cbd5e1;
+      }
+      .modal-body h3 {
+        color: #f8fafc;
+        margin-top: 24px;
+        margin-bottom: 12px;
+        font-size: 1.1rem;
+      }
+      .modal-body h3:first-child {
+        margin-top: 0;
+      }
+      .modal-body p {
+        margin-top: 0;
+        margin-bottom: 12px;
+      }
+      .modal-body ul {
+        margin-top: 0;
+        margin-bottom: 16px;
+        padding-left: 20px;
+      }
+      .modal-body li {
+        margin-bottom: 6px;
+      }
+      .modal-body strong {
+        color: #f8fafc;
+      }
 
-        /* =========================================
+      /* Top Bar Styles */
+      header {
+        width: 100%;
+        background: var(--card-bg);
+        padding: 0 24px;
+        height: 64px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      }
+      header .logo {
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 1.1rem;
+        letter-spacing: -0.5px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+      .logo-icon {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+      }
+
+      header .user-badge {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      header .user-badge span {
+        font-size: 13px;
+      }
+
+      /* =========================================
            SETUP VIEW (Dashboard)
         ========================================= */
-        #setup-view {
-            width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 24px; margin: 0 auto;
-        }
-        .header-title { text-align: center; margin: 20px 0 10px 0; color: var(--primary); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 1.8rem; }
-        .header-title .logo-icon { width: 42px; height: 48px; }
+      #setup-view {
+        width: 100%;
+        max-width: 800px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        margin: 0 auto;
+      }
+      .header-title {
+        text-align: center;
+        margin: 20px 0 10px 0;
+        color: var(--primary);
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        font-size: 1.8rem;
+      }
+      .header-title .logo-icon {
+        width: 42px;
+        height: 48px;
+      }
 
-        .setup-card {
-            background: var(--card-bg); padding: 24px; border-radius: 12px;
-            display: flex; flex-direction: column; gap: 16px;
-            border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .setup-card h2 { margin: 0 0 10px 0; font-size: 1.25rem; font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-group label { font-size: 0.875rem; color: var(--text-muted); font-weight: 500; }
+      .setup-card {
+        background: var(--card-bg);
+        padding: 24px;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .setup-card h2 {
+        margin: 0 0 10px 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 12px;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .form-group label {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
 
-        .password-container { position: relative; display: flex; align-items: center; }
-        .password-container input { padding-right: 40px; }
-        .password-toggle { 
-            position: absolute; right: 10px; background: none; border: none; 
-            color: var(--text-muted); cursor: pointer; padding: 4px; margin: 0; 
-            font-size: 16px; box-shadow: none; border-radius: 4px;
-        }
-        .password-toggle:hover { color: var(--text-main); background: var(--card-hover); transform: none; }
+      .password-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+      .password-container input {
+        padding-right: 40px;
+      }
+      .password-toggle {
+        position: absolute;
+        right: 10px;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 4px;
+        margin: 0;
+        font-size: 16px;
+        box-shadow: none;
+        border-radius: 4px;
+      }
+      .password-toggle:hover {
+        color: var(--text-main);
+        background: var(--card-hover);
+        transform: none;
+      }
 
-        .text-link { color: var(--primary); text-decoration: none; font-size: 13px; cursor: pointer; font-weight: 500; transition: color 0.2s; }
-        .text-link:hover { color: var(--primary-hover); text-decoration: underline; }
+      .text-link {
+        color: var(--primary);
+        text-decoration: none;
+        font-size: 13px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+      .text-link:hover {
+        color: var(--primary-hover);
+        text-decoration: underline;
+      }
 
-        /* Interactive History Styles */
-        .repertoire-item {
-            border: 1px solid var(--border-color); border-radius: 8px;
-            margin-bottom: 12px; overflow: hidden; background: #0f172a;
-            transition: border-color 0.2s;
-        }
-        .repertoire-item:hover { border-color: #475569; }
-        .repertoire-header {
-            padding: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-            transition: background 0.2s;
-        }
-        .repertoire-header:hover { background: var(--card-hover); }
-        .repertoire-header .meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 16px; margin-top: 4px; }
-        .color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 1px #475569; }
-        .color-white { background: #f8fafc; }
-        .color-black { background: #334155; }
+      /* Interactive History Styles */
+      .repertoire-item {
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 12px;
+        overflow: hidden;
+        background: #0f172a;
+        transition: border-color 0.2s;
+      }
+      .repertoire-item:hover {
+        border-color: #475569;
+      }
+      .repertoire-header {
+        padding: 16px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.2s;
+      }
+      .repertoire-header:hover {
+        background: var(--card-hover);
+      }
+      .repertoire-header .meta {
+        font-size: 12px;
+        color: var(--text-muted);
+        display: flex;
+        gap: 16px;
+        margin-top: 4px;
+      }
+      .color-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 0 1px #475569;
+      }
+      .color-white {
+        background: #f8fafc;
+      }
+      .color-black {
+        background: #334155;
+      }
 
-        .chapters-detail {
-            background: var(--card-bg); border-top: 1px solid var(--border-color);
-            padding: 0; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out;
-        }
-        .chapters-detail.open { max-height: 600px; padding: 12px; overflow-y: auto; }
-        
-        .chapter-row {
-            padding: 12px; border-radius: 8px; display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 40px;
-            align-items: center; font-size: 13px; cursor: pointer; transition: all 0.2s ease;
-            margin-bottom: 4px; border: 1px solid transparent; position: relative;
-        }
-        .chapter-row:hover { 
-            background: var(--card-hover); 
-            border-color: var(--primary);
-            transform: translateX(4px);
-        }
-        .chapter-row .play-icon {
-            opacity: 0; transform: scale(0.8); transition: all 0.2s ease;
-            color: var(--primary); display: flex; justify-content: center;
-        }
-        .chapter-row:hover .play-icon { opacity: 1; transform: scale(1); }
-        .chapter-row .label { color: var(--text-muted); font-size: 11px; display: block; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
-        .chapter-row strong { font-size: 14px; color: var(--text-main); }
-        
-        .success-rate { font-weight: 700; color: var(--success); }
-        .low-success { font-weight: 700; color: var(--danger); }
-        
-        .global-score-badge {
-            padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;
-            display: flex; align-items: center; gap: 6px; background: #0f172a;
-            border: 1px solid var(--border-color);
-        }
-        .global-score-badge.high { color: var(--success); border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.05); }
-        .global-score-badge.medium { color: var(--warning); border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.05); }
-        .global-score-badge.low { color: var(--danger); border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); }
-        
-        .mini-progress-bg { width: 100%; max-width: 60px; height: 4px; background: #334155; border-radius: 2px; margin-top: 4px; overflow: hidden; }
-        .mini-progress-fill { height: 100%; border-radius: 2px; }
+      .chapters-detail {
+        background: var(--card-bg);
+        border-top: 1px solid var(--border-color);
+        padding: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+      }
+      .chapters-detail.open {
+        max-height: 600px;
+        padding: 12px;
+        overflow-y: auto;
+      }
 
-        /* Chapter Selection */
-        .chapter-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; padding-right: 8px; }
-        .chapter-btn {
-            background: #0f172a; color: var(--text-main); border: 1px solid var(--border-color);
-            padding: 12px 16px; border-radius: 8px; cursor: pointer; text-align: left;
-            transition: all 0.2s; font-size: 14px; font-weight: 500;
-            display: flex; justify-content: space-between; align-items: center; box-shadow: none;
-        }
-        .chapter-btn:hover { background: var(--card-hover); border-color: #475569; transform: none; }
-        .chapter-btn.selected { background: rgba(16, 185, 129, 0.1); border-color: var(--primary); color: var(--primary); }
-        .chapter-count { font-size: 0.85rem; color: var(--text-muted); background: #1e293b; padding: 2px 8px; border-radius: 12px; }
-        .chapter-btn.selected .chapter-count { background: var(--primary); color: white; }
+      .chapter-row {
+        padding: 12px;
+        border-radius: 8px;
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 1fr 1fr 40px;
+        align-items: center;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-bottom: 4px;
+        border: 1px solid transparent;
+        position: relative;
+      }
+      .chapter-row:hover {
+        background: var(--card-hover);
+        border-color: var(--primary);
+        transform: translateX(4px);
+      }
+      .chapter-row .play-icon {
+        opacity: 0;
+        transform: scale(0.8);
+        transition: all 0.2s ease;
+        color: var(--primary);
+        display: flex;
+        justify-content: center;
+      }
+      .chapter-row:hover .play-icon {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .chapter-row .label {
+        color: var(--text-muted);
+        font-size: 11px;
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+      }
+      .chapter-row strong {
+        font-size: 14px;
+        color: var(--text-main);
+      }
 
-        /* =========================================
+      .success-rate {
+        font-weight: 700;
+        color: var(--success);
+      }
+      .low-success {
+        font-weight: 700;
+        color: var(--danger);
+      }
+
+      .global-score-badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #0f172a;
+        border: 1px solid var(--border-color);
+      }
+      .global-score-badge.high {
+        color: var(--success);
+        border-color: rgba(16, 185, 129, 0.3);
+        background: rgba(16, 185, 129, 0.05);
+      }
+      .global-score-badge.medium {
+        color: var(--warning);
+        border-color: rgba(245, 158, 11, 0.3);
+        background: rgba(245, 158, 11, 0.05);
+      }
+      .global-score-badge.low {
+        color: var(--danger);
+        border-color: rgba(239, 68, 68, 0.3);
+        background: rgba(239, 68, 68, 0.05);
+      }
+
+      .mini-progress-bg {
+        width: 100%;
+        max-width: 60px;
+        height: 4px;
+        background: #334155;
+        border-radius: 2px;
+        margin-top: 4px;
+        overflow: hidden;
+      }
+      .mini-progress-fill {
+        height: 100%;
+        border-radius: 2px;
+      }
+
+      /* Chapter Selection */
+      .chapter-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 8px;
+      }
+      .chapter-btn {
+        background: #0f172a;
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        padding: 12px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: left;
+        transition: all 0.2s;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: none;
+      }
+      .chapter-btn:hover {
+        background: var(--card-hover);
+        border-color: #475569;
+        transform: none;
+      }
+      .chapter-btn.selected {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+      .chapter-count {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        background: #1e293b;
+        padding: 2px 8px;
+        border-radius: 12px;
+      }
+      .chapter-btn.selected .chapter-count {
+        background: var(--primary);
+        color: white;
+      }
+
+      /* =========================================
            TRAINING VIEW
         ========================================= */
+      #training-view {
+        display: flex;
+        flex-direction: row;
+        gap: 24px;
+        max-width: 1200px;
+        width: 100%;
+      }
+
+      .sidebar {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-width: 320px;
+        max-width: 400px;
+      }
+
+      .stats-panel,
+      .controls,
+      .pgn-container {
+        background: var(--card-bg);
+        padding: 16px;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .progress-container {
+        width: 100%;
+        background: #0f172a;
+        border-radius: 8px;
+        height: 8px;
+        overflow: hidden;
+        margin-bottom: 4px;
+        border: 1px solid var(--border-color);
+      }
+      .progress-bar {
+        height: 100%;
+        background: var(--primary);
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .stat-box {
+        background: #0f172a;
+        padding: 10px;
+        border-radius: 8px;
+        text-align: center;
+        border: 1px solid var(--border-color);
+      }
+      .stat-box .label {
+        font-size: 11px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .stat-box .value {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-top: 4px;
+      }
+      .stat-box .value.error-val {
+        color: var(--danger);
+      }
+
+      .pgn-container {
+        gap: 12px;
+      }
+      .active-line {
+        width: 100%;
+        min-height: 80px;
+        max-height: 140px;
+        background: #0f172a;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px;
+        font-family: "Inter", sans-serif;
+        line-height: 1.8;
+        overflow-y: auto;
+        cursor: default;
+      }
+
+      .comment-box {
+        background: rgba(59, 130, 246, 0.1);
+        border-left: 4px solid #3b82f6;
+        padding: 12px 16px;
+        border-radius: 0 8px 8px 0;
+        font-size: 14px;
+        color: #e2e8f0;
+        line-height: 1.5;
+        min-height: 48px;
+      }
+
+      /* PGN Badges */
+      .pgn-move {
+        cursor: pointer;
+        padding: 2px 6px;
+        border-radius: 6px;
+        transition: all 0.2s;
+        display: inline-block;
+        font-weight: 500;
+        font-size: 13.5px;
+        background: var(--card-bg);
+        border: 1px solid transparent;
+        margin: 2px 0;
+      }
+      .pgn-move:hover {
+        background: var(--card-hover);
+        border-color: var(--border-color);
+      }
+      .pgn-move.active-move {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+      }
+      .move-number {
+        color: var(--text-muted);
+        margin-left: 6px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .row-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: nowrap;
+      }
+      .row-buttons button,
+      .row-buttons .btn-link {
+        flex: 1;
+        padding: 8px 6px;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+      .row-buttons .nav-btn {
+        flex: 0 0 36px;
+        padding: 8px 0;
+        font-size: 16px;
+      }
+
+      /* Board Styling */
+      .board-wrapper {
+        flex: 1.5;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        max-width: 80vh;
+      }
+      .cg-wrap {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        height: auto;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      }
+      .cg-wrap cg-board {
+        background-image: conic-gradient(
+          var(--dark-sq) 90deg,
+          var(--light-sq) 90deg 180deg,
+          var(--dark-sq) 180deg 270deg,
+          var(--light-sq) 270deg
+        ) !important;
+        background-size: 25% 25% !important;
+      }
+      .cg-wrap square.last-move {
+        background-color: var(--highlight-color) !important;
+      }
+      .cg-wrap piece.movable {
+        cursor: grab !important;
+      }
+      .cg-wrap piece.dragging {
+        cursor: grabbing !important;
+      }
+      cg-board square.move-dest {
+        background: radial-gradient(rgba(0, 0, 0, 0.15) 20%, transparent 20%);
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 10px;
+          padding-top: 80px;
+          overflow-x: hidden;
+        }
+        header {
+          padding: 0 15px;
+          height: 60px;
+        }
+        header .logo {
+          font-size: 1rem;
+          gap: 8px;
+        }
+        header .logo-icon {
+          width: 28px;
+          height: 28px;
+        }
+        header .user-badge {
+          gap: 8px;
+        }
+        header .user-badge span {
+          display: none;
+        }
+        header #logoutBtn {
+          padding: 6px 10px;
+          font-size: 11px;
+        }
+
+        .setup-card {
+          padding: 16px;
+        }
+
+        .toggle-row {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .chapter-row {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px 8px;
+        }
+        .chapter-row > div:first-child {
+          grid-column: span 3;
+          border-bottom: 1px solid #334155;
+          padding-bottom: 8px;
+        }
+        .chapter-row .play-icon {
+          display: none;
+        }
+        .chapter-row:active {
+          background: var(--card-hover);
+        }
+        .chapter-row:hover {
+          transform: none;
+        }
+
+        .header-title {
+          font-size: 1.4rem;
+          gap: 10px;
+          margin-top: 10px;
+        }
+        .header-title .logo-icon {
+          width: 36px;
+          height: 36px;
+        }
+
+        .modal-content {
+          width: 95%;
+          max-height: 90vh;
+        }
+        .modal-body {
+          padding: 16px;
+        }
+
         #training-view {
-            display: flex; flex-direction: row; gap: 24px; max-width: 1200px; width: 100%;
+          flex-direction: column-reverse;
+          gap: 16px;
+        }
+        .board-wrapper {
+          max-width: 100%;
+          position: sticky;
+          top: 70px;
+          z-index: 10;
+        }
+        .sidebar {
+          min-width: 100%;
+          max-width: 100%;
+          gap: 12px;
         }
 
-        .sidebar { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 320px; max-width: 400px; }
-
-        .stats-panel, .controls, .pgn-container {
-            background: var(--card-bg); padding: 16px; border-radius: 12px;
-            display: flex; flex-direction: column; gap: 12px;
-            border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .progress-container { width: 100%; background: #0f172a; border-radius: 8px; height: 8px; overflow: hidden; margin-bottom: 4px; border: 1px solid var(--border-color); }
-        .progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s ease; }
-
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .stat-box { background: #0f172a; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border-color); }
-        .stat-box .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-box .value { font-size: 18px; font-weight: 700; color: var(--text-main); margin-top: 4px; }
-        .stat-box .value.error-val { color: var(--danger); }
-
-        .pgn-container { gap: 12px; }
         .active-line {
-            width: 100%; min-height: 80px; max-height: 140px;
-            background: #0f172a; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;
-            font-family: 'Inter', sans-serif; line-height: 1.8; overflow-y: auto; cursor: default;
+          max-height: 90px;
+          overflow-y: auto;
         }
 
-        .comment-box {
-            background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6;
-            padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 14px;
-            color: #e2e8f0; line-height: 1.5; min-height: 48px;
+        .row-buttons {
+          flex-wrap: wrap;
         }
-
-        /* PGN Badges */
-        .pgn-move { 
-            cursor: pointer; padding: 2px 6px; border-radius: 6px; 
-            transition: all 0.2s; display: inline-block; font-weight: 500; font-size: 13.5px;
-            background: var(--card-bg); border: 1px solid transparent; margin: 2px 0;
+        .row-buttons button,
+        .row-buttons .btn-link {
+          flex: 1 1 calc(33% - 8px);
         }
-        .pgn-move:hover { background: var(--card-hover); border-color: var(--border-color); }
-        .pgn-move.active-move { background: var(--primary); color: white; border-color: var(--primary); font-weight: 600; box-shadow: 0 2px 4px rgba(16,185,129,0.3); }
-        .move-number { color: var(--text-muted); margin-left: 6px; font-size: 13px; font-weight: 600; }
-
-        .row-buttons { display: flex; gap: 8px; flex-wrap: nowrap; }
-        .row-buttons button, .row-buttons .btn-link { flex: 1; padding: 8px 6px; font-size: 13px; white-space: nowrap; }
-        .row-buttons .nav-btn { flex: 0 0 36px; padding: 8px 0; font-size: 16px; }
-
-        /* Board Styling */
-        .board-wrapper { flex: 1.5; display: flex; flex-direction: column; position: relative; max-width: 80vh; }
-        .cg-wrap { width: 100%; aspect-ratio: 1 / 1; height: auto; border-radius: 4px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-        .cg-wrap cg-board {
-            background-image: conic-gradient(var(--dark-sq) 90deg, var(--light-sq) 90deg 180deg, var(--dark-sq) 180deg 270deg, var(--light-sq) 270deg) !important;
-            background-size: 25% 25% !important; 
+        .row-buttons .nav-btn {
+          flex: 1 1 calc(15% - 8px);
         }
-        .cg-wrap square.last-move { background-color: var(--highlight-color) !important; }
-        .cg-wrap piece.movable { cursor: grab !important; }
-        .cg-wrap piece.dragging { cursor: grabbing !important; }
-        cg-board square.move-dest { background: radial-gradient(rgba(0, 0, 0, 0.15) 20%, transparent 20%); }
-
-        @media (max-width: 768px) { 
-            body { padding: 10px; padding-top: 80px; overflow-x: hidden; }
-            header { padding: 0 15px; height: 60px; }
-            header .logo { font-size: 1rem; gap: 8px; }
-            header .logo-icon { width: 28px; height: 28px; }
-            header .user-badge { gap: 8px; }
-            header .user-badge span { display: none; }
-            header #logoutBtn { padding: 6px 10px; font-size: 11px; }
-            
-            .setup-card { padding: 16px; }
-            
-            .toggle-row { flex-direction: column; gap: 10px; }
-            
-            .chapter-row { grid-template-columns: repeat(3, 1fr); gap: 12px 8px; }
-            .chapter-row > div:first-child { grid-column: span 3; border-bottom: 1px solid #334155; padding-bottom: 8px; }
-            .chapter-row .play-icon { display: none; }
-            .chapter-row:active { background: var(--card-hover); }
-            .chapter-row:hover { transform: none; }
-            
-            .header-title { font-size: 1.4rem; gap: 10px; margin-top: 10px; }
-            .header-title .logo-icon { width: 36px; height: 36px; }
-
-            .modal-content { width: 95%; max-height: 90vh; }
-            .modal-body { padding: 16px; }
-            
-            #training-view { flex-direction: column-reverse; gap: 16px; } 
-            .board-wrapper { max-width: 100%; position: sticky; top: 70px; z-index: 10; }
-            .sidebar { min-width: 100%; max-width: 100%; gap: 12px; }
-            
-            .active-line { max-height: 90px; overflow-y: auto; }
-            
-            .row-buttons { flex-wrap: wrap; }
-            .row-buttons button, .row-buttons .btn-link { flex: 1 1 calc(33% - 8px); }
-            .row-buttons .nav-btn { flex: 1 1 calc(15% - 8px); }
-        }
-
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <header id="top-bar" class="hidden fade-in">
-        <div class="logo" id="homeBtn" style="cursor: pointer;" title="Retour au menu principal">
-            <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <path d="M50 35 L80 50 L50 65 L20 50 Z" fill="#064e3b" />
-                <path d="M20 50 L50 65 L50 90 L20 75 Z" fill="#059669" />
-                <path d="M50 65 L80 50 L80 75 L50 90 Z" fill="#047857" />
-                <path d="M20 50 L50 35 L35 25 L5 40 Z" fill="#34d399" opacity="0.8" />
-                <path d="M50 35 L80 50 L95 40 L65 25 Z" fill="#059669" opacity="0.4" />
-                <path d="M50 65 L50 90" stroke="#064e3b" stroke-width="0.5" />
-            </svg>
-            <span>La Boîte à Ouvertures</span>
-        </div>
-        <div class="user-badge">
-            <button id="helpBtn" class="secondary" style="padding: 0; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0;" title="Aide">?</button>
-            <span style="color: var(--text-muted);">Bonjour, <strong id="displayUsername" style="color: var(--text-main);"></strong></span>
-            <button id="logoutBtn" class="secondary" style="padding: 6px 12px; font-size: 12px; flex-shrink: 0;">Déconnexion</button>
-        </div>
+      <div
+        class="logo"
+        id="homeBtn"
+        style="cursor: pointer"
+        title="Retour au menu principal"
+      >
+        <svg
+          class="logo-icon"
+          viewBox="0 0 100 100"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M50 35 L80 50 L50 65 L20 50 Z" fill="#064e3b" />
+          <path d="M20 50 L50 65 L50 90 L20 75 Z" fill="#059669" />
+          <path d="M50 65 L80 50 L80 75 L50 90 Z" fill="#047857" />
+          <path d="M20 50 L50 35 L35 25 L5 40 Z" fill="#34d399" opacity="0.8" />
+          <path
+            d="M50 35 L80 50 L95 40 L65 25 Z"
+            fill="#059669"
+            opacity="0.4"
+          />
+          <path d="M50 65 L50 90" stroke="#064e3b" stroke-width="0.5" />
+        </svg>
+        <span>La Boîte à Ouvertures</span>
+      </div>
+      <div class="user-badge">
+        <button
+          id="helpBtn"
+          class="secondary"
+          style="
+            padding: 0;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+          "
+          title="Aide"
+        >
+          ?
+        </button>
+        <span style="color: var(--text-muted)"
+          >Bonjour,
+          <strong id="displayUsername" style="color: var(--text-main)"></strong
+        ></span>
+        <button
+          id="logoutBtn"
+          class="secondary"
+          style="padding: 6px 12px; font-size: 12px; flex-shrink: 0"
+        >
+          Déconnexion
+        </button>
+      </div>
     </header>
 
     <div id="toast-container"></div>
 
     <!-- HELP MODAL -->
     <div id="helpModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Guide d'utilisation</h2>
-                <button class="close-modal-btn" id="closeHelpBtn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <h3>🚀 Démarrage Rapide</h3>
-                <p>Importez n'importe quelle <strong>étude Lichess publique</strong> en collant son URL. L'application récupère automatiquement tous les chapitres.</p>
-                
-                <h3>📊 Gestion du Répertoire</h3>
-                <p>Vos ouvertures sont classées par couleur dans votre historique pour un accès rapide.</p>
-                <ul>
-                    <li><strong>Synchronisation :</strong> Mettez à jour votre répertoire en un clic si vous avez ajouté des coups sur Lichess.</li>
-                    <li><strong>Indicateur MAJ :</strong> Un badge orange vous signale les chapitres ayant été modifiés sur Lichess depuis votre dernière visite.</li>
-                    <li><strong>Suivi de réussite :</strong> Visualisez votre taux de succès par chapitre pour identifier vos points faibles.</li>
-                </ul>
-
-                <h3>🎯 Modes d'Entraînement</h3>
-                <ul>
-                    <li><strong>Mode Découverte :</strong> Idéal pour apprendre une ligne. Suivez la flèche d'aide grise sans pression.</li>
-                    <li><strong>Mode Révision :</strong> Testez votre mémoire. L'application joue les coups adverses et enregistre vos erreurs pour calculer votre score.</li>
-                </ul>
-
-                <h3>💡 Fonctionnalités Utiles</h3>
-                <ul>
-                    <li><strong>Solution :</strong> En cas d'oubli, affichez le coup attendu (compte comme une erreur en révision).</li>
-                    <li><strong>Navigation :</strong> Utilisez les flèches du clavier ou cliquez sur la notation pour explorer les variantes.</li>
-                    <li><strong>Analyse Lichess :</strong> Basculez vers l'outil d'analyse Lichess à tout moment pour approfondir une position.</li>
-                </ul>
-            </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Guide d'utilisation</h2>
+          <button class="close-modal-btn" id="closeHelpBtn">&times;</button>
         </div>
+        <div class="modal-body">
+          <h3>🚀 Démarrage Rapide</h3>
+          <p>
+            Importez n'importe quelle <strong>étude Lichess publique</strong> en
+            collant son URL. L'application récupère automatiquement tous les
+            chapitres.
+          </p>
+
+          <h3>📊 Gestion du Répertoire</h3>
+          <p>
+            Vos ouvertures sont classées par couleur dans votre historique pour
+            un accès rapide.
+          </p>
+          <ul>
+            <li>
+              <strong>Synchronisation :</strong> Mettez à jour votre répertoire
+              en un clic si vous avez ajouté des coups sur Lichess.
+            </li>
+            <li>
+              <strong>Indicateur MAJ :</strong> Un badge orange vous signale les
+              chapitres ayant été modifiés sur Lichess depuis votre dernière
+              visite.
+            </li>
+            <li>
+              <strong>Suivi de réussite :</strong> Visualisez votre taux de
+              succès par chapitre pour identifier vos points faibles.
+            </li>
+          </ul>
+
+          <h3>🎯 Modes d'Entraînement</h3>
+          <ul>
+            <li>
+              <strong>Mode Découverte :</strong> Idéal pour apprendre une ligne.
+              Suivez la flèche d'aide grise sans pression.
+            </li>
+            <li>
+              <strong>Mode Révision :</strong> Testez votre mémoire.
+              L'application joue les coups adverses et enregistre vos erreurs
+              pour calculer votre score.
+            </li>
+          </ul>
+
+          <h3>💡 Fonctionnalités Utiles</h3>
+          <ul>
+            <li>
+              <strong>Solution :</strong> En cas d'oubli, affichez le coup
+              attendu (compte comme une erreur en révision).
+            </li>
+            <li>
+              <strong>Navigation :</strong> Utilisez les flèches du clavier ou
+              cliquez sur la notation pour explorer les variantes.
+            </li>
+            <li>
+              <strong>Analyse Lichess :</strong> Basculez vers l'outil d'analyse
+              Lichess à tout moment pour approfondir une position.
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <div id="setup-view" class="fade-in">
-        <h1 class="header-title hidden" id="main-title">
-            <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">
-                <path d="M50 35 L80 50 L50 65 L20 50 Z" fill="#064e3b" />
-                <path d="M20 50 L50 65 L50 90 L20 75 Z" fill="#059669" />
-                <path d="M50 65 L80 50 L80 75 L50 90 Z" fill="#047857" />
-                <path d="M20 50 L50 35 L35 25 L5 40 Z" fill="#34d399" opacity="0.8" />
-                <path d="M50 35 L80 50 L95 40 L65 25 Z" fill="#059669" opacity="0.4" />
-                <path d="M50 65 L50 90" stroke="#064e3b" stroke-width="0.5" />
-            </svg>
-            <span>La Boîte à Ouvertures</span>
-        </h1>
+      <h1 class="header-title hidden" id="main-title">
+        <svg
+          class="logo-icon"
+          viewBox="0 0 100 100"
+          xmlns="http://www.w3.org/2000/svg"
+          style="filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))"
+        >
+          <path d="M50 35 L80 50 L50 65 L20 50 Z" fill="#064e3b" />
+          <path d="M20 50 L50 65 L50 90 L20 75 Z" fill="#059669" />
+          <path d="M50 65 L80 50 L80 75 L50 90 Z" fill="#047857" />
+          <path d="M20 50 L50 35 L35 25 L5 40 Z" fill="#34d399" opacity="0.8" />
+          <path
+            d="M50 35 L80 50 L95 40 L65 25 Z"
+            fill="#059669"
+            opacity="0.4"
+          />
+          <path d="M50 65 L50 90" stroke="#064e3b" stroke-width="0.5" />
+        </svg>
+        <span>La Boîte à Ouvertures</span>
+      </h1>
 
-        <!-- AUTH SECTION -->
-        <div id="auth-section" class="setup-card">
-            <div id="login-view">
-                <h2>Connexion</h2>
-                <form id="loginForm" class="form-group" style="gap: 12px;">
-                    <div class="form-group">
-                        <label for="loginUsername">Nom d'utilisateur ou Email</label>
-                        <input type="text" id="loginUsername" name="login_username" autocomplete="username" placeholder="Pseudo ou Email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="loginPassword">Mot de passe</label>
-                        <div class="password-container">
-                            <input type="password" id="loginPassword" name="login_password" autocomplete="current-password" placeholder="Mot de passe" required>
-                            <button type="button" class="password-toggle" tabindex="-1">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                            </button>
-                        </div>
-                    </div>
-                    <button type="submit" id="loginBtn" style="margin-top: 8px; padding: 12px;">Se connecter</button>
-                </form>
-                <div style="display: flex; justify-content: space-between; margin-top: 16px;">
-                    <span class="text-link" id="showRegisterBtn">Créer un compte</span>
-                    <span class="text-link" id="showForgotBtn">Mot de passe oublié ?</span>
-                </div>
+      <!-- AUTH SECTION -->
+      <div id="auth-section" class="setup-card">
+        <div id="login-view">
+          <h2>Connexion</h2>
+          <form id="loginForm" class="form-group" style="gap: 12px">
+            <div class="form-group">
+              <label for="loginUsername">Nom d'utilisateur ou Email</label>
+              <input
+                type="text"
+                id="loginUsername"
+                name="login_username"
+                autocomplete="username"
+                placeholder="Pseudo ou Email"
+                required
+              />
             </div>
-
-            <div id="register-view" class="hidden">
-                <h2>Inscription</h2>
-                <form id="registerForm" class="form-group" style="gap: 12px;">
-                    <div class="form-group">
-                        <label for="regUsername">Nom d'utilisateur</label>
-                        <input type="text" id="regUsername" name="reg_username" autocomplete="username" placeholder="Choisissez un pseudo" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="regEmail">Email</label>
-                        <input type="email" id="regEmail" name="reg_email" autocomplete="email" placeholder="votre@email.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="regPassword">Mot de passe</label>
-                        <div class="password-container">
-                            <input type="password" id="regPassword" name="reg_password" autocomplete="new-password" placeholder="Mot de passe" required>
-                            <button type="button" class="password-toggle" tabindex="-1">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                            </button>
-                        </div>
-                    </div>
-                    <button type="submit" id="registerBtn" style="margin-top: 8px; padding: 12px;">S'inscrire</button>
-                </form>
-                <div style="margin-top: 16px; text-align: center;">
-                    <span class="text-link" id="showLoginBtn">Déjà un compte ? Se connecter</span>
-                </div>
+            <div class="form-group">
+              <label for="loginPassword">Mot de passe</label>
+              <div class="password-container">
+                <input
+                  type="password"
+                  id="loginPassword"
+                  name="login_password"
+                  autocomplete="current-password"
+                  placeholder="Mot de passe"
+                  required
+                />
+                <button type="button" class="password-toggle" tabindex="-1">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                    ></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
             </div>
-
-            <div id="forgot-view" class="hidden">
-                <h2>Mot de passe oublié</h2>
-                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px; margin-top: 0;">Saisissez votre email pour recevoir un lien de réinitialisation.</p>
-                <form id="forgotForm" class="form-group" style="gap: 12px;">
-                    <input type="email" id="forgotEmail" placeholder="votre@email.com" required>
-                    <button type="submit" style="padding: 12px;">Envoyer le lien</button>
-                </form>
-                <div style="margin-top: 16px; text-align: center;">
-                    <span class="text-link" id="backToLoginBtn">Retour à la connexion</span>
-                </div>
-            </div>
-
-            <div id="reset-view" class="hidden">
-                <h2>Nouveau mot de passe</h2>
-                <form id="resetForm" class="form-group" style="gap: 12px;">
-                    <div class="password-container">
-                        <input type="password" id="newPassword" placeholder="Nouveau mot de passe" required>
-                        <button type="button" class="password-toggle" tabindex="-1">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        </button>
-                    </div>
-                    <button type="submit" style="padding: 12px;">Enregistrer</button>
-                </form>
-            </div>
+            <button
+              type="submit"
+              id="loginBtn"
+              style="margin-top: 8px; padding: 12px"
+            >
+              Se connecter
+            </button>
+          </form>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              margin-top: 16px;
+            "
+          >
+            <span class="text-link" id="showRegisterBtn">Créer un compte</span>
+            <span class="text-link" id="showForgotBtn"
+              >Mot de passe oublié ?</span
+            >
+          </div>
         </div>
 
-        <!-- LOGGED IN CONTENT -->
-        <div id="main-setup-content" class="hidden" style="display: flex; flex-direction: column; gap: 24px;">
-            <div class="setup-card" id="dashboard-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <h2 style="margin:0; border:none; padding:0;">Répertoires</h2>
-                </div>
-                <div id="repertoireList">
-                    <div style="text-align: center; color: var(--text-muted); padding: 20px;">Chargement de l'historique...</div>
-                </div>
+        <div id="register-view" class="hidden">
+          <h2>Inscription</h2>
+          <form id="registerForm" class="form-group" style="gap: 12px">
+            <div class="form-group">
+              <label for="regUsername">Nom d'utilisateur</label>
+              <input
+                type="text"
+                id="regUsername"
+                name="reg_username"
+                autocomplete="username"
+                placeholder="Choisissez un pseudo"
+                required
+              />
             </div>
-
-            <div class="setup-card">
-                <h2>Charger une étude</h2>
-                <div id="lichess-input-group" class="form-group">
-                    <label>Lien ou ID de l'étude publique Lichess</label>
-                    <input type="text" id="lichessInput" placeholder="https://lichess.org/study/xxxxxx">
-                </div>
-                <button id="loadBtn" class="secondary" style="margin-top: 4px; padding: 12px;">Charger le répertoire</button>
+            <div class="form-group">
+              <label for="regEmail">Email</label>
+              <input
+                type="email"
+                id="regEmail"
+                name="reg_email"
+                autocomplete="email"
+                placeholder="votre@email.com"
+                required
+              />
             </div>
-
-            <div class="setup-card fade-in" id="config-card" style="display: none;">
-                <h2 id="config-title">Répertoire</h2>
-                <div id="chapter-selection-area" class="hidden" style="margin-top: 8px;">
-                    <label style="font-size: 0.875rem; color: var(--text-muted); font-weight: 500; margin-bottom: 8px; display: block;">Sélectionnez un chapitre :</label>
-                    <div class="chapter-list" id="chapterList"></div>
-                </div>
-
-                <div class="toggle-row">
-                    <div class="toggle-container color-toggle" id="colorToggle" data-state="left">
-                        <div class="toggle-slider"></div>
-                        <div class="toggle-option active" data-val="white">Blancs</div>
-                        <div class="toggle-option" data-val="black">Noirs</div>
-                    </div>
-                    <div class="toggle-container" id="modeToggle" data-state="left">
-                        <div class="toggle-slider"></div>
-                        <div class="toggle-option active" data-val="decouverte">Découverte</div>
-                        <div class="toggle-option" data-val="revision">Révision</div>
-                    </div>
-                </div>
-                <button id="startBtn" style="font-size: 16px; padding: 16px; margin-top: 12px;" disabled>Démarrer l'entraînement</button>
+            <div class="form-group">
+              <label for="regPassword">Mot de passe</label>
+              <div class="password-container">
+                <input
+                  type="password"
+                  id="regPassword"
+                  name="reg_password"
+                  autocomplete="new-password"
+                  placeholder="Mot de passe"
+                  required
+                />
+                <button type="button" class="password-toggle" tabindex="-1">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                    ></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
             </div>
+            <button
+              type="submit"
+              id="registerBtn"
+              style="margin-top: 8px; padding: 12px"
+            >
+              S'inscrire
+            </button>
+          </form>
+          <div style="margin-top: 16px; text-align: center">
+            <span class="text-link" id="showLoginBtn"
+              >Déjà un compte ? Se connecter</span
+            >
+          </div>
         </div>
+
+        <div id="forgot-view" class="hidden">
+          <h2>Mot de passe oublié</h2>
+          <p
+            style="
+              font-size: 14px;
+              color: var(--text-muted);
+              margin-bottom: 16px;
+              margin-top: 0;
+            "
+          >
+            Saisissez votre email pour recevoir un lien de réinitialisation.
+          </p>
+          <form id="forgotForm" class="form-group" style="gap: 12px">
+            <input
+              type="email"
+              id="forgotEmail"
+              placeholder="votre@email.com"
+              required
+            />
+            <button type="submit" style="padding: 12px">Envoyer le lien</button>
+          </form>
+          <div style="margin-top: 16px; text-align: center">
+            <span class="text-link" id="backToLoginBtn"
+              >Retour à la connexion</span
+            >
+          </div>
+        </div>
+
+        <div id="reset-view" class="hidden">
+          <h2>Nouveau mot de passe</h2>
+          <form id="resetForm" class="form-group" style="gap: 12px">
+            <div class="password-container">
+              <input
+                type="password"
+                id="newPassword"
+                placeholder="Nouveau mot de passe"
+                required
+              />
+              <button type="button" class="password-toggle" tabindex="-1">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <button type="submit" style="padding: 12px">Enregistrer</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- LOGGED IN CONTENT -->
+      <div
+        id="main-setup-content"
+        class="hidden"
+        style="display: flex; flex-direction: column; gap: 24px"
+      >
+        <div class="setup-card" id="dashboard-card">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 8px;
+            "
+          >
+            <h2 style="margin: 0; border: none; padding: 0">Répertoires</h2>
+          </div>
+          <div id="repertoireList">
+            <div
+              style="
+                text-align: center;
+                color: var(--text-muted);
+                padding: 20px;
+              "
+            >
+              Chargement de l'historique...
+            </div>
+          </div>
+        </div>
+
+        <div class="setup-card">
+          <h2>Charger une étude</h2>
+          <div id="lichess-input-group" class="form-group">
+            <label>Lien ou ID de l'étude publique Lichess</label>
+            <input
+              type="text"
+              id="lichessInput"
+              placeholder="https://lichess.org/study/xxxxxx"
+            />
+          </div>
+          <button
+            id="loadBtn"
+            class="secondary"
+            style="margin-top: 4px; padding: 12px"
+          >
+            Charger le répertoire
+          </button>
+        </div>
+
+        <div class="setup-card fade-in" id="config-card" style="display: none">
+          <h2 id="config-title">Répertoire</h2>
+          <div
+            id="chapter-selection-area"
+            class="hidden"
+            style="margin-top: 8px"
+          >
+            <label
+              style="
+                font-size: 0.875rem;
+                color: var(--text-muted);
+                font-weight: 500;
+                margin-bottom: 8px;
+                display: block;
+              "
+              >Sélectionnez un chapitre :</label
+            >
+            <div class="chapter-list" id="chapterList"></div>
+          </div>
+
+          <div class="toggle-row">
+            <div
+              class="toggle-container color-toggle"
+              id="colorToggle"
+              data-state="left"
+            >
+              <div class="toggle-slider"></div>
+              <div class="toggle-option active" data-val="white">Blancs</div>
+              <div class="toggle-option" data-val="black">Noirs</div>
+            </div>
+            <div class="toggle-container" id="modeToggle" data-state="left">
+              <div class="toggle-slider"></div>
+              <div class="toggle-option active" data-val="decouverte">
+                Découverte
+              </div>
+              <div class="toggle-option" data-val="revision">Révision</div>
+            </div>
+          </div>
+          <button
+            id="startBtn"
+            style="font-size: 16px; padding: 16px; margin-top: 12px"
+            disabled
+          >
+            Démarrer l'entraînement
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- TRAINING VIEW -->
     <div id="training-view" class="hidden">
-        <div class="sidebar">
-            <div id="trainingHeader" style="text-align: center; margin-bottom: 4px; font-weight: 700; color: var(--primary); font-size: 1.2rem;"></div>
-            
-            <div class="stats-panel">
-                <div class="progress-container">
-                    <div id="trainingProgress" class="progress-bar"></div>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
-                    <span>Progression</span>
-                    <span id="progressText">0%</span>
-                </div>
-                <div class="stat-grid">
-                    <div class="stat-box">
-                        <div class="label">Coups</div>
-                        <div class="value" id="statMoves">0/0</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="label">Variantes</div>
-                        <div class="value" id="statVars">0/0</div>
-                    </div>
-                    <div class="stat-box hidden" id="errorStatRow">
-                        <div class="label">Erreurs</div>
-                        <div class="value error-val" id="statErrors">0</div>
-                    </div>
-                </div>
-            </div>
+      <div class="sidebar">
+        <div
+          id="trainingHeader"
+          style="
+            text-align: center;
+            margin-bottom: 4px;
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.2rem;
+          "
+        ></div>
 
-            <div class="pgn-container">
-                <div id="activeLineDisplay" class="active-line">Position initiale</div>
-                <div id="commentBox" class="comment-box"><em>Aucun commentaire pour ce coup.</em></div>
+        <div class="stats-panel">
+          <div class="progress-container">
+            <div id="trainingProgress" class="progress-bar"></div>
+          </div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              font-size: 12px;
+              color: var(--text-muted);
+              margin-bottom: 8px;
+            "
+          >
+            <span>Progression</span>
+            <span id="progressText">0%</span>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-box">
+              <div class="label">Coups</div>
+              <div class="value" id="statMoves">0/0</div>
             </div>
-            
-            <div class="controls">
-                <div class="row-buttons">
-                    <button id="prevBtn" class="secondary nav-btn" disabled>◀</button>
-                    <button id="nextBtn" class="secondary nav-btn" disabled>▶</button>
-                    <button id="toggleCommentsBtn" class="secondary">Notes</button>
-                    <button id="hintBtn" class="secondary">Solution</button>
-                    <a id="analysisLink" href="#" target="_blank" class="secondary btn-link" title="Ouvrir dans l'étude Lichess">Analyse <svg style="margin-left: 4px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>
-                </div>
-                <div style="display: flex; gap: 8px; margin-top: 8px;">
-                    <button id="restartBtn" class="secondary hidden" style="flex: 1;">Recommencer</button>
-                    <button id="stopBtn" class="danger" style="flex: 1;">Quitter</button>
-                </div>
-                <div id="trainingActions" class="hidden" style="margin-top: 8px; display: flex; flex-direction: column;"></div>
+            <div class="stat-box">
+              <div class="label">Variantes</div>
+              <div class="value" id="statVars">0/0</div>
             </div>
+            <div class="stat-box hidden" id="errorStatRow">
+              <div class="label">Erreurs</div>
+              <div class="value error-val" id="statErrors">0</div>
+            </div>
+          </div>
         </div>
-        <div class="board-wrapper">
-            <div id="board" class="cg-wrap"></div>
+
+        <div class="pgn-container">
+          <div id="activeLineDisplay" class="active-line">
+            Position initiale
+          </div>
+          <div id="commentBox" class="comment-box">
+            <em>Aucun commentaire pour ce coup.</em>
+          </div>
         </div>
+
+        <div class="controls">
+          <div class="row-buttons">
+            <button id="prevBtn" class="secondary nav-btn" disabled>◀</button>
+            <button id="nextBtn" class="secondary nav-btn" disabled>▶</button>
+            <button id="toggleCommentsBtn" class="secondary">Notes</button>
+            <button id="hintBtn" class="secondary">Solution</button>
+            <a
+              id="analysisLink"
+              href="#"
+              target="_blank"
+              class="secondary btn-link"
+              title="Ouvrir dans l'étude Lichess"
+              >Analyse
+              <svg
+                style="margin-left: 4px"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                ></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line></svg
+            ></a>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 8px">
+            <button id="restartBtn" class="secondary hidden" style="flex: 1">
+              Recommencer
+            </button>
+            <button id="stopBtn" class="danger" style="flex: 1">Quitter</button>
+          </div>
+          <div
+            id="trainingActions"
+            class="hidden"
+            style="margin-top: 8px; display: flex; flex-direction: column"
+          ></div>
+        </div>
+      </div>
+      <div class="board-wrapper">
+        <div id="board" class="cg-wrap"></div>
+      </div>
     </div>
 
     <script type="module">
-        import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.0.0-beta.8/+esm';
-        import { Chessground } from 'https://cdn.jsdelivr.net/npm/chessground@9.0.5/+esm';
-        import { parseMultiPgn, buildRepertoireTree } from './data.js';
-
-        // =========================================
-        // TOAST NOTIFICATIONS
-        // =========================================
-        const showToast = (message, type = 'info', duration = 3000) => {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            
-            let icon = 'ℹ️';
-            if (type === 'success') icon = '✅';
-            if (type === 'error') icon = '❌';
-            if (type === 'warning') icon = '⚠️';
-
-            toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.classList.add('fade-out');
-                setTimeout(() => toast.remove(), 300);
-            }, duration);
-        };
-
-        // =========================================
-        // UTILS
-        // =========================================
-        const extractStudyId = (input) => {
-            if (!input) return null;
-            if (input.includes('lichess.org/study/')) {
-                const match = input.match(/lichess\.org\/study\/([a-zA-Z0-9]{8})/);
-                return match ? match[1] : input;
-            }
-            if (input.includes('/')) return input.split('/')[0];
-            return input.trim();
-        };
-
-        const getToggleState = (id) => {
-            const activeOpt = document.getElementById(id).querySelector('.toggle-option.active');
-            return activeOpt ? activeOpt.dataset.val : null;
-        };
-
-        const setToggleState = (id, value) => {
-            const container = document.getElementById(id);
-            const options = container.querySelectorAll('.toggle-option');
-            options.forEach(opt => {
-                if (opt.dataset.val === value) {
-                    opt.classList.add('active');
-                    container.dataset.state = (opt === options[0]) ? 'left' : 'right';
-                } else opt.classList.remove('active');
-            });
-        };
-
-        const formatRelativeTime = (date) => {
-            if (!date) return 'Jamais';
-            const now = new Date();
-            const diff = now - new Date(date);
-            const seconds = Math.floor(diff / 1000);
-            const minutes = Math.floor(seconds / 60);
-            const hours = Math.floor(minutes / 60);
-            const days = Math.floor(hours / 24);
-            const months = Math.floor(days / 30);
-            const years = Math.floor(days / 365);
-
-            if (seconds < 60) return "À l'instant";
-            if (minutes < 60) return `Il y a ${minutes} min`;
-            if (hours < 24) return `Il y a ${hours} ${hours > 1 ? 'heures' : 'heure'}`;
-            if (days < 30) return `Il y a ${days} ${days > 1 ? 'jours' : 'jour'}`;
-            if (months < 12) return `Il y a ${months} mois`;
-            return `Il y a ${years} ${years > 1 ? 'ans' : 'an'}`;
-        };
-
-        document.querySelectorAll('.toggle-container').forEach(container => {
-            container.querySelectorAll('.toggle-option').forEach(option => {
-                option.addEventListener('click', (e) => setToggleState(container.id, e.target.dataset.val));
-            });
-        });
-
-        document.querySelectorAll('.password-toggle').forEach(btn => {
-            btn.onclick = (e) => {
-                e.preventDefault();
-                const input = btn.previousElementSibling;
-                input.type = input.type === 'password' ? 'text' : 'password';
-                if (input.type === 'password') {
-                    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-                } else {
-                    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
-                }
-            };
-        });
-
-        // =========================================
-        // STATE
-        // =========================================
-        const game = new Chess();
-        let cg, rootNode = null, currentNode = null, playerColor = 'white', trainingMode = 'decouverte', isTraining = false;
-        let currentRepertoire = null, currentChapterIndex = -1, selectedChapterPgn = null, currentPath = [], viewIndex = 0;
-        let totalMoves = 0, learnedMoves = 0, totalVariations = 0, learnedVariations = 0, errorCount = 0, currentMoveErrorLogged = false;
-
-        let authToken = localStorage.getItem('chess_token');
-        
-        // =========================================
-        // CACHE SYSTEM
-        // =========================================
-        const CACHE_KEY = 'repertoire_cache';
-        const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in ms
-        let repertoireCache = {};
-        try { 
-            const saved = localStorage.getItem(CACHE_KEY);
-            if (saved) repertoireCache = JSON.parse(saved);
-        } catch(e) { console.error("Cache init error", e); }
-
-        const saveToCache = (id, data) => {
-            repertoireCache[id] = { ...data, timestamp: Date.now() };
-            localStorage.setItem(CACHE_KEY, JSON.stringify(repertoireCache));
-        };
-
-        const getFromCache = (id) => {
-            const entry = repertoireCache[id];
-            if (!entry) return null;
-            const isExpired = (Date.now() - entry.timestamp) > CACHE_DURATION;
-            return { data: entry, isExpired };
-        };
-
-        // Elements
-        const setupView = document.getElementById('setup-view'), mainSetupContent = document.getElementById('main-setup-content'), trainingView = document.getElementById('training-view'), topBar = document.getElementById('top-bar'), authSection = document.getElementById('auth-section');
-        const loginView = document.getElementById('login-view'), registerView = document.getElementById('register-view'), forgotView = document.getElementById('forgot-view'), resetView = document.getElementById('reset-view');
-        const displayUsername = document.getElementById('displayUsername');
-
-        // =========================================
-        // AUTH LOGIC
-        // =========================================
-        const updateAuthUI = () => {
-            if (authToken) {
-                const user = JSON.parse(localStorage.getItem('chess_user'));
-                if (!user) {
-                    authToken = null;
-                    localStorage.removeItem('chess_token');
-                    updateAuthUI();
-                    return;
-                }
-                authSection.classList.add('hidden');
-                document.getElementById('main-title').classList.add('hidden');
-                mainSetupContent.classList.remove('hidden');
-                mainSetupContent.classList.add('fade-in');
-                topBar.classList.remove('hidden');
-                displayUsername.textContent = user.username || 'Utilisateur';
-                fetchHistory();
-            } else {
-                authSection.classList.remove('hidden');
-                document.getElementById('main-title').classList.remove('hidden');
-                mainSetupContent.classList.add('hidden');
-                topBar.classList.add('hidden');
-            }
-        };
-
-        const switchView = (hideId, showId) => {
-            document.getElementById(hideId).classList.add('hidden');
-            const showEl = document.getElementById(showId);
-            showEl.classList.remove('hidden');
-            showEl.classList.add('fade-in');
-        };
-
-        document.getElementById('showRegisterBtn').onclick = () => switchView('login-view', 'register-view');
-        document.getElementById('showLoginBtn').onclick = () => switchView('register-view', 'login-view');
-        document.getElementById('showForgotBtn').onclick = () => switchView('login-view', 'forgot-view');
-        document.getElementById('backToLoginBtn').onclick = () => switchView('forgot-view', 'login-view');
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const verifyToken = urlParams.get('verify');
-        const resetToken = urlParams.get('reset');
-
-        if (verifyToken) {
-            fetch(`/api/verify-email/${verifyToken}`).then(r => r.json()).then(data => {
-                if (data.message) showToast(data.message, 'success');
-                else showToast(data.error, 'error');
-                window.history.replaceState({}, document.title, window.location.pathname);
-            });
-        }
-        if (resetToken) {
-            loginView.classList.add('hidden');
-            resetView.classList.remove('hidden');
-        }
-
-        document.getElementById('loginForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
-            try {
-                const res = await fetch('/api/login', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    authToken = data.token;
-                    localStorage.setItem('chess_token', data.token);
-                    localStorage.setItem('chess_user', JSON.stringify(data.user));
-                    showToast("Connexion réussie", 'success');
-                    updateAuthUI();
-                } else throw new Error(data.error);
-            } catch (err) { showToast(err.message, 'error'); }
-        };
-
-        document.getElementById('registerForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('regUsername').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
-            const password = document.getElementById('regPassword').value.trim();
-            try {
-                const res = await fetch('/api/register', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, email, password })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    showToast(data.message, 'success');
-                    switchView('register-view', 'login-view');
-                } else throw new Error(data.error);
-            } catch (err) { showToast(err.message, 'error'); }
-        };
-
-        document.getElementById('forgotForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('forgotEmail').value.trim();
-            try {
-                const res = await fetch('/api/forgot-password', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-                const data = await res.json();
-                if (res.ok) showToast(data.message, 'success');
-                else throw new Error(data.error);
-            } catch (err) { showToast(err.message, 'error'); }
-        };
-
-        document.getElementById('resetForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const newPassword = document.getElementById('newPassword').value.trim();
-            try {
-                const res = await fetch('/api/reset-password', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: resetToken, newPassword })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    showToast(data.message, 'success');
-                    switchView('reset-view', 'login-view');
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                } else throw new Error(data.error);
-            } catch (err) { showToast(err.message, 'error'); }
-        };
-
-        document.getElementById('logoutBtn').onclick = () => {
-            // Reset and hide training view if active
-            isTraining = false;
-            trainingView.classList.add('hidden');
-            setupView.classList.remove('hidden');
-            setupView.classList.add('fade-in');
-            game.reset();
-            if (cg) cg.set({ drawable: { autoShapes: [] } });
-
-            authToken = null;
-            localStorage.removeItem('chess_token');
-            localStorage.removeItem('chess_user');
-            showToast("Déconnexion réussie", 'info');
-            updateAuthUI();
-        };
-
-        // =========================================
-        // HELP MODAL LOGIC
-        // =========================================
-        const helpModal = document.getElementById('helpModal');
-        const helpBtn = document.getElementById('helpBtn');
-        const closeHelpBtn = document.getElementById('closeHelpBtn');
-
-        helpBtn.onclick = () => helpModal.classList.add('show');
-        closeHelpBtn.onclick = () => helpModal.classList.remove('show');
-        helpModal.onclick = (e) => { if (e.target === helpModal) helpModal.classList.remove('show'); };
-
-        document.getElementById('homeBtn').onclick = () => {
-            if (isTraining) {
-                document.getElementById('stopBtn').click();
-            } else {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        };
-
-        // =========================================
-        // DASHBOARD & REPERTOIRE LOGIC
-        // =========================================
-        const repertoireListEl = document.getElementById('repertoireList');
-        const startBtn = document.getElementById('startBtn'), loadBtn = document.getElementById('loadBtn'), lichessInput = document.getElementById('lichessInput');
-        const chapterListEl = document.getElementById('chapterList'), chapterSelectionArea = document.getElementById('chapter-selection-area');
-        
-        const fetchHistory = async () => {
-            if (!authToken) return;
-            try {
-                const res = await fetch('/api/history', { headers: { 'Authorization': `Bearer ${authToken}` } });
-                if (res.ok) renderInteractiveDashboard(await res.json());
-                else if (res.status === 401 || res.status === 403) {
-                    console.warn("Session expired or invalid. Logging out...");
-                    document.getElementById('logoutBtn').click();
-                }
-            } catch (err) { console.error("Failed to fetch history:", err); }
-        };
-
-        let currentlyOpenRepId = null; // State to remember which rep is open
-
-        const renderInteractiveDashboard = (history) => {
-            if (history.length === 0) {
-                repertoireListEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Aucun historique.</div>';
-                return;
-            }
-
-            // ... (keep grouping logic same)
-            const repertoires = {};
-            history.forEach(entry => {
-                const normalizedId = extractStudyId(entry.study_id);
-                const repKey = normalizedId + '_' + entry.color;
-                if (!repertoires[repKey]) {
-                    repertoires[repKey] = { 
-                        title: entry.repertoire_title, 
-                        study_id: normalizedId, 
-                        color: entry.color, 
-                        chaptersHistory: {}, 
-                        last_revision: null, 
-                        total_chapters: entry.total_chapters || 0 
-                    };
-                }
-                const rep = repertoires[repKey];
-                
-                if (!rep.last_date || new Date(entry.date) > new Date(rep.last_date)) {
-                    rep.title = entry.repertoire_title;
-                    rep.last_date = entry.date;
-                }
-                if (entry.total_chapters > rep.total_chapters) rep.total_chapters = entry.total_chapters;
-                if (entry.is_revision && (!rep.last_revision || new Date(entry.date) > new Date(rep.last_revision))) rep.last_revision = entry.date;
-                if (!rep.chaptersHistory[entry.chapter_title]) rep.chaptersHistory[entry.chapter_title] = { title: entry.chapter_title, revisions: [], total_revisions: 0 };
-                if (entry.is_revision) {
-                    rep.chaptersHistory[entry.chapter_title].revisions.push(entry);
-                    rep.chaptersHistory[entry.chapter_title].total_revisions++;
-                }
-            });
-
-            repertoireListEl.innerHTML = '';
-            
-            const allReps = Object.values(repertoires).sort((a,b) => (b.last_revision ? new Date(b.last_revision) : 0) - (a.last_revision ? new Date(a.last_revision) : 0));
-            const whiteReps = allReps.filter(r => r.color === 'white');
-            const blackReps = allReps.filter(r => r.color === 'black');
-
-            const createSectionHeader = (title) => {
-                const h3 = document.createElement('h3');
-                h3.textContent = title;
-                h3.style.cssText = 'font-size: 14px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 12px 4px; display: flex; align-items: center; gap: 8px;';
-                const line = document.createElement('div');
-                line.style.cssText = 'flex: 1; height: 1px; background: var(--border-color);';
-                h3.appendChild(line);
-                return h3;
-            };
-
-            const renderRepList = (list) => {
-                list.forEach(rep => {
-                    const normalizedId = extractStudyId(rep.study_id);
-                    const repKey = normalizedId + '_' + rep.color;
-
-                    // Calculate success rate...
-                    let totalSuccessMoves = 0;
-                    let totalRevisionMoves = 0;
-                    const cache = getFromCache(normalizedId + '_' + rep.color);
-                    if (cache && cache.data && cache.data.chapters) {
-                        cache.data.chapters.forEach(chap => {
-                            totalRevisionMoves += (chap.moveCount || 0);
-                            const hist = rep.chaptersHistory[chap.title], latest = hist && hist.revisions.length > 0 ? hist.revisions[0] : null;
-                            if (latest) totalSuccessMoves += Math.min(chap.moveCount || 0, Math.max(0, latest.total_moves - latest.errors));
-                        });
-                    } else {
-                        Object.values(rep.chaptersHistory).forEach(chapHist => {
-                            const latest = chapHist.revisions.length > 0 ? chapHist.revisions[0] : null;
-                            if (latest && latest.total_moves > 0) { totalSuccessMoves += Math.max(0, latest.total_moves - latest.errors); totalRevisionMoves += latest.total_moves; }
-                        });
-                    }
-
-                    const globalRate = totalRevisionMoves > 0 ? Math.round((totalSuccessMoves / totalRevisionMoves) * 100) : 0;
-                    const rateClass = globalRate >= 80 ? 'high' : (globalRate < 50 ? 'low' : 'medium');
-
-                    const repItem = document.createElement('div');
-                    repItem.className = 'repertoire-item fade-in';
-                    repItem.innerHTML = `
-                        <div class="repertoire-header">
-                            <div style="flex: 1;">
-                                <strong style="color: var(--text-main); font-size: 15px;">${rep.title} <span style="color: var(--text-muted); font-weight: normal; font-size: 0.85rem;">(${rep.total_chapters} chapitre${rep.total_chapters > 1 ? 's' : ''})</span></strong>
-                                <div class="meta"><span>Dernière révision : ${formatRelativeTime(rep.last_revision)}</span></div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 15px;">
-                                <div class="global-score-badge ${rateClass}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> ${globalRate}%</div>
-                                <div class="toggle-icon" style="color: var(--text-muted); font-size: 18px;">${currentlyOpenRepId === repKey ? '−' : '+'}</div>
-                            </div>
-                        </div>
-                        <div class="chapters-detail ${currentlyOpenRepId === repKey ? 'open' : ''}"></div>
-                    `;
-
-                    const header = repItem.querySelector('.repertoire-header'), detail = repItem.querySelector('.chapters-detail'), icon = repItem.querySelector('.toggle-icon');
-                    
-                    header.onclick = async () => {
-                        const isOpen = detail.classList.contains('open');
-                        
-                        // Close all others
-                        document.querySelectorAll('.chapters-detail').forEach(d => d.classList.remove('open'));
-                        document.querySelectorAll('.toggle-icon').forEach(i => i.textContent = '+');
-                        
-                        if (!isOpen) {
-                            currentlyOpenRepId = repKey;
-                            detail.classList.add('open'); 
-                            icon.textContent = '−';
-                            expandRepertoire(rep, detail, normalizedId);
-                        } else {
-                            currentlyOpenRepId = null;
-                        }
-                    };
-
-                    // Auto-restore state if it was open
-                    if (currentlyOpenRepId === repKey) {
-                        detail.classList.add('open');
-                        icon.textContent = '−';
-                        setTimeout(() => expandRepertoire(rep, detail, normalizedId), 0);
-                    }
-
-                    repertoireListEl.appendChild(repItem);
-                });
-            };
-
-            // Helper to expand without full re-render
-            const expandRepertoire = (rep, detail, normalizedId) => {
-                const renderChapters = (chaptersData) => {
-                    detail.innerHTML = '';
-                    chaptersData.forEach(chap => {
-                        const hist = rep.chaptersHistory[chap.title], latest = hist && hist.revisions.length > 0 ? hist.revisions[0] : null;
-                        const hasData = latest !== null, moveCount = chap.moveCount;
-                        let finalSuccessRate = 0, isUpdated = false;
-                        if (hasData) {
-                            let successfulMoves = Math.max(0, latest.total_moves - latest.errors);
-                            if (moveCount !== latest.total_moves && latest.total_moves > 0) { isUpdated = true; finalSuccessRate = moveCount > 0 ? Math.min(100, Math.max(0, Math.round((successfulMoves / moveCount) * 100))) : 0; }
-                            else { finalSuccessRate = latest.total_moves > 0 ? Math.max(0, Math.round((successfulMoves / latest.total_moves) * 100)) : 0; }
-                        }
-                        const successClass = hasData ? (finalSuccessRate >= 80 ? 'success-rate' : (finalSuccessRate < 50 ? 'low-success' : '')) : '';
-                        const chapRow = document.createElement('div');
-                        chapRow.className = 'chapter-row';
-                        let progressHtml = hasData ? `<div class="mini-progress-bg"><div class="mini-progress-fill" style="width: ${finalSuccessRate}%; background: ${finalSuccessRate >= 80 ? 'var(--success)' : (finalSuccessRate < 50 ? 'var(--danger)' : 'var(--warning)')}"></div></div>` : '';
-                        const chapTitleHtml = isUpdated ? `<strong>${chap.title.replace(rep.title + ": ", "")} <span style="color: var(--warning); font-size: 10px; border: 1px solid var(--warning); padding: 1px 4px; border-radius: 4px; margin-left: 4px;">MAJ</span></strong>` : `<strong>${chap.title.replace(rep.title + ": ", "")}</strong>`;
-                        chapRow.innerHTML = `<div><span class="label">Chapitre</span>${chapTitleHtml}</div><div><span class="label">Succès</span><span class="${successClass}">${hasData ? finalSuccessRate + '%' : '-'}</span>${progressHtml}</div><div><span class="label">Coups</span><strong style="color: var(--text-main); font-weight: normal;">${moveCount}</strong></div><div><span class="label">Dernière</span><span style="color: var(--text-muted);">${formatRelativeTime(latest ? latest.date : null)}</span></div><div class="play-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>`;
-                        chapRow.onclick = (e) => { e.stopPropagation(); relaunchStudy(normalizedId, chap.title, rep.color); };
-                        detail.appendChild(chapRow);
-                    });
-                    const footer = document.createElement('div');
-                    footer.style.cssText = 'display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 15px; paddingTop: 12px; borderTop: 1px solid var(--border-color);';
-                    const syncBtn = document.createElement('button');
-                    syncBtn.className = 'secondary';
-                    syncBtn.style.cssText = 'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
-                    syncBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> Synchroniser`;
-                    syncBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); syncFromLichess(true); };
-                    footer.appendChild(syncBtn);
-                    const delBtn = document.createElement('button');
-                    delBtn.className = 'secondary';
-                    delBtn.style.cssText = 'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
-                    delBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg> Supprimer`;
-                    delBtn.onclick = async (e) => { e.stopPropagation(); e.preventDefault(); if (!confirm("Voulez-vous vraiment supprimer ce répertoire ?")) return; const res = await fetch(`/api/history/repertoire?study_id=${encodeURIComponent(normalizedId)}&color=${encodeURIComponent(rep.color)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` } }); if (res.ok) { currentlyOpenRepId = null; showToast("Répertoire supprimé", "success"); fetchHistory(); } };
-                    footer.appendChild(delBtn);
-                    detail.appendChild(footer);
-                };
-
-                const syncFromLichess = async (force = false) => {
-                    if (!force) { const cache = getFromCache(normalizedId + '_' + rep.color); if (cache && !cache.isExpired) { renderChapters(cache.data.chapters); return; } }
-                    detail.innerHTML = '<div style="padding: 15px; text-align: center; color: var(--text-muted);">Synchronisation Lichess...</div>';
-                    try {
-                        const response = await fetch(`https://lichess.org/api/study/${normalizedId}.pgn?v=${Date.now()}`);
-                        if (!response.ok) throw new Error("Lichess error");
-                        const pgnText = await response.text(), allChapters = parseMultiPgn(pgnText), currentStudyName = pgnText.match(/\[StudyName "(.*?)"\]/)?.[1] || rep.title;
-                        if (currentStudyName !== rep.title && authToken) { try { await fetch('/api/history/repertoire/title', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }, body: JSON.stringify({ study_id: normalizedId, new_title: currentStudyName }) }); } catch (e) {} }
-                        const chaptersWithMoves = allChapters.map(chap => {
-                            let moveCount = 0;
-                            try { const tempRoot = buildRepertoireTree(chap.pgn); const countMoves = (n) => { if (n.id !== 'root' && n.color === rep.color) moveCount++; n.children.forEach(countMoves); }; countMoves(tempRoot); } catch(e) {}
-                            return { title: chap.title, moveCount, pgn: chap.pgn };
-                        });
-                        if (authToken) {
-                            const historyTitles = Object.keys(rep.chaptersHistory);
-                            if (historyTitles.length > 0) {
-                                for (let i = 0; i < chaptersWithMoves.length; i++) {
-                                    const newTitle = chaptersWithMoves[i].title;
-                                    if (!rep.chaptersHistory[newTitle]) {
-                                        const orphanedTitle = historyTitles.find(t => !chaptersWithMoves.some(c => c.title === t));
-                                        if (orphanedTitle) { try { await fetch('/api/history/chapter/title', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }, body: JSON.stringify({ study_id: normalizedId, old_title: orphanedTitle, new_title: newTitle }) }); historyTitles.splice(historyTitles.indexOf(orphanedTitle), 1); } catch (e) {} }
-                                    }
-                                }
-                            }
-                        }
-                        saveToCache(normalizedId + '_' + rep.color, { chapters: chaptersWithMoves, title: currentStudyName });
-                        fetchHistory();
-                    } catch (err) { detail.innerHTML = `<div style="padding: 15px; text-align: center; color: var(--danger);">Erreur lors de la synchronisation.</div>`; }
-                };
-                syncFromLichess();
-            };
-
-            if (whiteReps.length > 0) {
-                repertoireListEl.appendChild(createSectionHeader('Blancs'));
-                renderRepList(whiteReps);
-            }
-            if (blackReps.length > 0) {
-                repertoireListEl.appendChild(createSectionHeader('Noirs'));
-                renderRepList(blackReps);
-            }
-        };
-
-        const relaunchStudy = async (studyId, chapterTitle, color) => {
-            document.getElementById('lichessInput').value = studyId;
-            setToggleState('colorToggle', color);
-            setToggleState('modeToggle', 'revision');
-            await loadLichessStudy(studyId, chapterTitle);
-        };
-
-        const saveHistory = async (stats) => {
-            if (!authToken) return;
-            const normalizedId = extractStudyId(document.getElementById('lichessInput').value.trim());
-            try {
-                const res = await fetch('/api/history', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-                    body: JSON.stringify({ 
-                        ...stats, 
-                        study_id: normalizedId, 
-                        color: playerColor, 
-                        total_chapters: currentRepertoire ? currentRepertoire.chapters.length : 0
-                    })
-                });
-                if (res.status === 401 || res.status === 403) {
-                    document.getElementById('logoutBtn').click();
-                } else {
-                    fetchHistory();
-                }
-            } catch (err) { console.error("Save history error:", err); }
-        };
-
-        updateAuthUI();
-
-        const updateChapterList = () => {
-            if (!currentRepertoire) return;
-            playerColor = getToggleState('colorToggle');
-            const previousIdx = currentChapterIndex;
-            chapterListEl.innerHTML = '';
-            selectedChapterPgn = null; currentChapterIndex = -1;
-            if (currentRepertoire.chapters.length === 1) {
-                chapterSelectionArea.classList.add('hidden');
-                selectedChapterPgn = currentRepertoire.chapters[0].pgn;
-                currentChapterIndex = 0; startBtn.disabled = false;
-            } else {
-                chapterSelectionArea.classList.remove('hidden'); startBtn.disabled = true;
-                currentRepertoire.chapters.forEach((chap, idx) => {
-                    let moveCount = 0;
-                    try { const tempRoot = buildRepertoireTree(chap.pgn); const countMoves = (n) => { if (n.id !== 'root' && n.color === playerColor) moveCount++; n.children.forEach(countMoves); }; countMoves(tempRoot); } catch(e) {}
-                    const btn = document.createElement('button'); btn.className = 'chapter-btn';
-                    if (idx === previousIdx) { btn.classList.add('selected'); selectedChapterPgn = chap.pgn; currentChapterIndex = idx; startBtn.disabled = false; }
-                    btn.innerHTML = `<span>${chap.title}</span><span class="chapter-count">${moveCount} coups</span>`;
-                    btn.onclick = () => { document.querySelectorAll('.chapter-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); selectedChapterPgn = chap.pgn; currentChapterIndex = idx; startBtn.disabled = false; };
-                    chapterListEl.appendChild(btn);
-                });
-            }
-        };
-
-        document.getElementById('colorToggle').onclick = () => setTimeout(updateChapterList, 50);
-
-        const loadLichessStudy = async (input, targetChapterTitle = null) => {
-            document.getElementById('config-card').style.display = 'none';
-            if (!input) return;
-            const studyId = extractStudyId(input);
-            loadBtn.disabled = true; loadBtn.textContent = "Chargement...";
-            try {
-                const response = await fetch(`https://lichess.org/api/study/${studyId}.pgn?v=${Date.now()}`);
-                if (!response.ok) throw new Error("Étude non trouvée.");
-                const pgnText = await response.text();
-                const studyName = pgnText.match(/\[StudyName "(.*?)"\]/)?.[1] || `Étude Lichess (${studyId})`;
-                currentRepertoire = { title: studyName, chapters: parseMultiPgn(pgnText) };
-                document.getElementById('config-title').textContent = `Répertoire : ${studyName}`;
-                document.getElementById('config-card').style.display = 'flex';
-                if (targetChapterTitle) { currentChapterIndex = currentRepertoire.chapters.findIndex(c => c.title === targetChapterTitle); }
-                updateChapterList();
-                showToast("Étude chargée avec succès", "success");
-                document.getElementById('config-card').scrollIntoView({ behavior: 'smooth' });
-            } catch (err) { showToast(err.message, "error"); }
-            finally { loadBtn.disabled = false; loadBtn.textContent = "Charger le répertoire"; }
-        };
-
-        loadBtn.onclick = () => loadLichessStudy(document.getElementById('lichessInput').value.trim());
-
-        // =========================================
-        // TRAINING CORE
-        // =========================================
-        const initializeStats = (node) => {
-            totalMoves = 0; learnedMoves = 0; totalVariations = 0; learnedVariations = 0; errorCount = 0; currentMoveErrorLogged = false; 
-            const traverse = (n) => { if (n.id !== 'root' && n.color === playerColor) totalMoves++; if (n.children.length === 0 && n.id !== 'root') { n.isLeaf = true; totalVariations++; } n.children.forEach(traverse); };
-            traverse(node); updateStatsUI();
-        };
-
-        startBtn.onclick = () => {
-            if (!selectedChapterPgn) return;
-            const chap = currentRepertoire.chapters[currentChapterIndex];
-            playerColor = getToggleState('colorToggle');
-            trainingMode = getToggleState('modeToggle');
-            try { rootNode = buildRepertoireTree(selectedChapterPgn); } catch (e) { showToast("Erreur lors de la lecture du PGN", "error"); return; }
-            initializeStats(rootNode);
-            if (totalMoves === 0) { showToast("Pas de coups pour cette couleur dans ce chapitre.", "warning"); return; }
-            
-            // Log chapter opening
-            if (authToken) saveHistory({ repertoire_title: currentRepertoire.title, chapter_title: chap.title, moves_learned: 0, total_moves: totalMoves, errors: 0, is_revision: false });
-            
-            document.getElementById('trainingHeader').innerHTML = `<div style="color: var(--primary);">${currentRepertoire.title}</div><div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500; margin-top: 4px;">${chap.title.replace(currentRepertoire.title + ": ", "")}</div>`;
-            document.getElementById('trainingActions').classList.add('hidden');
-            
-            document.getElementById('errorStatRow').parentElement.style.gridTemplateColumns = trainingMode === 'decouverte' ? '1fr 1fr' : '1fr 1fr 1fr';
-            document.getElementById('errorStatRow').classList.toggle('hidden', trainingMode === 'decouverte');
-            document.getElementById('hintBtn').classList.toggle('hidden', trainingMode === 'decouverte');
-            document.getElementById('analysisLink').classList.toggle('hidden', trainingMode === 'revision');
-            document.getElementById('restartBtn').classList.remove('hidden');
-            
-            isTraining = true; 
-            setupView.classList.add('hidden'); 
-            trainingView.classList.remove('hidden');
-            trainingView.classList.add('fade-in');
-            
-            setTimeout(() => {
-                if (!cg) cg = Chessground(document.getElementById('board'), { 
-                    coordinates: true, 
-                    movable: { color: undefined, dests: new Map() },
-                    drawable: {
-                        brushes: {
-                            green: { key: 'g', color: '#15781B', opacity: 1, lineWidth: 10 },
-                            red: { key: 'r', color: '#882020', opacity: 1, lineWidth: 10 },
-                            blue: { key: 'b', color: '#003088', opacity: 1, lineWidth: 10 },
-                            yellow: { key: 'y', color: '#e68f00', opacity: 1, lineWidth: 10 },
-                            paleBlue: { key: 'pb', color: '#003088', opacity: 0.4, lineWidth: 15 },
-                            paleGreen: { key: 'pg', color: '#15781B', opacity: 0.4, lineWidth: 15 },
-                            paleRed: { key: 'pr', color: '#882020', opacity: 0.4, lineWidth: 15 },
-                            paleGrey: { key: 'pgr', color: '#4a4a4a', opacity: 0.35, lineWidth: 15 },
-                            hint: { key: 'h', color: '#cbd5e1', opacity: 0.9, lineWidth: 15 } // High contrast grey (reduced transparency)
-                        }
-                    }
-                });
-                cg.set({ orientation: playerColor }); game.load(rootNode.fen); 
-                showToast(trainingMode === 'decouverte' ? "Mode Découverte activé" : "Mode Révision activé", "info");
-                startNextVariation();
-            }, 50);
-        };
-
-        document.getElementById('restartBtn').onclick = () => {
-            if (isTraining) startBtn.onclick();
-        };
-
-        document.getElementById('stopBtn').onclick = () => { 
-            isTraining = false; 
-            trainingView.classList.add('hidden'); 
-            setupView.classList.remove('hidden'); 
-            setupView.classList.add('fade-in');
-            game.reset(); cg.set({ drawable: { autoShapes: [] } }); 
-        };
-
-        document.getElementById('toggleCommentsBtn').onclick = () => {
-            const box = document.getElementById('commentBox');
-            if (box.style.display === 'none') { box.style.display = 'block'; document.getElementById('toggleCommentsBtn').textContent = 'Masquer Notes'; }
-            else { box.style.display = 'none'; document.getElementById('toggleCommentsBtn').textContent = 'Afficher Notes'; }
-        };
-
-        document.getElementById('hintBtn').onclick = () => {
-            if (!isTraining || trainingMode === 'decouverte') return;
-            
-            if (viewIndex !== currentPath.length - 1) {
-                navigateView(currentPath.length - 1 - viewIndex);
-            }
-
-            const next = currentNode.children.find(c => !c.isCompleted);
-            if (next) {
-                cg.set({ drawable: { autoShapes: [{ orig: next.from, dest: next.to, brush: 'hint' }] } });
-                showToast("Solution affichée !", "info", 1500);
-                if (!currentMoveErrorLogged) {
-                    errorCount++;
-                    currentMoveErrorLogged = true;
-                    updateStatsUI();
-                }
-            }
-        };
-
-        // NAVIGATION & FEEDBACK
-        const updateStatsUI = () => { 
-            document.getElementById('statMoves').textContent = `${learnedMoves}/${totalMoves}`; 
-            document.getElementById('statVars').textContent = `${learnedVariations}/${totalVariations}`; 
-            document.getElementById('statErrors').textContent = errorCount; 
-            
-            let progress = totalMoves > 0 ? Math.round((learnedMoves / totalMoves) * 100) : 0;
-            document.getElementById('trainingProgress').style.width = `${progress}%`;
-            document.getElementById('progressText').textContent = `${progress}%`;
-        };
-        const updateAnalysisLink = () => { 
-            const studyUrl = currentRepertoire?.chapters[currentChapterIndex]?.studyUrl;
-            if (studyUrl) {
-                // Lichess study URL format: study/ID/CHAPTER#MOVE
-                // We add orientation as a query param
-                const moveNumber = Math.floor((viewIndex + 1) / 2);
-                document.getElementById('analysisLink').href = `${studyUrl}?color=${playerColor}#${moveNumber}`;
-            } else {
-                document.getElementById('analysisLink').href = `https://lichess.org/analysis/standard/${game.fen().replace(/ /g, '_')}?color=${playerColor}`;
-            }
-        };
-        
-        const renderPgnHtml = () => {
-            if (currentPath.length <= 1) { document.getElementById('activeLineDisplay').innerHTML = "<span style='color: var(--text-muted);'>Position initiale</span>"; document.getElementById('commentBox').innerHTML = "<em>Aucun commentaire.</em>"; return; }
-            let html = '', parts = rootNode.fen.split(' '), num = parseInt(parts[5]) || 1, turn = parts[1] === 'w' ? 'white' : 'black';
-            for (let i = 1; i < currentPath.length; i++) {
-                if (turn === 'white') html += `<span class="move-number">${num}.</span> `;
-                else if (i === 1) html += `<span class="move-number">${num}...</span> `;
-                html += `<span class="pgn-move ${i === viewIndex ? 'active-move' : ''}" data-index="${i}">${currentPath[i].san}</span> `;
-                if (turn === 'black') { num++; turn = 'white'; } else turn = 'black';
-            }
-            const display = document.getElementById('activeLineDisplay');
-            display.innerHTML = html.trim();
-            const active = display.querySelector('.active-move');
-            if (active) {
-                // Scroll only the container, not the whole page window
-                display.scrollTop = active.offsetTop - display.offsetTop - (display.clientHeight / 2) + (active.clientHeight / 2);
-            }
-            const node = currentPath[viewIndex]; document.getElementById('commentBox').innerHTML = node?.comment ? `<strong>Notes :</strong> ${node.comment}` : `<em>Aucun commentaire.</em>`;
-        };
-
-        const updateNavigationButtons = () => {
-            document.getElementById('prevBtn').disabled = viewIndex <= 0;
-            document.getElementById('nextBtn').disabled = viewIndex >= currentPath.length - 1;
-        };
-
-        const navigateView = (step) => {
-            const newIdx = viewIndex + step;
-            if (!isTraining || newIdx < 0 || newIdx >= currentPath.length) return;
-            viewIndex = newIdx; renderPgnHtml(); game.load(currentPath[viewIndex].fen);
-            
-            const shapes = [...(currentPath[viewIndex].shapes || [])];
-            cg.set({ fen: game.fen(), lastMove: viewIndex > 0 ? [currentPath[viewIndex].from, currentPath[viewIndex].to] : null, drawable: { autoShapes: shapes } });
-            updateAnalysisLink();
-            
-            if (viewIndex === currentPath.length - 1 && !currentPath[viewIndex].isCompleted && game.turn() === playerColor[0]) {
-                preparePlayerTurn();
-            } else {
-                cg.set({ movable: { dests: new Map() } });
-            }
-            updateNavigationButtons();
-        };
-
-        document.getElementById('prevBtn').onclick = () => navigateView(-1);
-        document.getElementById('nextBtn').onclick = () => navigateView(1);
-
-        document.getElementById('activeLineDisplay').addEventListener('click', (e) => {
-            const moveSpan = e.target.closest('.pgn-move');
-            if (moveSpan && isTraining) {
-                const index = parseInt(moveSpan.dataset.index);
-                if (!isNaN(index)) {
-                    navigateView(index - viewIndex);
-                }
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (!isTraining) return;
-            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
-
-            if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                navigateView(-1);
-            } else if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                navigateView(1);
-            }
-        });
-
-        const preparePlayerTurn = () => {
-            const dests = new Map(); game.moves({ verbose: true }).forEach(m => { if (!dests.has(m.from)) dests.set(m.from, []); dests.get(m.from).push(m.to); });
-            cg.set({ turnColor: playerColor, movable: { color: playerColor, free: false, showDests: true, dests, events: { after: onUserMove } } });
-            
-            if (trainingMode === 'decouverte') {
-                const shapes = [...(currentNode.shapes || [])];
-                const next = currentNode.children.find(c => !c.isCompleted);
-                if (next) shapes.push({ orig: next.from, dest: next.to, brush: 'hint' });
-                cg.set({ drawable: { autoShapes: shapes } });
-            }
-        };
-
-        const onUserMove = (orig, dest) => {
-            const move = game.moves({ verbose: true }).find(m => m.from === orig && m.to === dest);
-            
-            const childNodeIfAny = currentNode.children.find(c => c.san === (move?.san));
-            if (childNodeIfAny && childNodeIfAny.isCompleted) {
-                showToast("Variante déjà couverte", "info", 1500);
-                setTimeout(() => { cg.set({ fen: game.fen() }); preparePlayerTurn(); }, 600);
-                return;
-            }
-
-            const child = currentNode.children.find(c => c.san === (move?.san) && !c.isCompleted);
-
-            if (!move || !child) {
-                if (trainingMode === 'revision' && !currentMoveErrorLogged) { errorCount++; currentMoveErrorLogged = true; updateStatsUI(); }
-                showToast(trainingMode === 'revision' ? "Coup incorrect !" : "Suivez la flèche !", "error", 1500);
-                setTimeout(() => { cg.set({ fen: game.fen() }); preparePlayerTurn(); }, 600); return;
-            }
-            
-            currentMoveErrorLogged = false; 
-            game.move(move.san); cg.set({ fen: game.fen(), lastMove: [orig, dest], movable: { dests: new Map() }, drawable: { autoShapes: [] } });
-            currentNode = child; if (!currentNode.isVisited) { currentNode.isVisited = true; learnedMoves++; updateStatsUI(); }
-            currentPath.push(currentNode); viewIndex = currentPath.length - 1; renderPgnHtml(); updateAnalysisLink();
-            updateNavigationButtons();
-            
-            if (trainingMode === 'decouverte') {
-                const shapes = [...(currentNode.shapes || [])];
-                cg.set({ drawable: { autoShapes: shapes } });
-            }
-
-            if (currentNode.isLeaf) { markCompleted(currentNode); handleEnd(); } else setTimeout(() => playOpponent(), 300);
-        };
-
-        const playOpponent = () => {
-            const next = currentNode.children.find(c => !c.isCompleted);
-            if (next) {
-                game.move(next.san); cg.set({ fen: game.fen(), lastMove: [next.from, next.to] });
-                currentNode = next; currentNode.isVisited = true; currentPath.push(currentNode); viewIndex = currentPath.length - 1;
-                renderPgnHtml(); updateAnalysisLink();
-                updateNavigationButtons();
-                if (currentNode.isLeaf) { markCompleted(currentNode); handleEnd(); } else preparePlayerTurn();
-            }
-        };
-
-        const markCompleted = (node) => {
-            node.isCompleted = true; if (node.isLeaf) learnedVariations++;
-            let p = node.parent; while (p && p.id !== 'root') { if (p.children.every(c => c.isCompleted)) p.isCompleted = true; p = p.parent; }
-            if (rootNode.children.every(c => c.isCompleted)) rootNode.isCompleted = true; updateStatsUI();
-        };
-
-        const handleEnd = () => {
-            if (rootNode.isCompleted) {
-                showToast(`Entraînement terminé ! Erreurs : ${errorCount}`, "success", 5000);
-                if (authToken && trainingMode === 'revision') {
-                    saveHistory({ repertoire_title: currentRepertoire.title, chapter_title: currentRepertoire.chapters[currentChapterIndex].title, moves_learned: learnedMoves, total_moves: totalMoves, errors: errorCount, is_revision: true });
-                }
-                const actions = document.getElementById('trainingActions'); actions.innerHTML = ''; actions.classList.remove('hidden');
-                
-                const btn = document.createElement('button'); 
-                btn.className = "secondary";
-                btn.textContent = trainingMode === 'decouverte' ? "Passer en mode Révision" : "Refaire ce chapitre";
-                btn.style.width = "100%";
-                btn.style.padding = "12px";
-                btn.onclick = () => { 
-                    if (trainingMode === 'decouverte') setToggleState('modeToggle', 'revision'); 
-                    startBtn.onclick(); 
-                };
-                actions.appendChild(btn);
-
-                if (currentRepertoire && currentRepertoire.chapters.length > 1) {
-                    let nextChapIdx = currentChapterIndex + 1;
-                    let isLast = nextChapIdx >= currentRepertoire.chapters.length;
-                    if (isLast) nextChapIdx = 0;
-
-                    const nextBtn = document.createElement('button');
-                    nextBtn.style.width = "100%";
-                    nextBtn.style.padding = "12px";
-                    nextBtn.style.marginTop = "8px";
-                    nextBtn.textContent = isLast ? "Premier chapitre" : "Chapitre suivant";
-                    nextBtn.onclick = () => {
-                        currentChapterIndex = nextChapIdx;
-                        selectedChapterPgn = currentRepertoire.chapters[nextChapIdx].pgn;
-                        updateChapterList();
-                        startBtn.onclick();
-                    };
-                    actions.appendChild(nextBtn);
-                }
-            } else setTimeout(startNextVariation, 800);
-        };
-
-        const startNextVariation = () => {
-            cg.set({ drawable: { autoShapes: [] } });
-            const getPath = (n) => { if (n.isLeaf && !n.isCompleted) return [n]; const next = n.children.find(c => !c.isCompleted); return next ? [n, ...getPath(next)] : null; };
-            const path = getPath(rootNode); if (!path) return;
-            let common = path[0]; for (let i = 1; i < path.length; i++) if (path[i].isVisited) common = path[i]; else break;
-            currentNode = common.id === 'root' ? rootNode : common;
-            currentPath = []; let curr = currentNode; while(curr) { currentPath.unshift(curr); curr = curr.parent; }
-            viewIndex = currentPath.length - 1; game.load(currentNode.fen); cg.set({ fen: game.fen(), lastMove: null });
-            renderPgnHtml(); updateAnalysisLink();
-            const next = path[path.indexOf(common) + 1];
-            if (next) { if (next.color !== playerColor) setTimeout(() => playOpponent(), 500); else preparePlayerTurn(); }
-        };
+      import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.0.0-beta.8/+esm';
+      import { Chessground } from 'https://cdn.jsdelivr.net/npm/chessground@9.0.5/+esm';
+      import { parseMultiPgn, buildRepertoireTree } from './data.js';
+
+      // =========================================
+      // TOAST NOTIFICATIONS
+      // =========================================
+      const showToast = (message, type = 'info', duration = 3000) => {
+          const container = document.getElementById('toast-container');
+          const toast = document.createElement('div');
+          toast.className = `toast ${type}`;
+
+          let icon = 'ℹ️';
+          if (type === 'success') {
+              icon = '✅';
+          }
+          if (type === 'error') {
+              icon = '❌';
+          }
+          if (type === 'warning') {
+              icon = '⚠️';
+          }
+
+          toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+          container.appendChild(toast);
+
+          setTimeout(() => {
+              toast.classList.add('fade-out');
+              setTimeout(() => {
+                  toast.remove();
+              }, 300);
+          }, duration);
+      };
+
+      // =========================================
+      // UTILS
+      // =========================================
+      const extractStudyId = (input) => {
+          if (!input) {
+              return null;
+          }
+          if (input.includes('lichess.org/study/')) {
+              const match = input.match(/lichess\.org\/study\/([a-zA-Z0-9]{8})/);
+              return match ? match[1] : input;
+          }
+          if (input.includes('/')) {
+              return input.split('/')[0];
+          }
+          return input.trim();
+      };
+
+      const getToggleState = (id) => {
+          const activeOpt = document.getElementById(id).querySelector('.toggle-option.active');
+          return activeOpt ? activeOpt.dataset.val : null;
+      };
+
+      const setToggleState = (id, value) => {
+          const container = document.getElementById(id);
+          const options = container.querySelectorAll('.toggle-option');
+          options.forEach(opt => {
+              if (opt.dataset.val === value) {
+                  opt.classList.add('active');
+                  container.dataset.state = (opt === options[0]) ? 'left' : 'right';
+              } else {
+                  opt.classList.remove('active');
+              }
+          });
+      };
+
+      const formatRelativeTime = (date) => {
+          if (!date) {
+              return 'Jamais';
+          }
+          const now = new Date();
+          const diff = now - new Date(date);
+          const seconds = Math.floor(diff / 1000);
+          const minutes = Math.floor(seconds / 60);
+          const hours = Math.floor(minutes / 60);
+          const days = Math.floor(hours / 24);
+          const months = Math.floor(days / 30);
+          const years = Math.floor(days / 365);
+
+          if (seconds < 60) {
+              return "À l'instant";
+          }
+          if (minutes < 60) {
+              return `Il y a ${minutes} min`;
+          }
+          if (hours < 24) {
+              return `Il y a ${hours} ${hours > 1 ? 'heures' : 'heure'}`;
+          }
+          if (days < 30) {
+              return `Il y a ${days} ${days > 1 ? 'jours' : 'jour'}`;
+          }
+          if (months < 12) {
+              return `Il y a ${months} mois`;
+          }
+          return `Il y a ${years} ${years > 1 ? 'ans' : 'an'}`;
+      };
+
+      document.querySelectorAll('.toggle-container').forEach(container => {
+          container.querySelectorAll('.toggle-option').forEach(option => {
+              option.addEventListener('click', (e) => {
+                  setToggleState(container.id, e.target.dataset.val);
+              });
+          });
+      });
+
+      document.querySelectorAll('.password-toggle').forEach(btn => {
+          btn.onclick = (e) => {
+              e.preventDefault();
+              const input = btn.previousElementSibling;
+              input.type = input.type === 'password' ? 'text' : 'password';
+              if (input.type === 'password') {
+                  btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+              } else {
+                  btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+              }
+          };
+      });
+
+      // =========================================
+      // STATE
+      // =========================================
+      const game = new Chess();
+      let cg;
+      let rootNode = null;
+      let currentNode = null;
+      let playerColor = 'white';
+      let trainingMode = 'decouverte';
+      let isTraining = false;
+      let currentRepertoire = null;
+      let currentChapterIndex = -1;
+      let selectedChapterPgn = null;
+      let currentPath = [];
+      let viewIndex = 0;
+      let totalMoves = 0;
+      let learnedMoves = 0;
+      let totalVariations = 0;
+      let learnedVariations = 0;
+      let errorCount = 0;
+      let currentMoveErrorLogged = false;
+
+      let authToken = localStorage.getItem('chess_token');
+
+      // =========================================
+      // CACHE SYSTEM
+      // =========================================
+      const CACHE_KEY = 'repertoire_cache';
+      const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in ms
+      let repertoireCache = {};
+      try {
+          const saved = localStorage.getItem(CACHE_KEY);
+          if (saved) {
+              repertoireCache = JSON.parse(saved);
+          }
+      } catch(e) {
+          console.error("Cache init error", e);
+      }
+
+      const saveToCache = (id, data) => {
+          repertoireCache[id] = { ...data, timestamp: Date.now() };
+          localStorage.setItem(CACHE_KEY, JSON.stringify(repertoireCache));
+      };
+
+      const getFromCache = (id) => {
+          const entry = repertoireCache[id];
+          if (!entry) {
+              return null;
+          }
+          const isExpired = (Date.now() - entry.timestamp) > CACHE_DURATION;
+          return { data: entry, isExpired };
+      };
+
+      // Elements
+      const setupView = document.getElementById('setup-view');
+      const mainSetupContent = document.getElementById('main-setup-content');
+      const trainingView = document.getElementById('training-view');
+      const topBar = document.getElementById('top-bar');
+      const authSection = document.getElementById('auth-section');
+      const loginView = document.getElementById('login-view');
+      const registerView = document.getElementById('register-view');
+      const forgotView = document.getElementById('forgot-view');
+      const resetView = document.getElementById('reset-view');
+      const displayUsername = document.getElementById('displayUsername');
+
+      // =========================================
+      // AUTH LOGIC
+      // =========================================
+      const updateAuthUI = () => {
+          if (authToken) {
+              const user = JSON.parse(localStorage.getItem('chess_user'));
+              if (!user) {
+                  authToken = null;
+                  localStorage.removeItem('chess_token');
+                  updateAuthUI();
+                  return;
+              }
+              authSection.classList.add('hidden');
+              document.getElementById('main-title').classList.add('hidden');
+              mainSetupContent.classList.remove('hidden');
+              mainSetupContent.classList.add('fade-in');
+              topBar.classList.remove('hidden');
+              displayUsername.textContent = user.username || 'Utilisateur';
+              fetchHistory();
+          } else {
+              authSection.classList.remove('hidden');
+              document.getElementById('main-title').classList.remove('hidden');
+              mainSetupContent.classList.add('hidden');
+              topBar.classList.add('hidden');
+          }
+      };
+
+      const switchView = (hideId, showId) => {
+          document.getElementById(hideId).classList.add('hidden');
+          const showEl = document.getElementById(showId);
+          showEl.classList.remove('hidden');
+          showEl.classList.add('fade-in');
+      };
+
+      document.getElementById('showRegisterBtn').onclick = () => {
+          switchView('login-view', 'register-view');
+      };
+      document.getElementById('showLoginBtn').onclick = () => {
+          switchView('register-view', 'login-view');
+      };
+      document.getElementById('showForgotBtn').onclick = () => {
+          switchView('login-view', 'forgot-view');
+      };
+      document.getElementById('backToLoginBtn').onclick = () => {
+          switchView('forgot-view', 'login-view');
+      };
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const verifyToken = urlParams.get('verify');
+      const resetToken = urlParams.get('reset');
+
+      if (verifyToken) {
+          fetch(`/api/verify-email/${verifyToken}`).then(r => r.json()).then(data => {
+              if (data.message) {
+                  showToast(data.message, 'success');
+              } else {
+                  showToast(data.error, 'error');
+              }
+              window.history.replaceState({}, document.title, window.location.pathname);
+          });
+      }
+
+      if (resetToken) {
+          loginView.classList.add('hidden');
+          resetView.classList.remove('hidden');
+      }
+
+      document.getElementById('loginForm').onsubmit = async (e) => {
+          e.preventDefault();
+          const username = document.getElementById('loginUsername').value.trim();
+          const password = document.getElementById('loginPassword').value.trim();
+          try {
+              const res = await fetch('/api/login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ username, password })
+              });
+              const data = await res.json();
+              if (res.ok) {
+                  authToken = data.token;
+                  localStorage.setItem('chess_token', data.token);
+                  localStorage.setItem('chess_user', JSON.stringify(data.user));
+                  showToast("Connexion réussie", 'success');
+                  updateAuthUI();
+              } else {
+                  throw new Error(data.error);
+              }
+          } catch (err) {
+              showToast(err.message, 'error');
+          }
+      };
+
+      document.getElementById('registerForm').onsubmit = async (e) => {
+          e.preventDefault();
+          const username = document.getElementById('regUsername').value.trim();
+          const email = document.getElementById('regEmail').value.trim();
+          const password = document.getElementById('regPassword').value.trim();
+          try {
+              const res = await fetch('/api/register', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ username, email, password })
+              });
+              const data = await res.json();
+              if (res.ok) {
+                  showToast(data.message, 'success');
+                  switchView('register-view', 'login-view');
+              } else {
+                  throw new Error(data.error);
+              }
+          } catch (err) {
+              showToast(err.message, 'error');
+          }
+      };
+
+      document.getElementById('forgotForm').onsubmit = async (e) => {
+          e.preventDefault();
+          const email = document.getElementById('forgotEmail').value.trim();
+          try {
+              const res = await fetch('/api/forgot-password', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email })
+              });
+              const data = await res.json();
+              if (res.ok) {
+                  showToast(data.message, 'success');
+              } else {
+                  throw new Error(data.error);
+              }
+          } catch (err) {
+              showToast(err.message, 'error');
+          }
+      };
+
+      document.getElementById('resetForm').onsubmit = async (e) => {
+          e.preventDefault();
+          const newPassword = document.getElementById('newPassword').value.trim();
+          try {
+              const res = await fetch('/api/reset-password', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ token: resetToken, newPassword })
+              });
+              const data = await res.json();
+              if (res.ok) {
+                  showToast(data.message, 'success');
+                  switchView('reset-view', 'login-view');
+                  window.history.replaceState({}, document.title, window.location.pathname);
+              } else {
+                  throw new Error(data.error);
+              }
+          } catch (err) {
+              showToast(err.message, 'error');
+          }
+      };
+
+      document.getElementById('logoutBtn').onclick = () => {
+          // Reset and hide training view if active
+          isTraining = false;
+          trainingView.classList.add('hidden');
+          setupView.classList.remove('hidden');
+          setupView.classList.add('fade-in');
+          game.reset();
+          if (cg) {
+              cg.set({ drawable: { autoShapes: [] } });
+          }
+
+          authToken = null;
+          localStorage.removeItem('chess_token');
+          localStorage.removeItem('chess_user');
+          showToast("Déconnexion réussie", 'info');
+          updateAuthUI();
+      };
+
+      // =========================================
+      // HELP MODAL LOGIC
+      // =========================================
+      const helpModal = document.getElementById('helpModal');
+      const helpBtn = document.getElementById('helpBtn');
+      const closeHelpBtn = document.getElementById('closeHelpBtn');
+
+      helpBtn.onclick = () => {
+          helpModal.classList.add('show');
+      };
+      closeHelpBtn.onclick = () => {
+          helpModal.classList.remove('show');
+      };
+      helpModal.onclick = (e) => {
+          if (e.target === helpModal) {
+              helpModal.classList.remove('show');
+          }
+      };
+
+      document.getElementById('homeBtn').onclick = () => {
+          if (isTraining) {
+              document.getElementById('stopBtn').click();
+          } else {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+      };
+
+      // =========================================
+      // DASHBOARD & REPERTOIRE LOGIC
+      // =========================================
+      const repertoireListEl = document.getElementById('repertoireList');
+      const startBtn = document.getElementById('startBtn');
+      const loadBtn = document.getElementById('loadBtn');
+      const lichessInput = document.getElementById('lichessInput');
+      const chapterListEl = document.getElementById('chapterList');
+      const chapterSelectionArea = document.getElementById('chapter-selection-area');
+
+      const fetchHistory = async () => {
+          if (!authToken) {
+              return;
+          }
+          try {
+              const res = await fetch('/api/history', { headers: { 'Authorization': `Bearer ${authToken}` } });
+              if (res.ok) {
+                  renderInteractiveDashboard(await res.json());
+              } else if (res.status === 401 || res.status === 403) {
+                  console.warn("Session expired or invalid. Logging out...");
+                  document.getElementById('logoutBtn').click();
+              }
+          } catch (err) {
+              console.error("Failed to fetch history:", err);
+          }
+      };
+
+      let currentlyOpenRepId = null; // State to remember which rep is open
+
+      const renderInteractiveDashboard = (history) => {
+          if (history.length === 0) {
+              repertoireListEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Aucun historique.</div>';
+              return;
+          }
+
+          // Group history by repertoire
+          const repertoires = {};
+          history.forEach(entry => {
+              const normalizedId = extractStudyId(entry.study_id);
+              const repKey = normalizedId + '_' + entry.color;
+              if (!repertoires[repKey]) {
+                  repertoires[repKey] = {
+                      title: entry.repertoire_title,
+                      study_id: normalizedId,
+                      color: entry.color,
+                      chaptersHistory: {},
+                      last_revision: null,
+                      total_chapters: entry.total_chapters || 0
+                  };
+              }
+              const rep = repertoires[repKey];
+
+              if (!rep.last_date || new Date(entry.date) > new Date(rep.last_date)) {
+                  rep.title = entry.repertoire_title;
+                  rep.last_date = entry.date;
+              }
+              if (entry.total_chapters > rep.total_chapters) {
+                  rep.total_chapters = entry.total_chapters;
+              }
+              if (entry.is_revision && (!rep.last_revision || new Date(entry.date) > new Date(rep.last_revision))) {
+                  rep.last_revision = entry.date;
+              }
+              if (!rep.chaptersHistory[entry.chapter_title]) {
+                  rep.chaptersHistory[entry.chapter_title] = { title: entry.chapter_title, revisions: [], total_revisions: 0 };
+              }
+              if (entry.is_revision) {
+                  rep.chaptersHistory[entry.chapter_title].revisions.push(entry);
+                  rep.chaptersHistory[entry.chapter_title].total_revisions++;
+              }
+          });
+
+          repertoireListEl.innerHTML = '';
+
+          const allReps = Object.values(repertoires).sort((a,b) => (b.last_revision ? new Date(b.last_revision) : 0) - (a.last_revision ? new Date(a.last_revision) : 0));
+          const whiteReps = allReps.filter(r => r.color === 'white');
+          const blackReps = allReps.filter(r => r.color === 'black');
+
+          const createSectionHeader = (title) => {
+              const h3 = document.createElement('h3');
+              h3.textContent = title;
+              h3.style.cssText = 'font-size: 14px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 12px 4px; display: flex; align-items: center; gap: 8px;';
+              const line = document.createElement('div');
+              line.style.cssText = 'flex: 1; height: 1px; background: var(--border-color);';
+              h3.appendChild(line);
+              return h3;
+          };
+
+          const renderRepList = (list) => {
+              list.forEach(rep => {
+                  const normalizedId = extractStudyId(rep.study_id);
+                  const repKey = normalizedId + '_' + rep.color;
+
+                  // Calculate success rate
+                  let totalSuccessMoves = 0;
+                  let totalRevisionMoves = 0;
+                  const cache = getFromCache(normalizedId + '_' + rep.color);
+
+                  if (cache && cache.data && cache.data.chapters) {
+                      cache.data.chapters.forEach(chap => {
+                          totalRevisionMoves += (chap.moveCount || 0);
+                          const hist = rep.chaptersHistory[chap.title];
+                          const latest = hist && hist.revisions.length > 0 ? hist.revisions[0] : null;
+                          if (latest) {
+                              totalSuccessMoves += Math.min(chap.moveCount || 0, Math.max(0, latest.total_moves - latest.errors));
+                          }
+                      });
+                  } else {
+                      Object.values(rep.chaptersHistory).forEach(chapHist => {
+                          const latest = chapHist.revisions.length > 0 ? chapHist.revisions[0] : null;
+                          if (latest && latest.total_moves > 0) {
+                              totalSuccessMoves += Math.max(0, latest.total_moves - latest.errors);
+                              totalRevisionMoves += latest.total_moves;
+                          }
+                      });
+                  }
+
+                  const globalRate = totalRevisionMoves > 0 ? Math.round((totalSuccessMoves / totalRevisionMoves) * 100) : 0;
+                  const rateClass = globalRate >= 80 ? 'high' : (globalRate < 50 ? 'low' : 'medium');
+
+                  const repItem = document.createElement('div');
+                  repItem.className = 'repertoire-item fade-in';
+                  repItem.innerHTML = \`
+                      <div class="repertoire-header">
+                          <div style="flex: 1;">
+                              <strong style="color: var(--text-main); font-size: 15px;">\${rep.title} <span style="color: var(--text-muted); font-weight: normal; font-size: 0.85rem;">(\${rep.total_chapters} chapitre\${rep.total_chapters > 1 ? 's' : ''})</span></strong>
+                              <div class="meta"><span>Dernière révision : \${formatRelativeTime(rep.last_revision)}</span></div>
+                          </div>
+                          <div style="display: flex; align-items: center; gap: 15px;">
+                              <div class="global-score-badge \${rateClass}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> \${globalRate}%</div>
+                              <div class="toggle-icon" style="color: var(--text-muted); font-size: 18px;">\${currentlyOpenRepId === repKey ? '−' : '+'}</div>
+                          </div>
+                      </div>
+                      <div class="chapters-detail \${currentlyOpenRepId === repKey ? 'open' : ''}"></div>
+                  \`;
+
+                  const header = repItem.querySelector('.repertoire-header');
+                  const detail = repItem.querySelector('.chapters-detail');
+                  const icon = repItem.querySelector('.toggle-icon');
+
+                  header.onclick = async () => {
+                      const isOpen = detail.classList.contains('open');
+
+                      // Close all others
+                      document.querySelectorAll('.chapters-detail').forEach(d => {
+                          d.classList.remove('open');
+                      });
+                      document.querySelectorAll('.toggle-icon').forEach(i => {
+                          i.textContent = '+';
+                      });
+
+                      if (!isOpen) {
+                          currentlyOpenRepId = repKey;
+                          detail.classList.add('open');
+                          icon.textContent = '−';
+                          expandRepertoire(rep, detail, normalizedId);
+                      } else {
+                          currentlyOpenRepId = null;
+                      }
+                  };
+
+                  // Auto-restore state if it was open
+                  if (currentlyOpenRepId === repKey) {
+                      detail.classList.add('open');
+                      icon.textContent = '−';
+                      setTimeout(() => {
+                          expandRepertoire(rep, detail, normalizedId);
+                      }, 0);
+                  }
+
+                  repertoireListEl.appendChild(repItem);
+              });
+          };
+
+          // Helper to expand without full re-render
+          const expandRepertoire = (rep, detail, normalizedId) => {
+              const renderChapters = (chaptersData) => {
+                  detail.innerHTML = '';
+                  chaptersData.forEach(chap => {
+                      const hist = rep.chaptersHistory[chap.title];
+                      const latest = hist && hist.revisions.length > 0 ? hist.revisions[0] : null;
+                      const hasData = latest !== null;
+                      const moveCount = chap.moveCount;
+
+                      let finalSuccessRate = 0;
+                      let isUpdated = false;
+
+                      if (hasData) {
+                          let successfulMoves = Math.max(0, latest.total_moves - latest.errors);
+                          if (moveCount !== latest.total_moves && latest.total_moves > 0) {
+                              isUpdated = true;
+                              finalSuccessRate = moveCount > 0 ? Math.min(100, Math.max(0, Math.round((successfulMoves / moveCount) * 100))) : 0;
+                          } else {
+                              finalSuccessRate = latest.total_moves > 0 ? Math.max(0, Math.round((successfulMoves / latest.total_moves) * 100)) : 0;
+                          }
+                      }
+
+                      const successClass = hasData ? (finalSuccessRate >= 80 ? 'success-rate' : (finalSuccessRate < 50 ? 'low-success' : '')) : '';
+                      const chapRow = document.createElement('div');
+                      chapRow.className = 'chapter-row';
+
+                      let progressHtml = hasData ? \`<div class="mini-progress-bg"><div class="mini-progress-fill" style="width: \${finalSuccessRate}%; background: \${finalSuccessRate >= 80 ? 'var(--success)' : (finalSuccessRate < 50 ? 'var(--danger)' : 'var(--warning)')}"></div></div>\` : '';
+                      const chapTitleHtml = isUpdated ? \`<strong>\${chap.title.replace(rep.title + ": ", "")} <span style="color: var(--warning); font-size: 10px; border: 1px solid var(--warning); padding: 1px 4px; border-radius: 4px; margin-left: 4px;">MAJ</span></strong>\` : \`<strong>\${chap.title.replace(rep.title + ": ", "")}</strong>\`;
+
+                      chapRow.innerHTML = \`<div><span class="label">Chapitre</span>\${chapTitleHtml}</div><div><span class="label">Succès</span><span class="\${successClass}">\${hasData ? finalSuccessRate + '%' : '-'}</span>\${progressHtml}</div><div><span class="label">Coups</span><strong style="color: var(--text-main); font-weight: normal;">\${moveCount}</strong></div><div><span class="label">Dernière</span><span style="color: var(--text-muted);">\${formatRelativeTime(latest ? latest.date : null)}</span></div><div class="play-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>\`;
+                      chapRow.onclick = (e) => {
+                          e.stopPropagation();
+                          relaunchStudy(normalizedId, chap.title, rep.color);
+                      };
+                      detail.appendChild(chapRow);
+                  });
+
+                  const footer = document.createElement('div');
+                  footer.style.cssText = 'display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 15px; paddingTop: 12px; borderTop: 1px solid var(--border-color);';
+
+                  const syncBtn = document.createElement('button');
+                  syncBtn.className = 'secondary';
+                  syncBtn.style.cssText = 'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
+                  syncBtn.innerHTML = \`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> Synchroniser\`;
+                  syncBtn.onclick = (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      syncFromLichess(true);
+                  };
+                  footer.appendChild(syncBtn);
+
+                  const delBtn = document.createElement('button');
+                  delBtn.className = 'secondary';
+                  delBtn.style.cssText = 'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
+                  delBtn.innerHTML = \`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg> Supprimer\`;
+                  delBtn.onclick = async (e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (!confirm("Voulez-vous vraiment supprimer ce répertoire ?")) {
+                          return;
+                      }
+                      const res = await fetch(\`/api/history/repertoire?study_id=\${encodeURIComponent(normalizedId)}&color=\${encodeURIComponent(rep.color)}\`, {
+                          method: 'DELETE',
+                          headers: { 'Authorization': \`Bearer \${authToken}\` }
+                      });
+                      if (res.ok) {
+                          currentlyOpenRepId = null;
+                          showToast("Répertoire supprimé", "success");
+                          fetchHistory();
+                      }
+                  };
+                  footer.appendChild(delBtn);
+                  detail.appendChild(footer);
+              };
+
+              const syncFromLichess = async (force = false) => {
+                  if (!force) {
+                      const cache = getFromCache(normalizedId + '_' + rep.color);
+                      if (cache && !cache.isExpired) {
+                          renderChapters(cache.data.chapters);
+                          return;
+                      }
+                  }
+
+                  detail.innerHTML = '<div style="padding: 15px; text-align: center; color: var(--text-muted);">Synchronisation Lichess...</div>';
+
+                  try {
+                      const response = await fetch(\`https://lichess.org/api/study/\${normalizedId}.pgn?v=\${Date.now()}\`);
+                      if (!response.ok) {
+                          throw new Error("Lichess error");
+                      }
+                      const pgnText = await response.text();
+                      const allChapters = parseMultiPgn(pgnText);
+                      const currentStudyName = pgnText.match(/\\[StudyName "(.*?)"\\]/)?.[1] || rep.title;
+
+                      if (currentStudyName !== rep.title && authToken) {
+                          try {
+                              await fetch('/api/history/repertoire/title', {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json', 'Authorization': \`Bearer \${authToken}\` },
+                                  body: JSON.stringify({ study_id: normalizedId, new_title: currentStudyName })
+                              });
+                          } catch (e) {
+                              // Ignore title sync error
+                          }
+                      }
+
+                      const chaptersWithMoves = allChapters.map(chap => {
+                          let moveCount = 0;
+                          try {
+                              const tempRoot = buildRepertoireTree(chap.pgn);
+                              const countMoves = (n) => {
+                                  if (n.id !== 'root' && n.color === rep.color) {
+                                      moveCount++;
+                                  }
+                                  n.children.forEach(countMoves);
+                              };
+                              countMoves(tempRoot);
+                          } catch(e) {
+                              // Ignore parse error
+                          }
+                          return { title: chap.title, moveCount, pgn: chap.pgn };
+                      });
+
+                      if (authToken) {
+                          const historyTitles = Object.keys(rep.chaptersHistory);
+                          if (historyTitles.length > 0) {
+                              for (let i = 0; i < chaptersWithMoves.length; i++) {
+                                  const newTitle = chaptersWithMoves[i].title;
+                                  if (!rep.chaptersHistory[newTitle]) {
+                                      const orphanedTitle = historyTitles.find(t => !chaptersWithMoves.some(c => c.title === t));
+                                      if (orphanedTitle) {
+                                          try {
+                                              await fetch('/api/history/chapter/title', {
+                                                  method: 'PUT',
+                                                  headers: { 'Content-Type': 'application/json', 'Authorization': \`Bearer \${authToken}\` },
+                                                  body: JSON.stringify({ study_id: normalizedId, old_title: orphanedTitle, new_title: newTitle })
+                                              });
+                                              historyTitles.splice(historyTitles.indexOf(orphanedTitle), 1);
+                                          } catch (e) {
+                                              // Ignore chapter title update error
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                      saveToCache(normalizedId + '_' + rep.color, { chapters: chaptersWithMoves, title: currentStudyName });
+                      fetchHistory();
+                  } catch (err) {
+                      detail.innerHTML = \`<div style="padding: 15px; text-align: center; color: var(--danger);">Erreur lors de la synchronisation.</div>\`;
+                  }
+              };
+              syncFromLichess();
+          };
+
+          if (whiteReps.length > 0) {
+              repertoireListEl.appendChild(createSectionHeader('Blancs'));
+              renderRepList(whiteReps);
+          }
+          if (blackReps.length > 0) {
+              repertoireListEl.appendChild(createSectionHeader('Noirs'));
+              renderRepList(blackReps);
+          }
+      };
+
+      const relaunchStudy = async (studyId, chapterTitle, color) => {
+          document.getElementById('lichessInput').value = studyId;
+          setToggleState('colorToggle', color);
+          setToggleState('modeToggle', 'revision');
+          await loadLichessStudy(studyId, chapterTitle);
+      };
+
+      const saveHistory = async (stats) => {
+          if (!authToken) {
+              return;
+          }
+          const normalizedId = extractStudyId(document.getElementById('lichessInput').value.trim());
+          try {
+              const res = await fetch('/api/history', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': \`Bearer \${authToken}\` },
+                  body: JSON.stringify({
+                      ...stats,
+                      study_id: normalizedId,
+                      color: playerColor,
+                      total_chapters: currentRepertoire ? currentRepertoire.chapters.length : 0
+                  })
+              });
+              if (res.status === 401 || res.status === 403) {
+                  document.getElementById('logoutBtn').click();
+              } else {
+                  fetchHistory();
+              }
+          } catch (err) {
+              console.error("Save history error:", err);
+          }
+      };
+
+      updateAuthUI();
+
+      const updateChapterList = () => {
+          if (!currentRepertoire) {
+              return;
+          }
+          playerColor = getToggleState('colorToggle');
+          const previousIdx = currentChapterIndex;
+          chapterListEl.innerHTML = '';
+          selectedChapterPgn = null;
+          currentChapterIndex = -1;
+
+          if (currentRepertoire.chapters.length === 1) {
+              chapterSelectionArea.classList.add('hidden');
+              selectedChapterPgn = currentRepertoire.chapters[0].pgn;
+              currentChapterIndex = 0;
+              startBtn.disabled = false;
+          } else {
+              chapterSelectionArea.classList.remove('hidden');
+              startBtn.disabled = true;
+              currentRepertoire.chapters.forEach((chap, idx) => {
+                  let moveCount = 0;
+                  try {
+                      const tempRoot = buildRepertoireTree(chap.pgn);
+                      const countMoves = (n) => {
+                          if (n.id !== 'root' && n.color === playerColor) {
+                              moveCount++;
+                          }
+                          n.children.forEach(countMoves);
+                      };
+                      countMoves(tempRoot);
+                  } catch(e) {
+                      // Ignore parse error
+                  }
+                  const btn = document.createElement('button');
+                  btn.className = 'chapter-btn';
+                  if (idx === previousIdx) {
+                      btn.classList.add('selected');
+                      selectedChapterPgn = chap.pgn;
+                      currentChapterIndex = idx;
+                      startBtn.disabled = false;
+                  }
+                  btn.innerHTML = \`<span>\${chap.title}</span><span class="chapter-count">\${moveCount} coups</span>\`;
+                  btn.onclick = () => {
+                      document.querySelectorAll('.chapter-btn').forEach(b => {
+                          b.classList.remove('selected');
+                      });
+                      btn.classList.add('selected');
+                      selectedChapterPgn = chap.pgn;
+                      currentChapterIndex = idx;
+                      startBtn.disabled = false;
+                  };
+                  chapterListEl.appendChild(btn);
+              });
+          }
+      };
+
+      document.getElementById('colorToggle').onclick = () => {
+          setTimeout(updateChapterList, 50);
+      };
+
+      const loadLichessStudy = async (input, targetChapterTitle = null) => {
+          document.getElementById('config-card').style.display = 'none';
+          if (!input) {
+              return;
+          }
+          const studyId = extractStudyId(input);
+          loadBtn.disabled = true;
+          loadBtn.textContent = "Chargement...";
+          try {
+              const response = await fetch(\`https://lichess.org/api/study/\${studyId}.pgn?v=\${Date.now()}\`);
+              if (!response.ok) {
+                  throw new Error("Étude non trouvée.");
+              }
+              const pgnText = await response.text();
+              const studyName = pgnText.match(/\\[StudyName "(.*?)"\\]/)?.[1] || \`Étude Lichess (\${studyId})\`;
+              currentRepertoire = { title: studyName, chapters: parseMultiPgn(pgnText) };
+              document.getElementById('config-title').textContent = \`Répertoire : \${studyName}\`;
+              document.getElementById('config-card').style.display = 'flex';
+              if (targetChapterTitle) {
+                  currentChapterIndex = currentRepertoire.chapters.findIndex(c => c.title === targetChapterTitle);
+              }
+              updateChapterList();
+              showToast("Étude chargée avec succès", "success");
+              document.getElementById('config-card').scrollIntoView({ behavior: 'smooth' });
+          } catch (err) {
+              showToast(err.message, "error");
+          } finally {
+              loadBtn.disabled = false;
+              loadBtn.textContent = "Charger le répertoire";
+          }
+      };
+
+      loadBtn.onclick = () => {
+          loadLichessStudy(document.getElementById('lichessInput').value.trim());
+      };
+
+      // =========================================
+      // TRAINING CORE
+      // =========================================
+      const initializeStats = (node) => {
+          totalMoves = 0;
+          learnedMoves = 0;
+          totalVariations = 0;
+          learnedVariations = 0;
+          errorCount = 0;
+          currentMoveErrorLogged = false;
+          const traverse = (n) => {
+              if (n.id !== 'root' && n.color === playerColor) {
+                  totalMoves++;
+              }
+              if (n.children.length === 0 && n.id !== 'root') {
+                  n.isLeaf = true;
+                  totalVariations++;
+              }
+              n.children.forEach(traverse);
+          };
+          traverse(node);
+          updateStatsUI();
+      };
+
+      startBtn.onclick = () => {
+          if (!selectedChapterPgn) {
+              return;
+          }
+          const chap = currentRepertoire.chapters[currentChapterIndex];
+          playerColor = getToggleState('colorToggle');
+          trainingMode = getToggleState('modeToggle');
+          try {
+              rootNode = buildRepertoireTree(selectedChapterPgn);
+          } catch (e) {
+              showToast("Erreur lors de la lecture du PGN", "error");
+              return;
+          }
+          initializeStats(rootNode);
+          if (totalMoves === 0) {
+              showToast("Pas de coups pour cette couleur dans ce chapitre.", "warning");
+              return;
+          }
+
+          // Log chapter opening
+          if (authToken) {
+              saveHistory({ repertoire_title: currentRepertoire.title, chapter_title: chap.title, moves_learned: 0, total_moves: totalMoves, errors: 0, is_revision: false });
+          }
+
+          document.getElementById('trainingHeader').innerHTML = \`<div style="color: var(--primary);">\${currentRepertoire.title}</div><div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500; margin-top: 4px;">\${chap.title.replace(currentRepertoire.title + ": ", "")}</div>\`;
+          document.getElementById('trainingActions').classList.add('hidden');
+
+          document.getElementById('errorStatRow').parentElement.style.gridTemplateColumns = trainingMode === 'decouverte' ? '1fr 1fr' : '1fr 1fr 1fr';
+          document.getElementById('errorStatRow').classList.toggle('hidden', trainingMode === 'decouverte');
+          document.getElementById('hintBtn').classList.toggle('hidden', trainingMode === 'decouverte');
+          document.getElementById('analysisLink').classList.toggle('hidden', trainingMode === 'revision');
+          document.getElementById('restartBtn').classList.remove('hidden');
+
+          isTraining = true;
+          setupView.classList.add('hidden');
+          trainingView.classList.remove('hidden');
+          trainingView.classList.add('fade-in');
+
+          setTimeout(() => {
+              if (!cg) {
+                  cg = Chessground(document.getElementById('board'), {
+                      coordinates: true,
+                      movable: { color: undefined, dests: new Map() },
+                      drawable: {
+                          brushes: {
+                              green: { key: 'g', color: '#15781B', opacity: 1, lineWidth: 10 },
+                              red: { key: 'r', color: '#882020', opacity: 1, lineWidth: 10 },
+                              blue: { key: 'b', color: '#003088', opacity: 1, lineWidth: 10 },
+                              yellow: { key: 'y', color: '#e68f00', opacity: 1, lineWidth: 10 },
+                              paleBlue: { key: 'pb', color: '#003088', opacity: 0.4, lineWidth: 15 },
+                              paleGreen: { key: 'pg', color: '#15781B', opacity: 0.4, lineWidth: 15 },
+                              paleRed: { key: 'pr', color: '#882020', opacity: 0.4, lineWidth: 15 },
+                              paleGrey: { key: 'pgr', color: '#4a4a4a', opacity: 0.35, lineWidth: 15 },
+                              hint: { key: 'h', color: '#cbd5e1', opacity: 0.9, lineWidth: 15 } // High contrast grey (reduced transparency)
+                          }
+                      }
+                  });
+              }
+              cg.set({ orientation: playerColor });
+              game.load(rootNode.fen);
+              showToast(trainingMode === 'decouverte' ? "Mode Découverte activé" : "Mode Révision activé", "info");
+              startNextVariation();
+          }, 50);
+      };
+
+      document.getElementById('restartBtn').onclick = () => {
+          if (isTraining) {
+              startBtn.onclick();
+          }
+      };
+
+      document.getElementById('stopBtn').onclick = () => {
+          isTraining = false;
+          trainingView.classList.add('hidden');
+          setupView.classList.remove('hidden');
+          setupView.classList.add('fade-in');
+          game.reset();
+          cg.set({ drawable: { autoShapes: [] } });
+      };
+
+      document.getElementById('toggleCommentsBtn').onclick = () => {
+          const box = document.getElementById('commentBox');
+          if (box.style.display === 'none') {
+              box.style.display = 'block';
+              document.getElementById('toggleCommentsBtn').textContent = 'Masquer Notes';
+          } else {
+              box.style.display = 'none';
+              document.getElementById('toggleCommentsBtn').textContent = 'Afficher Notes';
+          }
+      };
+
+      document.getElementById('hintBtn').onclick = () => {
+          if (!isTraining || trainingMode === 'decouverte') {
+              return;
+          }
+
+          if (viewIndex !== currentPath.length - 1) {
+              navigateView(currentPath.length - 1 - viewIndex);
+          }
+
+          const next = currentNode.children.find(c => !c.isCompleted);
+          if (next) {
+              cg.set({ drawable: { autoShapes: [{ orig: next.from, dest: next.to, brush: 'hint' }] } });
+              showToast("Solution affichée !", "info", 1500);
+              if (!currentMoveErrorLogged) {
+                  errorCount++;
+                  currentMoveErrorLogged = true;
+                  updateStatsUI();
+              }
+          }
+      };
+
+      // NAVIGATION & FEEDBACK
+      const updateStatsUI = () => {
+          document.getElementById('statMoves').textContent = \`\${learnedMoves}/\${totalMoves}\`;
+          document.getElementById('statVars').textContent = \`\${learnedVariations}/\${totalVariations}\`;
+          document.getElementById('statErrors').textContent = errorCount;
+
+          let progress = totalMoves > 0 ? Math.round((learnedMoves / totalMoves) * 100) : 0;
+          document.getElementById('trainingProgress').style.width = \`\${progress}%\`;
+          document.getElementById('progressText').textContent = \`\${progress}%\`;
+      };
+
+      const updateAnalysisLink = () => {
+          const studyUrl = currentRepertoire?.chapters[currentChapterIndex]?.studyUrl;
+          if (studyUrl) {
+              // Lichess study URL format: study/ID/CHAPTER#MOVE
+              // We add orientation as a query param
+              const moveNumber = Math.floor((viewIndex + 1) / 2);
+              document.getElementById('analysisLink').href = \`\${studyUrl}?color=\${playerColor}#\${moveNumber}\`;
+          } else {
+              document.getElementById('analysisLink').href = \`https://lichess.org/analysis/standard/\${game.fen().replace(/ /g, '_')}?color=\${playerColor}\`;
+          }
+      };
+
+      const renderPgnHtml = () => {
+          if (currentPath.length <= 1) {
+              document.getElementById('activeLineDisplay').innerHTML = "<span style='color: var(--text-muted);'>Position initiale</span>";
+              document.getElementById('commentBox').innerHTML = "<em>Aucun commentaire.</em>";
+              return;
+          }
+
+          let html = '';
+          const parts = rootNode.fen.split(' ');
+          let num = parseInt(parts[5]) || 1;
+          let turn = parts[1] === 'w' ? 'white' : 'black';
+
+          for (let i = 1; i < currentPath.length; i++) {
+              if (turn === 'white') {
+                  html += \`<span class="move-number">\${num}.</span> \`;
+              } else if (i === 1) {
+                  html += \`<span class="move-number">\${num}...</span> \`;
+              }
+
+              html += \`<span class="pgn-move \${i === viewIndex ? 'active-move' : ''}" data-index="\${i}">\${currentPath[i].san}</span> \`;
+
+              if (turn === 'black') {
+                  num++;
+                  turn = 'white';
+              } else {
+                  turn = 'black';
+              }
+          }
+
+          const display = document.getElementById('activeLineDisplay');
+          display.innerHTML = html.trim();
+          const active = display.querySelector('.active-move');
+
+          if (active) {
+              // Scroll only the container, not the whole page window
+              display.scrollTop = active.offsetTop - display.offsetTop - (display.clientHeight / 2) + (active.clientHeight / 2);
+          }
+
+          const node = currentPath[viewIndex];
+          document.getElementById('commentBox').innerHTML = node?.comment ? \`<strong>Notes :</strong> \${node.comment}\` : \`<em>Aucun commentaire.</em>\`;
+      };
+
+      const updateNavigationButtons = () => {
+          document.getElementById('prevBtn').disabled = viewIndex <= 0;
+          document.getElementById('nextBtn').disabled = viewIndex >= currentPath.length - 1;
+      };
+
+      const navigateView = (step) => {
+          const newIdx = viewIndex + step;
+          if (!isTraining || newIdx < 0 || newIdx >= currentPath.length) {
+              return;
+          }
+
+          viewIndex = newIdx;
+          renderPgnHtml();
+          game.load(currentPath[viewIndex].fen);
+
+          const shapes = [...(currentPath[viewIndex].shapes || [])];
+          cg.set({ fen: game.fen(), lastMove: viewIndex > 0 ? [currentPath[viewIndex].from, currentPath[viewIndex].to] : null, drawable: { autoShapes: shapes } });
+          updateAnalysisLink();
+
+          if (viewIndex === currentPath.length - 1 && !currentPath[viewIndex].isCompleted && game.turn() === playerColor[0]) {
+              preparePlayerTurn();
+          } else {
+              cg.set({ movable: { dests: new Map() } });
+          }
+          updateNavigationButtons();
+      };
+
+      document.getElementById('prevBtn').onclick = () => {
+          navigateView(-1);
+      };
+
+      document.getElementById('nextBtn').onclick = () => {
+          navigateView(1);
+      };
+
+      document.getElementById('activeLineDisplay').addEventListener('click', (e) => {
+          const moveSpan = e.target.closest('.pgn-move');
+          if (moveSpan && isTraining) {
+              const index = parseInt(moveSpan.dataset.index);
+              if (!isNaN(index)) {
+                  navigateView(index - viewIndex);
+              }
+          }
+      });
+
+      document.addEventListener('keydown', (e) => {
+          if (!isTraining) {
+              return;
+          }
+          if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+              return;
+          }
+
+          if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              navigateView(-1);
+          } else if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              navigateView(1);
+          }
+      });
+
+      const preparePlayerTurn = () => {
+          const dests = new Map();
+          game.moves({ verbose: true }).forEach(m => {
+              if (!dests.has(m.from)) {
+                  dests.set(m.from, []);
+              }
+              dests.get(m.from).push(m.to);
+          });
+
+          cg.set({ turnColor: playerColor, movable: { color: playerColor, free: false, showDests: true, dests, events: { after: onUserMove } } });
+
+          if (trainingMode === 'decouverte') {
+              const shapes = [...(currentNode.shapes || [])];
+              const next = currentNode.children.find(c => !c.isCompleted);
+              if (next) {
+                  shapes.push({ orig: next.from, dest: next.to, brush: 'hint' });
+              }
+              cg.set({ drawable: { autoShapes: shapes } });
+          }
+      };
+
+      const onUserMove = (orig, dest) => {
+          const move = game.moves({ verbose: true }).find(m => m.from === orig && m.to === dest);
+
+          const childNodeIfAny = currentNode.children.find(c => c.san === (move?.san));
+          if (childNodeIfAny && childNodeIfAny.isCompleted) {
+              showToast("Variante déjà couverte", "info", 1500);
+              setTimeout(() => {
+                  cg.set({ fen: game.fen() });
+                  preparePlayerTurn();
+              }, 600);
+              return;
+          }
+
+          const child = currentNode.children.find(c => c.san === (move?.san) && !c.isCompleted);
+
+          if (!move || !child) {
+              if (trainingMode === 'revision' && !currentMoveErrorLogged) {
+                  errorCount++;
+                  currentMoveErrorLogged = true;
+                  updateStatsUI();
+              }
+              showToast(trainingMode === 'revision' ? "Coup incorrect !" : "Suivez la flèche !", "error", 1500);
+              setTimeout(() => {
+                  cg.set({ fen: game.fen() });
+                  preparePlayerTurn();
+              }, 600);
+              return;
+          }
+
+          currentMoveErrorLogged = false;
+          game.move(move.san);
+          cg.set({ fen: game.fen(), lastMove: [orig, dest], movable: { dests: new Map() }, drawable: { autoShapes: [] } });
+
+          currentNode = child;
+          if (!currentNode.isVisited) {
+              currentNode.isVisited = true;
+              learnedMoves++;
+              updateStatsUI();
+          }
+
+          currentPath.push(currentNode);
+          viewIndex = currentPath.length - 1;
+          renderPgnHtml();
+          updateAnalysisLink();
+          updateNavigationButtons();
+
+          if (trainingMode === 'decouverte') {
+              const shapes = [...(currentNode.shapes || [])];
+              cg.set({ drawable: { autoShapes: shapes } });
+          }
+
+          if (currentNode.isLeaf) {
+              markCompleted(currentNode);
+              handleEnd();
+          } else {
+              setTimeout(() => {
+                  playOpponent();
+              }, 300);
+          }
+      };
+
+      const playOpponent = () => {
+          const next = currentNode.children.find(c => !c.isCompleted);
+          if (next) {
+              game.move(next.san);
+              cg.set({ fen: game.fen(), lastMove: [next.from, next.to] });
+
+              currentNode = next;
+              currentNode.isVisited = true;
+              currentPath.push(currentNode);
+              viewIndex = currentPath.length - 1;
+
+              renderPgnHtml();
+              updateAnalysisLink();
+              updateNavigationButtons();
+
+              if (currentNode.isLeaf) {
+                  markCompleted(currentNode);
+                  handleEnd();
+              } else {
+                  preparePlayerTurn();
+              }
+          }
+      };
+
+      const markCompleted = (node) => {
+          node.isCompleted = true;
+          if (node.isLeaf) {
+              learnedVariations++;
+          }
+
+          let p = node.parent;
+          while (p && p.id !== 'root') {
+              if (p.children.every(c => c.isCompleted)) {
+                  p.isCompleted = true;
+              }
+              p = p.parent;
+          }
+
+          if (rootNode.children.every(c => c.isCompleted)) {
+              rootNode.isCompleted = true;
+          }
+
+          updateStatsUI();
+      };
+
+      const handleEnd = () => {
+          if (rootNode.isCompleted) {
+              showToast(\`Entraînement terminé ! Erreurs : \${errorCount}\`, "success", 5000);
+              if (authToken && trainingMode === 'revision') {
+                  saveHistory({ repertoire_title: currentRepertoire.title, chapter_title: currentRepertoire.chapters[currentChapterIndex].title, moves_learned: learnedMoves, total_moves: totalMoves, errors: errorCount, is_revision: true });
+              }
+              const actions = document.getElementById('trainingActions');
+              actions.innerHTML = '';
+              actions.classList.remove('hidden');
+
+              const btn = document.createElement('button');
+              btn.className = "secondary";
+              btn.textContent = trainingMode === 'decouverte' ? "Passer en mode Révision" : "Refaire ce chapitre";
+              btn.style.width = "100%";
+              btn.style.padding = "12px";
+              btn.onclick = () => {
+                  if (trainingMode === 'decouverte') {
+                      setToggleState('modeToggle', 'revision');
+                  }
+                  startBtn.onclick();
+              };
+              actions.appendChild(btn);
+
+              if (currentRepertoire && currentRepertoire.chapters.length > 1) {
+                  let nextChapIdx = currentChapterIndex + 1;
+                  let isLast = nextChapIdx >= currentRepertoire.chapters.length;
+                  if (isLast) {
+                      nextChapIdx = 0;
+                  }
+
+                  const nextBtn = document.createElement('button');
+                  nextBtn.style.width = "100%";
+                  nextBtn.style.padding = "12px";
+                  nextBtn.style.marginTop = "8px";
+                  nextBtn.textContent = isLast ? "Premier chapitre" : "Chapitre suivant";
+                  nextBtn.onclick = () => {
+                      currentChapterIndex = nextChapIdx;
+                      selectedChapterPgn = currentRepertoire.chapters[nextChapIdx].pgn;
+                      updateChapterList();
+                      startBtn.onclick();
+                  };
+                  actions.appendChild(nextBtn);
+              }
+          } else {
+              setTimeout(startNextVariation, 800);
+          }
+      };
+
+      const startNextVariation = () => {
+          cg.set({ drawable: { autoShapes: [] } });
+
+          const getPath = (n) => {
+              if (n.isLeaf && !n.isCompleted) {
+                  return [n];
+              }
+              const next = n.children.find(c => !c.isCompleted);
+              return next ? [n, ...getPath(next)] : null;
+          };
+
+          const path = getPath(rootNode);
+          if (!path) {
+              return;
+          }
+
+          let common = path[0];
+          for (let i = 1; i < path.length; i++) {
+              if (path[i].isVisited) {
+                  common = path[i];
+              } else {
+                  break;
+              }
+          }
+
+          currentNode = common.id === 'root' ? rootNode : common;
+          currentPath = [];
+          let curr = currentNode;
+          while(curr) {
+              currentPath.unshift(curr);
+              curr = curr.parent;
+          }
+
+          viewIndex = currentPath.length - 1;
+          game.load(currentNode.fen);
+          cg.set({ fen: game.fen(), lastMove: null });
+          renderPgnHtml();
+          updateAnalysisLink();
+
+          const next = path[path.indexOf(common) + 1];
+          if (next) {
+              if (next.color !== playerColor) {
+                  setTimeout(() => {
+                      playOpponent();
+                  }, 500);
+              } else {
+                  preparePlayerTurn();
+              }
+          }
+      };
     </script>
-</body>
+  </body>
 </html>
