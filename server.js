@@ -421,5 +421,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`La Boîte à Ouvertures Server started at port ${PORT}`);
+  console.log(`🚀 La Boîte à Ouvertures Server started at port ${PORT}`);
 });

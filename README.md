@@ -1,8 +1,8 @@
-# La Boîte à Ouvertures
+# La Boîte à Ouvertures 📦
 
 Une application web complète conçue pour aider les joueurs d'échecs à construire, apprendre et réviser leur répertoire d'ouvertures en utilisant les études Lichess.
 
-## Fonctionnalités
+## 🚀 Fonctionnalités
 
 -   **Intégration Lichess :** Importez instantanément vos études publiques via leur URL.
 -   **Tableau de Bord Interactif :** Suivez votre progression par répertoire et par chapitre avec des statistiques détaillées.
@@ -13,7 +13,7 @@ Une application web complète conçue pour aider les joueurs d'échecs à constr
 -   **Optimisé pour Mobile :** Échiquier fixé en haut de l'écran et interface responsive pour s'entraîner partout.
 -   **Gestion Multi-utilisateurs :** Comptes personnels avec vérification d'email et récupération de mot de passe.
 
-## Stack Technique
+## 🛠️ Stack Technique
 
 -   **Frontend :** HTML5, CSS3 (Vanilla), JavaScript (ES6+).
 -   **Échiquier :** [Chessground](https://github.com/lichess-org/chessground) (le moteur de Lichess).
@@ -23,7 +23,7 @@ Une application web complète conçue pour aider les joueurs d'échecs à constr
 -   **Emails :** API HTTP Brevo (pour contourner les limitations SMTP des hébergeurs cloud).
 -   **Authentification :** JSON Web Tokens (JWT) et Bcrypt pour le hachage des mots de passe.
 
-## Installation et Déploiement
+## 📦 Installation et Déploiement
 
 ### Local (Développement)
 1.  Clonez le dépôt.
@@ -37,6 +37,6 @@ L'application est configurée pour être déployée sur **Render.com**.
 -   Utilisez la branche `deploy-online`.
 -   Configurez les variables d'environnement sur Render (`DATABASE_URL`, `BREVO_API_KEY`, `JWT_SECRET`, `APP_URL`).
 
-## Licence
+## 📜 Licence
 
 Ce projet est open-source et disponible sous licence MIT.
