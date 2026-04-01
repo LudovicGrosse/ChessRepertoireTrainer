@@ -2086,19 +2086,19 @@
 
                   const repItem = document.createElement('div');
                   repItem.className = 'repertoire-item fade-in';
-                  repItem.innerHTML = \`
+                  repItem.innerHTML = `
                       <div class="repertoire-header">
                           <div style="flex: 1;">
-                              <strong style="color: var(--text-main); font-size: 15px;">\${rep.title} <span style="color: var(--text-muted); font-weight: normal; font-size: 0.85rem;">(\${rep.total_chapters} chapitre\${rep.total_chapters > 1 ? 's' : ''})</span></strong>
-                              <div class="meta"><span>Dernière révision : \${formatRelativeTime(rep.last_revision)}</span></div>
+                              <strong style="color: var(--text-main); font-size: 15px;">${rep.title} <span style="color: var(--text-muted); font-weight: normal; font-size: 0.85rem;">(${rep.total_chapters} chapitre${rep.total_chapters > 1 ? 's' : ''})</span></strong>
+                              <div class="meta"><span>Dernière révision : ${formatRelativeTime(rep.last_revision)}</span></div>
                           </div>
                           <div style="display: flex; align-items: center; gap: 15px;">
-                              <div class="global-score-badge \${rateClass}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> \${globalRate}%</div>
-                              <div class="toggle-icon" style="color: var(--text-muted); font-size: 18px;">\${currentlyOpenRepId === repKey ? '−' : '+'}</div>
+                              <div class="global-score-badge ${rateClass}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> ${globalRate}%</div>
+                              <div class="toggle-icon" style="color: var(--text-muted); font-size: 18px;">${currentlyOpenRepId === repKey ? '−' : '+'}</div>
                           </div>
                       </div>
-                      <div class="chapters-detail \${currentlyOpenRepId === repKey ? 'open' : ''}"></div>
-                  \`;
+                      <div class="chapters-detail ${currentlyOpenRepId === repKey ? 'open' : ''}"></div>
+                  `;
 
                   const header = repItem.querySelector('.repertoire-header');
                   const detail = repItem.querySelector('.chapters-detail');
@@ -2165,10 +2165,10 @@
                       const chapRow = document.createElement('div');
                       chapRow.className = 'chapter-row';
 
-                      let progressHtml = hasData ? \`<div class="mini-progress-bg"><div class="mini-progress-fill" style="width: \${finalSuccessRate}%; background: \${finalSuccessRate >= 80 ? 'var(--success)' : (finalSuccessRate < 50 ? 'var(--danger)' : 'var(--warning)')}"></div></div>\` : '';
-                      const chapTitleHtml = isUpdated ? \`<strong>\${chap.title.replace(rep.title + ": ", "")} <span style="color: var(--warning); font-size: 10px; border: 1px solid var(--warning); padding: 1px 4px; border-radius: 4px; margin-left: 4px;">MAJ</span></strong>\` : \`<strong>\${chap.title.replace(rep.title + ": ", "")}</strong>\`;
+                      let progressHtml = hasData ? `<div class="mini-progress-bg"><div class="mini-progress-fill" style="width: ${finalSuccessRate}%; background: ${finalSuccessRate >= 80 ? 'var(--success)' : (finalSuccessRate < 50 ? 'var(--danger)' : 'var(--warning)')}"></div></div>` : '';
+                      const chapTitleHtml = isUpdated ? `<strong>${chap.title.replace(rep.title + ": ", "")} <span style="color: var(--warning); font-size: 10px; border: 1px solid var(--warning); padding: 1px 4px; border-radius: 4px; margin-left: 4px;">MAJ</span></strong>` : `<strong>${chap.title.replace(rep.title + ": ", "")}</strong>`;
 
-                      chapRow.innerHTML = \`<div><span class="label">Chapitre</span>\${chapTitleHtml}</div><div><span class="label">Succès</span><span class="\${successClass}">\${hasData ? finalSuccessRate + '%' : '-'}</span>\${progressHtml}</div><div><span class="label">Coups</span><strong style="color: var(--text-main); font-weight: normal;">\${moveCount}</strong></div><div><span class="label">Dernière</span><span style="color: var(--text-muted);">\${formatRelativeTime(latest ? latest.date : null)}</span></div><div class="play-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>\`;
+                      chapRow.innerHTML = `<div><span class="label">Chapitre</span>${chapTitleHtml}</div><div><span class="label">Succès</span><span class="${successClass}">${hasData ? finalSuccessRate + '%' : '-'}</span>${progressHtml}</div><div><span class="label">Coups</span><strong style="color: var(--text-main); font-weight: normal;">${moveCount}</strong></div><div><span class="label">Dernière</span><span style="color: var(--text-muted);">${formatRelativeTime(latest ? latest.date : null)}</span></div><div class="play-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>`;
                       chapRow.onclick = (e) => {
                           e.stopPropagation();
                           relaunchStudy(normalizedId, chap.title, rep.color);
@@ -2182,7 +2182,7 @@
                   const syncBtn = document.createElement('button');
                   syncBtn.className = 'secondary';
                   syncBtn.style.cssText = 'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
-                  syncBtn.innerHTML = \`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> Synchroniser\`;
+                  syncBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> Synchroniser`;
                   syncBtn.onclick = (e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -2193,16 +2193,16 @@
                   const delBtn = document.createElement('button');
                   delBtn.className = 'secondary';
                   delBtn.style.cssText = 'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
-                  delBtn.innerHTML = \`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg> Supprimer\`;
+                  delBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg> Supprimer`;
                   delBtn.onclick = async (e) => {
                       e.stopPropagation();
                       e.preventDefault();
                       if (!confirm("Voulez-vous vraiment supprimer ce répertoire ?")) {
                           return;
                       }
-                      const res = await fetch(\`/api/history/repertoire?study_id=\${encodeURIComponent(normalizedId)}&color=\${encodeURIComponent(rep.color)}\`, {
+                      const res = await fetch(`/api/history/repertoire?study_id=${encodeURIComponent(normalizedId)}&color=${encodeURIComponent(rep.color)}`, {
                           method: 'DELETE',
-                          headers: { 'Authorization': \`Bearer \${authToken}\` }
+                          headers: { 'Authorization': `Bearer ${authToken}` }
                       });
                       if (res.ok) {
                           currentlyOpenRepId = null;
@@ -2226,7 +2226,7 @@
                   detail.innerHTML = '<div style="padding: 15px; text-align: center; color: var(--text-muted);">Synchronisation Lichess...</div>';
 
                   try {
-                      const response = await fetch(\`https://lichess.org/api/study/\${normalizedId}.pgn?v=\${Date.now()}\`);
+                      const response = await fetch(`https://lichess.org/api/study/${normalizedId}.pgn?v=${Date.now()}`);
                       if (!response.ok) {
                           throw new Error("Lichess error");
                       }
@@ -2238,7 +2238,7 @@
                           try {
                               await fetch('/api/history/repertoire/title', {
                                   method: 'PUT',
-                                  headers: { 'Content-Type': 'application/json', 'Authorization': \`Bearer \${authToken}\` },
+                                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
                                   body: JSON.stringify({ study_id: normalizedId, new_title: currentStudyName })
                               });
                           } catch (e) {
@@ -2274,7 +2274,7 @@
                                           try {
                                               await fetch('/api/history/chapter/title', {
                                                   method: 'PUT',
-                                                  headers: { 'Content-Type': 'application/json', 'Authorization': \`Bearer \${authToken}\` },
+                                                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
                                                   body: JSON.stringify({ study_id: normalizedId, old_title: orphanedTitle, new_title: newTitle })
                                               });
                                               historyTitles.splice(historyTitles.indexOf(orphanedTitle), 1);
@@ -2289,7 +2289,7 @@
                       saveToCache(normalizedId + '_' + rep.color, { chapters: chaptersWithMoves, title: currentStudyName });
                       fetchHistory();
                   } catch (err) {
-                      detail.innerHTML = \`<div style="padding: 15px; text-align: center; color: var(--danger);">Erreur lors de la synchronisation.</div>\`;
+                      detail.innerHTML = `<div style="padding: 15px; text-align: center; color: var(--danger);">Erreur lors de la synchronisation.</div>`;
                   }
               };
               syncFromLichess();
@@ -2320,7 +2320,7 @@
           try {
               const res = await fetch('/api/history', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': \`Bearer \${authToken}\` },
+                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
                   body: JSON.stringify({
                       ...stats,
                       study_id: normalizedId,
@@ -2380,7 +2380,7 @@
                       currentChapterIndex = idx;
                       startBtn.disabled = false;
                   }
-                  btn.innerHTML = \`<span>\${chap.title}</span><span class="chapter-count">\${moveCount} coups</span>\`;
+                  btn.innerHTML = `<span>${chap.title}</span><span class="chapter-count">${moveCount} coups</span>`;
                   btn.onclick = () => {
                       document.querySelectorAll('.chapter-btn').forEach(b => {
                           b.classList.remove('selected');
@@ -2408,14 +2408,14 @@
           loadBtn.disabled = true;
           loadBtn.textContent = "Chargement...";
           try {
-              const response = await fetch(\`https://lichess.org/api/study/\${studyId}.pgn?v=\${Date.now()}\`);
+              const response = await fetch(`https://lichess.org/api/study/${studyId}.pgn?v=${Date.now()}`);
               if (!response.ok) {
                   throw new Error("Étude non trouvée.");
               }
               const pgnText = await response.text();
-              const studyName = pgnText.match(/\\[StudyName "(.*?)"\\]/)?.[1] || \`Étude Lichess (\${studyId})\`;
+              const studyName = pgnText.match(/\\[StudyName "(.*?)"\\]/)?.[1] || `Étude Lichess (${studyId})`;
               currentRepertoire = { title: studyName, chapters: parseMultiPgn(pgnText) };
-              document.getElementById('config-title').textContent = \`Répertoire : \${studyName}\`;
+              document.getElementById('config-title').textContent = `Répertoire : ${studyName}`;
               document.getElementById('config-card').style.display = 'flex';
               if (targetChapterTitle) {
                   currentChapterIndex = currentRepertoire.chapters.findIndex(c => c.title === targetChapterTitle);
@@ -2483,7 +2483,7 @@
               saveHistory({ repertoire_title: currentRepertoire.title, chapter_title: chap.title, moves_learned: 0, total_moves: totalMoves, errors: 0, is_revision: false });
           }
 
-          document.getElementById('trainingHeader').innerHTML = \`<div style="color: var(--primary);">\${currentRepertoire.title}</div><div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500; margin-top: 4px;">\${chap.title.replace(currentRepertoire.title + ": ", "")}</div>\`;
+          document.getElementById('trainingHeader').innerHTML = `<div style="color: var(--primary);">${currentRepertoire.title}</div><div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500; margin-top: 4px;">${chap.title.replace(currentRepertoire.title + ": ", "")}</div>`;
           document.getElementById('trainingActions').classList.add('hidden');
 
           document.getElementById('errorStatRow').parentElement.style.gridTemplateColumns = trainingMode === 'decouverte' ? '1fr 1fr' : '1fr 1fr 1fr';
@@ -2573,13 +2573,13 @@
 
       // NAVIGATION & FEEDBACK
       const updateStatsUI = () => {
-          document.getElementById('statMoves').textContent = \`\${learnedMoves}/\${totalMoves}\`;
-          document.getElementById('statVars').textContent = \`\${learnedVariations}/\${totalVariations}\`;
+          document.getElementById('statMoves').textContent = `${learnedMoves}/${totalMoves}`;
+          document.getElementById('statVars').textContent = `${learnedVariations}/${totalVariations}`;
           document.getElementById('statErrors').textContent = errorCount;
 
           let progress = totalMoves > 0 ? Math.round((learnedMoves / totalMoves) * 100) : 0;
-          document.getElementById('trainingProgress').style.width = \`\${progress}%\`;
-          document.getElementById('progressText').textContent = \`\${progress}%\`;
+          document.getElementById('trainingProgress').style.width = `${progress}%`;
+          document.getElementById('progressText').textContent = `${progress}%`;
       };
 
       const updateAnalysisLink = () => {
@@ -2588,9 +2588,9 @@
               // Lichess study URL format: study/ID/CHAPTER#MOVE
               // We add orientation as a query param
               const moveNumber = Math.floor((viewIndex + 1) / 2);
-              document.getElementById('analysisLink').href = \`\${studyUrl}?color=\${playerColor}#\${moveNumber}\`;
+              document.getElementById('analysisLink').href = `${studyUrl}?color=${playerColor}#${moveNumber}`;
           } else {
-              document.getElementById('analysisLink').href = \`https://lichess.org/analysis/standard/\${game.fen().replace(/ /g, '_')}?color=\${playerColor}\`;
+              document.getElementById('analysisLink').href = `https://lichess.org/analysis/standard/${game.fen().replace(/ /g, '_')}?color=${playerColor}`;
           }
       };
 
@@ -2608,12 +2608,12 @@
 
           for (let i = 1; i < currentPath.length; i++) {
               if (turn === 'white') {
-                  html += \`<span class="move-number">\${num}.</span> \`;
+                  html += `<span class="move-number">${num}.</span> `;
               } else if (i === 1) {
-                  html += \`<span class="move-number">\${num}...</span> \`;
+                  html += `<span class="move-number">${num}...</span> `;
               }
 
-              html += \`<span class="pgn-move \${i === viewIndex ? 'active-move' : ''}" data-index="\${i}">\${currentPath[i].san}</span> \`;
+              html += `<span class="pgn-move ${i === viewIndex ? 'active-move' : ''}" data-index="${i}">${currentPath[i].san}</span> `;
 
               if (turn === 'black') {
                   num++;
@@ -2633,7 +2633,7 @@
           }
 
           const node = currentPath[viewIndex];
-          document.getElementById('commentBox').innerHTML = node?.comment ? \`<strong>Notes :</strong> \${node.comment}\` : \`<em>Aucun commentaire.</em>\`;
+          document.getElementById('commentBox').innerHTML = node?.comment ? `<strong>Notes :</strong> ${node.comment}` : `<em>Aucun commentaire.</em>`;
       };
 
       const updateNavigationButtons = () => {
@@ -2827,7 +2827,7 @@
 
       const handleEnd = () => {
           if (rootNode.isCompleted) {
-              showToast(\`Entraînement terminé ! Erreurs : \${errorCount}\`, "success", 5000);
+              showToast(`Entraînement terminé ! Erreurs : ${errorCount}`, "success", 5000);
               if (authToken && trainingMode === 'revision') {
                   saveHistory({ repertoire_title: currentRepertoire.title, chapter_title: currentRepertoire.chapters[currentChapterIndex].title, moves_learned: learnedMoves, total_moves: totalMoves, errors: errorCount, is_revision: true });
               }
