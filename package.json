@@ -2,10 +2,10 @@
   "name": "v1",
   "version": "1.0.0",
   "description": "A lightweight, web-based tool designed to help chess players learn and practice their opening repertoires. This application allows users to load PGN files or Lichess studies and practice them in two modes: **Discovery** and **Revision**.",
-  "main": "data.js",
+  "main": "server/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server/server.js"
   },
   "keywords": [],
   "author": "",

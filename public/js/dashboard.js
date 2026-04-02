@@ -1,0 +1,485 @@
+import { showToast, state, extractStudyId, formatRelativeTime, getToggleState, setToggleState } from './utils.js';
+import { parseMultiPgn, buildRepertoireTree } from './data.js';
+
+const CACHE_KEY = 'repertoire_cache';
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in ms
+let repertoireCache = {};
+try {
+    const saved = localStorage.getItem(CACHE_KEY);
+    if (saved) {
+        repertoireCache = JSON.parse(saved);
+    }
+} catch(e) {
+    console.error("Cache init error", e);
+}
+
+const saveToCache = (id, data) => {
+    repertoireCache[id] = { ...data, timestamp: Date.now() };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(repertoireCache));
+};
+
+const getFromCache = (id) => {
+    const entry = repertoireCache[id];
+    if (!entry) {
+        return null;
+    }
+    const isExpired = (Date.now() - entry.timestamp) > CACHE_DURATION;
+    return { data: entry, isExpired };
+};
+
+export const fetchHistory = async () => {
+    if (!state.authToken) {
+        return;
+    }
+    try {
+        const res = await fetch('/api/history', { headers: { 'Authorization': `Bearer ${state.authToken}` } });
+        if (res.ok) {
+            renderInteractiveDashboard(await res.json());
+        } else if (res.status === 401 || res.status === 403) {
+            console.warn("Session expired or invalid. Logging out...");
+            document.getElementById('logoutBtn').click();
+        }
+    } catch (err) {
+        console.error("Failed to fetch history:", err);
+    }
+};
+
+let currentlyOpenRepId = null;
+
+const renderInteractiveDashboard = (history) => {
+    const repertoireListEl = document.getElementById('repertoireList');
+    if (history.length === 0) {
+        repertoireListEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Aucun historique.</div>';
+        return;
+    }
+
+    const repertoires = {};
+    history.forEach(entry => {
+        const normalizedId = extractStudyId(entry.study_id);
+        const repKey = normalizedId + '_' + entry.color;
+        if (!repertoires[repKey]) {
+            repertoires[repKey] = {
+                title: entry.repertoire_title,
+                study_id: normalizedId,
+                color: entry.color,
+                chaptersHistory: {},
+                last_revision: null,
+                total_chapters: entry.total_chapters || 0
+            };
+        }
+        const rep = repertoires[repKey];
+
+        if (!rep.last_date || new Date(entry.date) > new Date(rep.last_date)) {
+            rep.title = entry.repertoire_title;
+            rep.last_date = entry.date;
+        }
+        if (entry.total_chapters > rep.total_chapters) {
+            rep.total_chapters = entry.total_chapters;
+        }
+        if (entry.is_revision && (!rep.last_revision || new Date(entry.date) > new Date(rep.last_revision))) {
+            rep.last_revision = entry.date;
+        }
+        if (!rep.chaptersHistory[entry.chapter_title]) {
+            rep.chaptersHistory[entry.chapter_title] = { title: entry.chapter_title, revisions: [], total_revisions: 0 };
+        }
+        if (entry.is_revision) {
+            rep.chaptersHistory[entry.chapter_title].revisions.push(entry);
+            rep.chaptersHistory[entry.chapter_title].total_revisions++;
+        }
+    });
+
+    repertoireListEl.innerHTML = '';
+
+    const allReps = Object.values(repertoires).sort((a,b) => (b.last_revision ? new Date(b.last_revision) : 0) - (a.last_revision ? new Date(a.last_revision) : 0));
+    const whiteReps = allReps.filter(r => r.color === 'white');
+    const blackReps = allReps.filter(r => r.color === 'black');
+
+    const createSectionHeader = (title) => {
+        const h3 = document.createElement('h3');
+        h3.textContent = title;
+        h3.style.cssText = 'font-size: 14px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 12px 4px; display: flex; align-items: center; gap: 8px;';
+        const line = document.createElement('div');
+        line.style.cssText = 'flex: 1; height: 1px; background: var(--border-color);';
+        h3.appendChild(line);
+        return h3;
+    };
+
+    const renderRepList = (list) => {
+        list.forEach(rep => {
+            const normalizedId = extractStudyId(rep.study_id);
+            const repKey = normalizedId + '_' + rep.color;
+
+            let totalSuccessMoves = 0;
+            let totalRevisionMoves = 0;
+            const cache = getFromCache(normalizedId + '_' + rep.color);
+
+            if (cache && cache.data && cache.data.chapters) {
+                cache.data.chapters.forEach(chap => {
+                    totalRevisionMoves += (chap.moveCount || 0);
+                    const hist = rep.chaptersHistory[chap.title];
+                    const latest = hist && hist.revisions.length > 0 ? hist.revisions[0] : null;
+                    if (latest) {
+                        totalSuccessMoves += Math.min(chap.moveCount || 0, Math.max(0, latest.total_moves - latest.errors));
+                    }
+                });
+            } else {
+                Object.values(rep.chaptersHistory).forEach(chapHist => {
+                    const latest = chapHist.revisions.length > 0 ? chapHist.revisions[0] : null;
+                    if (latest && latest.total_moves > 0) {
+                        totalSuccessMoves += Math.max(0, latest.total_moves - latest.errors);
+                        totalRevisionMoves += latest.total_moves;
+                    }
+                });
+            }
+
+            const globalRate = totalRevisionMoves > 0 ? Math.round((totalSuccessMoves / totalRevisionMoves) * 100) : 0;
+            const rateClass = globalRate >= 80 ? 'high' : (globalRate < 50 ? 'low' : 'medium');
+
+            const repItem = document.createElement('div');
+            repItem.className = 'repertoire-item fade-in';
+            repItem.innerHTML = `
+                <div class="repertoire-header">
+                    <div style="flex: 1;">
+                        <strong style="color: var(--text-main); font-size: 15px;">${rep.title} <span style="color: var(--text-muted); font-weight: normal; font-size: 0.85rem;">(${rep.total_chapters} chapitre${rep.total_chapters > 1 ? 's' : ''})</span></strong>
+                        <div class="meta"><span>Dernière révision : ${formatRelativeTime(rep.last_revision)}</span></div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div class="global-score-badge ${rateClass}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> ${globalRate}%</div>
+                        <div class="toggle-icon" style="color: var(--text-muted); font-size: 18px;">${currentlyOpenRepId === repKey ? '−' : '+'}</div>
+                    </div>
+                </div>
+                <div class="chapters-detail ${currentlyOpenRepId === repKey ? 'open' : ''}"></div>
+            `;
+
+            const header = repItem.querySelector('.repertoire-header');
+            const detail = repItem.querySelector('.chapters-detail');
+            const icon = repItem.querySelector('.toggle-icon');
+
+            header.onclick = async () => {
+                const isOpen = detail.classList.contains('open');
+
+                document.querySelectorAll('.chapters-detail').forEach(d => {
+                    d.classList.remove('open');
+                });
+                document.querySelectorAll('.toggle-icon').forEach(i => {
+                    i.textContent = '+';
+                });
+
+                if (!isOpen) {
+                    currentlyOpenRepId = repKey;
+                    detail.classList.add('open');
+                    icon.textContent = '−';
+                    expandRepertoire(rep, detail, normalizedId);
+                } else {
+                    currentlyOpenRepId = null;
+                }
+            };
+
+            if (currentlyOpenRepId === repKey) {
+                detail.classList.add('open');
+                icon.textContent = '−';
+                setTimeout(() => {
+                    expandRepertoire(rep, detail, normalizedId);
+                }, 0);
+            }
+
+            repertoireListEl.appendChild(repItem);
+        });
+    };
+
+    const expandRepertoire = (rep, detail, normalizedId) => {
+        const renderChapters = (chaptersData) => {
+            detail.innerHTML = '';
+            chaptersData.forEach(chap => {
+                const hist = rep.chaptersHistory[chap.title];
+                const latest = hist && hist.revisions.length > 0 ? hist.revisions[0] : null;
+                const hasData = latest !== null;
+                const moveCount = chap.moveCount;
+
+                let finalSuccessRate = 0;
+                let isUpdated = false;
+
+                if (hasData) {
+                    let successfulMoves = Math.max(0, latest.total_moves - latest.errors);
+                    if (moveCount !== latest.total_moves && latest.total_moves > 0) {
+                        isUpdated = true;
+                        finalSuccessRate = moveCount > 0 ? Math.min(100, Math.max(0, Math.round((successfulMoves / moveCount) * 100))) : 0;
+                    } else {
+                        finalSuccessRate = latest.total_moves > 0 ? Math.max(0, Math.round((successfulMoves / latest.total_moves) * 100)) : 0;
+                    }
+                }
+
+                const successClass = hasData ? (finalSuccessRate >= 80 ? 'success-rate' : (finalSuccessRate < 50 ? 'low-success' : '')) : '';
+                const chapRow = document.createElement('div');
+                chapRow.className = 'chapter-row';
+
+                let progressHtml = hasData ? `<div class="mini-progress-bg"><div class="mini-progress-fill" style="width: ${finalSuccessRate}%; background: ${finalSuccessRate >= 80 ? 'var(--success)' : (finalSuccessRate < 50 ? 'var(--danger)' : 'var(--warning)')}"></div></div>` : '';
+                const chapTitleHtml = isUpdated ? `<strong>${chap.title.replace(rep.title + ": ", "")} <span style="color: var(--warning); font-size: 10px; border: 1px solid var(--warning); padding: 1px 4px; border-radius: 4px; margin-left: 4px;">MAJ</span></strong>` : `<strong>${chap.title.replace(rep.title + ": ", "")}</strong>`;
+
+                chapRow.innerHTML = `<div><span class="label">Chapitre</span>${chapTitleHtml}</div><div><span class="label">Succès</span><span class="${successClass}">${hasData ? finalSuccessRate + '%' : '-'}</span>${progressHtml}</div><div><span class="label">Coups</span><strong style="color: var(--text-main); font-weight: normal;">${moveCount}</strong></div><div><span class="label">Dernière</span><span style="color: var(--text-muted);">${formatRelativeTime(latest ? latest.date : null)}</span></div><div class="play-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>`;
+                chapRow.onclick = (e) => {
+                    e.stopPropagation();
+                    relaunchStudy(normalizedId, chap.title, rep.color);
+                };
+                detail.appendChild(chapRow);
+            });
+
+            const footer = document.createElement('div');
+            footer.style.cssText = 'display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 15px; paddingTop: 12px; borderTop: 1px solid var(--border-color);';
+
+            const syncBtn = document.createElement('button');
+            syncBtn.className = 'secondary';
+            syncBtn.style.cssText = 'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
+            syncBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> Synchroniser`;
+            syncBtn.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                syncFromLichess(true);
+            };
+            footer.appendChild(syncBtn);
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'secondary';
+            delBtn.style.cssText = 'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
+            delBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg> Supprimer`;
+            delBtn.onclick = async (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (!confirm("Voulez-vous vraiment supprimer ce répertoire ?")) {
+                    return;
+                }
+                const res = await fetch(`/api/history/repertoire?study_id=${encodeURIComponent(normalizedId)}&color=${encodeURIComponent(rep.color)}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${state.authToken}` }
+                });
+                if (res.ok) {
+                    currentlyOpenRepId = null;
+                    showToast("Répertoire supprimé", "success");
+                    fetchHistory();
+                }
+            };
+            footer.appendChild(delBtn);
+            detail.appendChild(footer);
+        };
+
+        const syncFromLichess = async (force = false) => {
+            if (!force) {
+                const cache = getFromCache(normalizedId + '_' + rep.color);
+                if (cache && !cache.isExpired) {
+                    renderChapters(cache.data.chapters);
+                    return;
+                }
+            }
+
+            detail.innerHTML = '<div style="padding: 15px; text-align: center; color: var(--text-muted);">Synchronisation Lichess...</div>';
+
+            try {
+                const response = await fetch(`https://lichess.org/api/study/${normalizedId}.pgn?v=${Date.now()}`);
+                if (!response.ok) {
+                    throw new Error("Lichess error");
+                }
+                const pgnText = await response.text();
+                const allChapters = parseMultiPgn(pgnText);
+                const currentStudyName = pgnText.match(/\[StudyName "(.*?)"\]/)?.[1] || rep.title;
+
+                if (currentStudyName !== rep.title && state.authToken) {
+                    try {
+                        await fetch('/api/history/repertoire/title', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.authToken}` },
+                            body: JSON.stringify({ study_id: normalizedId, new_title: currentStudyName })
+                        });
+                    } catch (e) {
+                    }
+                }
+
+                const chaptersWithMoves = allChapters.map(chap => {
+                    let moveCount = 0;
+                    try {
+                        const tempRoot = buildRepertoireTree(chap.pgn);
+                        const countMoves = (n) => {
+                            if (n.id !== 'root' && n.color === rep.color) {
+                                moveCount++;
+                            }
+                            n.children.forEach(countMoves);
+                        };
+                        countMoves(tempRoot);
+                    } catch(e) {
+                    }
+                    return { title: chap.title, moveCount, pgn: chap.pgn };
+                });
+
+                if (state.authToken) {
+                    const historyTitles = Object.keys(rep.chaptersHistory);
+                    if (historyTitles.length > 0) {
+                        for (let i = 0; i < chaptersWithMoves.length; i++) {
+                            const newTitle = chaptersWithMoves[i].title;
+                            if (!rep.chaptersHistory[newTitle]) {
+                                const orphanedTitle = historyTitles.find(t => !chaptersWithMoves.some(c => c.title === t));
+                                if (orphanedTitle) {
+                                    try {
+                                        await fetch('/api/history/chapter/title', {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.authToken}` },
+                                            body: JSON.stringify({ study_id: normalizedId, old_title: orphanedTitle, new_title: newTitle })
+                                        });
+                                        historyTitles.splice(historyTitles.indexOf(orphanedTitle), 1);
+                                    } catch (e) {
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                saveToCache(normalizedId + '_' + rep.color, { chapters: chaptersWithMoves, title: currentStudyName });
+                fetchHistory();
+            } catch (err) {
+                detail.innerHTML = `<div style="padding: 15px; text-align: center; color: var(--danger);">Erreur lors de la synchronisation.</div>`;
+            }
+        };
+        syncFromLichess();
+    };
+
+    if (whiteReps.length > 0) {
+        repertoireListEl.appendChild(createSectionHeader('Blancs'));
+        renderRepList(whiteReps);
+    }
+    if (blackReps.length > 0) {
+        repertoireListEl.appendChild(createSectionHeader('Noirs'));
+        renderRepList(blackReps);
+    }
+};
+
+const relaunchStudy = async (studyId, chapterTitle, color) => {
+    document.getElementById('lichessInput').value = studyId;
+    setToggleState('colorToggle', color);
+    setToggleState('modeToggle', 'revision');
+    await loadLichessStudy(studyId, chapterTitle);
+};
+
+export const saveHistory = async (stats) => {
+    if (!state.authToken) {
+        return;
+    }
+    const normalizedId = extractStudyId(document.getElementById('lichessInput').value.trim());
+    try {
+        const res = await fetch('/api/history', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.authToken}` },
+            body: JSON.stringify({
+                ...stats,
+                study_id: normalizedId,
+                color: state.playerColor,
+                total_chapters: state.currentRepertoire ? state.currentRepertoire.chapters.length : 0
+            })
+        });
+        if (res.status === 401 || res.status === 403) {
+            document.getElementById('logoutBtn').click();
+        } else {
+            fetchHistory();
+        }
+    } catch (err) {
+        console.error("Save history error:", err);
+    }
+};
+
+export const updateChapterList = () => {
+    if (!state.currentRepertoire) {
+        return;
+    }
+    const chapterListEl = document.getElementById('chapterList');
+    const chapterSelectionArea = document.getElementById('chapter-selection-area');
+    const startBtn = document.getElementById('startBtn');
+
+    state.playerColor = getToggleState('colorToggle');
+    const previousIdx = state.currentChapterIndex;
+    chapterListEl.innerHTML = '';
+    state.selectedChapterPgn = null;
+    state.currentChapterIndex = -1;
+
+    if (state.currentRepertoire.chapters.length === 1) {
+        chapterSelectionArea.classList.add('hidden');
+        state.selectedChapterPgn = state.currentRepertoire.chapters[0].pgn;
+        state.currentChapterIndex = 0;
+        startBtn.disabled = false;
+    } else {
+        chapterSelectionArea.classList.remove('hidden');
+        startBtn.disabled = true;
+        state.currentRepertoire.chapters.forEach((chap, idx) => {
+            let moveCount = 0;
+            try {
+                const tempRoot = buildRepertoireTree(chap.pgn);
+                const countMoves = (n) => {
+                    if (n.id !== 'root' && n.color === state.playerColor) {
+                        moveCount++;
+                    }
+                    n.children.forEach(countMoves);
+                };
+                countMoves(tempRoot);
+            } catch(e) {
+            }
+            const btn = document.createElement('button');
+            btn.className = 'chapter-btn';
+            if (idx === previousIdx) {
+                btn.classList.add('selected');
+                state.selectedChapterPgn = chap.pgn;
+                state.currentChapterIndex = idx;
+                startBtn.disabled = false;
+            }
+            btn.innerHTML = `<span>${chap.title}</span><span class="chapter-count">${moveCount} coups</span>`;
+            btn.onclick = () => {
+                document.querySelectorAll('.chapter-btn').forEach(b => {
+                    b.classList.remove('selected');
+                });
+                btn.classList.add('selected');
+                state.selectedChapterPgn = chap.pgn;
+                state.currentChapterIndex = idx;
+                startBtn.disabled = false;
+            };
+            chapterListEl.appendChild(btn);
+        });
+    }
+};
+
+export const loadLichessStudy = async (input, targetChapterTitle = null) => {
+    document.getElementById('config-card').style.display = 'none';
+    if (!input) {
+        return;
+    }
+    const studyId = extractStudyId(input);
+    const loadBtn = document.getElementById('loadBtn');
+    loadBtn.disabled = true;
+    loadBtn.textContent = "Chargement...";
+    try {
+        const response = await fetch(`https://lichess.org/api/study/${studyId}.pgn?v=${Date.now()}`);
+        if (!response.ok) {
+            throw new Error("Étude non trouvée.");
+        }
+        const pgnText = await response.text();
+        const studyName = pgnText.match(/\[StudyName "(.*?)"\]/)?.[1] || `Étude Lichess (${studyId})`;
+        state.currentRepertoire = { title: studyName, chapters: parseMultiPgn(pgnText) };
+        document.getElementById('config-title').textContent = `Répertoire : ${studyName}`;
+        document.getElementById('config-card').style.display = 'flex';
+        if (targetChapterTitle) {
+            state.currentChapterIndex = state.currentRepertoire.chapters.findIndex(c => c.title === targetChapterTitle);
+        }
+        updateChapterList();
+        showToast("Étude chargée avec succès", "success");
+        document.getElementById('config-card').scrollIntoView({ behavior: 'smooth' });
+    } catch (err) {
+        showToast(err.message, "error");
+    } finally {
+        loadBtn.disabled = false;
+        loadBtn.textContent = "Charger le répertoire";
+    }
+};
+
+export const initDashboard = () => {
+    document.getElementById('colorToggle').onclick = () => {
+        setTimeout(updateChapterList, 50);
+    };
+
+    document.getElementById('loadBtn').onclick = () => {
+        loadLichessStudy(document.getElementById('lichessInput').value.trim());
+    };
+};
