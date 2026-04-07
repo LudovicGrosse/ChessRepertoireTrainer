@@ -1,16 +1,12 @@
 {
   "name": "v1",
   "version": "1.0.0",
-  "description": "A lightweight, web-based tool designed to help chess players learn and practice their opening repertoires. This application allows users to load PGN files or Lichess studies and practice them in two modes: **Discovery** and **Revision**.",
+  "description": "A lightweight, web-based tool designed to help chess players learn and practice their opening repertoires.",
   "main": "server/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "cross-env NODE_ENV=test jest",
     "start": "node server/server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
@@ -20,5 +16,14 @@
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^8.0.3",
     "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "jest": "^30.3.0",
+    "supertest": "^7.2.2"
+  },
+  "jest": {
+    "setupFilesAfterEnv": ["<rootDir>/__tests__/setup.js"],
+    "testPathIgnorePatterns": ["<rootDir>/__tests__/setup.js"]
   }
 }
