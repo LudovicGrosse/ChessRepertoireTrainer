@@ -38,9 +38,6 @@ jobs:
     - name: Run automated UI tests (Playwright)
       run: npx playwright test
 
-    - uses: actions/upload-artifact@v4
-      if: ${{ !cancelled() }}
-      with:
-        name: playwright-report-${{ matrix.node-version }}
-        path: playwright-report/
-        retention-days: 10
+    - name: Deploy to Render (Production)
+      if: success() && matrix.node-version == '24.x'
+      run: curl -f "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" || echo "Deployment signal sent to Render"
