@@ -1,67 +1,51 @@
-# Testing Documentation
+# Test Suite Specifications
 
-This project follows the **Testing Pyramid** principles to ensure high reliability, maintainability, and fast execution.
+This project implements a multi-layered testing strategy to ensure reliability across the entire application stack.
 
-## 1. Unit Tests (Logic & Utilities)
-**Tool:** Jest  
-**Execution:** `npm test`  
-**Location:** `__tests__/frontend/` and `__tests__/backend/`
+## 1. Unit & Integration Tests (Backend & Logic)
+**Framework:** Jest | **Execution:** `npm test` | **Environment:** Node.js / JSDOM
 
-Focuses on pure functions and business logic without side effects (no network, no database).
+### 1.1 Authentication & User Management (`__tests__/auth.test.js`)
+1.  **POST /api/register** - Successfully creates a new user and sends a verification email.
+2.  **POST /api/register (Conflict)** - Returns 400 when attempting to register an existing email/username.
+3.  **POST /api/login (Success)** - Returns a valid JWT token and user object for correct credentials.
+4.  **POST /api/login (Failure)** - Returns 401 for incorrect password or non-existent user.
+5.  **GET /api/verify-email/:token** - Successfully verifies a user account via a valid token.
 
-### Frontend Utilities (`public/js/utils.js`)
-- **Lichess ID Extraction:** Validates that `extractStudyId` correctly parses IDs from full URLs, chapter URLs, or raw strings.
-- **Date Formatting:** Ensures `formatRelativeTime` returns human-readable strings like "2 days ago" or "Just now".
+### 1.2 Training History API (`__tests__/history.test.js`)
+6.  **POST /api/history** - Persists a new training session for an authenticated user.
+7.  **GET /api/history** - Retrieves the complete training history for the logged-in user.
+8.  **DELETE /api/history/repertoire** - Removes all history records for a specific Lichess study ID.
 
-### PGN & Data Engine (`public/js/data.js`)
-- **Multi-PGN Parsing:** Validates that the engine can split a Lichess study into multiple chapters correctly.
-- **Move Tree Construction:** Verifies that the PGN string is correctly converted into a tree of chess nodes for the training engine.
-
-### Backend Extraction (`server/extractor.js`)
-- **Game End Parsing:** Ensures the server can correctly identify the end of a PGN sequence.
-
----
-
-## 2. Integration Tests (API & Database)
-**Tool:** Jest + Supertest  
-**Execution:** `npm test`  
-**Location:** `__tests__/*.test.js`
-
-Focuses on communication between the server and the (mocked) database.
-
-### Authentication API (`/api/auth`)
-- **Registration:** Tests successful signup, duplicate email handling (400), and password hashing.
-- **Login:** Verifies JWT token issuance and credential validation.
-- **Email Verification:** Mocks the mailer to test the verification token flow.
-
-### History API (`/api/history`)
-- **Persistence:** Tests saving and retrieving training sessions.
-- **Authorization:** Ensures that history data is protected by JWT and users can only access their own data.
+### 1.3 Logic & Utilities (`__tests__/frontend/` & `__tests__/backend/`)
+9.  **extractStudyId (Full URL)** - Parses study ID from standard Lichess study links.
+10. **extractStudyId (Chapter URL)** - Parses study ID correctly even from specific chapter links.
+11. **extractStudyId (Raw ID)** - Returns the input unchanged if a raw ID is provided.
+12. **formatRelativeTime (Recent)** - Returns "À l'instant" for timestamps within the last minute.
+13. **formatRelativeTime (Days)** - Returns "Il y a X jours" for older timestamps.
+14. **parseMultiPgn (Chapters)** - Correctly splits a multi-chapter PGN into individual chapter objects.
+15. **parseMultiPgn (Metadata)** - Extracts [StudyName] and [Event] tags accurately.
+16. **buildRepertoireTree (Structure)** - Converts a PGN string into a valid recursive tree of chess moves.
+17. **buildRepertoireTree (Colors)** - Assigns correct player colors to each node in the move tree.
+18. **extractGameEndPgn** - Identifies and extracts the final move and result from a PGN sequence.
 
 ---
 
-## 3. End-to-End (E2E) Tests (User Interface)
-**Tool:** Playwright  
-**Execution:** `npx playwright test`  
-**Location:** `tests/e2e/`
+## 2. End-to-End Interactive Tests (UI & UX)
+**Framework:** Playwright | **Execution:** `npx playwright test` | **Environment:** Headless Browsers
 
-Simulates a real user interacting with the application in a headless browser (Chromium/Firefox/WebKit).
+### 2.1 User Flows (`tests/e2e/auth.spec.js`)
+19. **Registration & Login Flow** - Simulates full user signup, automated redirect, and successful login.
 
-### Authentication Flow (`auth.spec.js`)
-- **Sign-up to Dashboard:** Automates the process of creating an account, receiving a success message, and logging in to reach the main interface.
+### 2.2 Dashboard Interactions (`tests/e2e/dashboard.spec.js`)
+20. **Repertoire Management** - Validates the UI's ability to display, expand, and delete a repertoire accordion.
 
-### Training Workflow (`training.spec.js`)
-- **Study Loading:** Simulates entering a Lichess Study ID, clicking "Load", and verifying the chapters are displayed.
-- **Board Rendering:** Verifies that the **Chessground** board is correctly drawn on the screen after starting a session.
-- **Training Controls:** Tests the "Notes" and "Quit" buttons to ensure the UI transitions correctly.
-
-### Dashboard Management (`dashboard.spec.js`)
-- **Repertoire Display:** Verifies that saved repertoires are visible in the history list.
-- **Deletion:** Tests the full flow of expanding a repertoire accordion and deleting it from the UI.
+### 2.3 Training Engine (`tests/e2e/training.spec.js`)
+21. **Study Loading** - Verifies that entering a Lichess ID correctly renders the study title and chapter list.
+22. **Chessboard Rendering** - Confirms the **Chessground** board is visible and interactive after starting training.
+23. **Session Termination** - Tests the "Quit" button to ensure clean exit from training back to the dashboard.
 
 ---
 
-## CI/CD Integration
-All tests are automatically executed on every **Push** or **Pull Request** via **GitHub Actions** (Node.js 20, 22, 24).
-- **Backend/Unit:** Must pass for a successful build.
-- **E2E:** Generates an HTML report as a GitHub Artifact in case of failure for visual debugging.
+## CI/CD Automation
+Tests are automatically triggered on every push to `master` or `deploy-online` via GitHub Actions across Node.js versions 20, 22, and 24. Failure in any test prevents deployment.
