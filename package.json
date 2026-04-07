@@ -4,7 +4,7 @@
   "description": "A lightweight, web-based tool designed to help chess players learn and practice their opening repertoires.",
   "main": "server/server.js",
   "scripts": {
-    "test": "cross-env NODE_ENV=test jest --testPathIgnorePatterns=/tests/",
+    "test": "cross-env NODE_ENV=test jest",
     "start": "node server/server.js"
   },
   "dependencies": {
@@ -29,7 +29,8 @@
       "<rootDir>/__tests__/setup.js"
     ],
     "testPathIgnorePatterns": [
-      "<rootDir>/__tests__/setup.js"
+      "<rootDir>/__tests__/setup.js",
+      "<rootDir>/tests/"
     ]
   }
 }
