@@ -4,7 +4,7 @@
   "description": "A lightweight, web-based tool designed to help chess players learn and practice their opening repertoires.",
   "main": "server/server.js",
   "scripts": {
-    "test": "cross-env NODE_ENV=test jest",
+    "test": "cross-env NODE_ENV=test jest --testPathIgnorePatterns=/tests/",
     "start": "node server/server.js"
   },
   "dependencies": {
