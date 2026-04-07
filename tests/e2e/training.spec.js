@@ -64,5 +64,12 @@ test.describe('Training Engine Flow', () => {
     await expect(page.getByRole('button', { name: 'Notes' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Solution' })).toBeHidden(); // Hidden in Discovery mode
     await expect(page.getByRole('button', { name: 'Quitter' })).toBeVisible();
+
+    // Click "Quitter"
+    await page.getByRole('button', { name: 'Quitter' }).click();
+
+    // Verify that we return to the setup/dashboard view
+    await expect(page.locator('#setup-view')).toBeVisible();
+    await expect(page.locator('#training-view')).toBeHidden();
   });
 });

@@ -18,10 +18,15 @@
     "pg": "^8.20.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.2",
     "@playwright/test": "^1.59.1",
     "@types/node": "^25.5.2",
+    "babel-jest": "^30.3.0",
+    "chess.js": "^1.4.0",
     "cross-env": "^10.1.0",
     "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0",
     "supertest": "^7.2.2"
   },
   "jest": {
@@ -31,6 +36,9 @@
     "testPathIgnorePatterns": [
       "<rootDir>/__tests__/setup.js",
       "<rootDir>/tests/"
-    ]
+    ],
+    "moduleNameMapper": {
+      "^https://cdn\\.jsdelivr\\.net/npm/chess\\.js(.*)$": "chess.js"
+    }
   }
 }
