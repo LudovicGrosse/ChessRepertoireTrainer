@@ -1,3 +1,10 @@
 node_modules/
 database.db
 .env
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

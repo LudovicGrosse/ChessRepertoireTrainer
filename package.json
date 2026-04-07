@@ -18,12 +18,18 @@
     "pg": "^8.20.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^25.5.2",
     "cross-env": "^10.1.0",
     "jest": "^30.3.0",
     "supertest": "^7.2.2"
   },
   "jest": {
-    "setupFilesAfterEnv": ["<rootDir>/__tests__/setup.js"],
-    "testPathIgnorePatterns": ["<rootDir>/__tests__/setup.js"]
+    "setupFilesAfterEnv": [
+      "<rootDir>/__tests__/setup.js"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/__tests__/setup.js"
+    ]
   }
 }
