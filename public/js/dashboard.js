@@ -98,10 +98,8 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
         total_revisions: 0,
       };
     }
-    if (entry.is_revision) {
-      rep.chaptersHistory[entry.chapter_id].revisions.push(entry);
-      rep.chaptersHistory[entry.chapter_id].total_revisions++;
-    }
+    rep.chaptersHistory[entry.chapter_id].revisions.push(entry);
+    rep.chaptersHistory[entry.chapter_id].total_revisions++;
   });
 
   const reps = apiRepertoires.map((dbRep) => {
