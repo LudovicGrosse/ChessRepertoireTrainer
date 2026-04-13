@@ -344,59 +344,60 @@ const renderInteractiveDashboard = (history) => {
               body: JSON.stringify({ study_id: normalizedId, new_title: currentStudyName }),
             });
           } catch (e) {
-              console.error('Update repertoire title error:', e);
+            console.error('Update repertoire title error:', e);
           }
-          }
+        }
 
-          const chaptersWithMoves = allChapters.map((chap) => {
+        const chaptersWithMoves = allChapters.map((chap) => {
           let moveCount = 0;
           try {
-              const tempRoot = buildRepertoireTree(chap.pgn);
-              const countMoves = (n) => {
-                  if (n.id !== 'root' && n.color === rep.color) {
-                      moveCount++;
-                  }
-                  n.children.forEach(countMoves);
-              };
-              countMoves(tempRoot);
+            const tempRoot = buildRepertoireTree(chap.pgn);
+            const countMoves = (n) => {
+              if (n.id !== 'root' && n.color === rep.color) {
+                moveCount++;
+              }
+              n.children.forEach(countMoves);
+            };
+            countMoves(tempRoot);
           } catch (e) {
-              console.error('Count moves error:', e);
+            console.error('Count moves error:', e);
           }
           return { title: chap.title, moveCount, pgn: chap.pgn };
-          });
+        });
 
-          if (state.authToken) {
+        if (state.authToken) {
           const historyTitles = Object.keys(rep.chaptersHistory);
           if (historyTitles.length > 0) {
-              for (let i = 0; i < chaptersWithMoves.length; i++) {
-                  const newTitle = chaptersWithMoves[i].title;
-                  if (!rep.chaptersHistory[newTitle]) {
-                      const orphanedTitle = historyTitles.find(
-                          (t) => !chaptersWithMoves.some((c) => c.title === t)
-                      );
-                      if (orphanedTitle) {
-                          try {
-                              await fetch('/api/history/chapter/title', {
-                                  method: 'PUT',
-                                  headers: {
-                                      'Content-Type': 'application/json',
-                                      Authorization: `Bearer ${state.authToken}`,
-                                  },
-                                  body: JSON.stringify({
-                                      study_id: normalizedId,
-                                      old_title: orphanedTitle,
-                                      new_title: newTitle,
-                                  }),
-                              });
-                              historyTitles.splice(historyTitles.indexOf(orphanedTitle), 1);
-                          } catch (e) {
-                              console.error('Update chapter title error:', e);
-                          }
-                      }
+            for (let i = 0; i < chaptersWithMoves.length; i++) {
+              const newTitle = chaptersWithMoves[i].title;
+              if (!rep.chaptersHistory[newTitle]) {
+                const orphanedTitle = historyTitles.find(
+                  (t) => !chaptersWithMoves.some((c) => c.title === t)
+                );
+                if (orphanedTitle) {
+                  try {
+                    await fetch('/api/history/chapter/title', {
+                      method: 'PUT',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${state.authToken}`,
+                      },
+                      body: JSON.stringify({
+                        study_id: normalizedId,
+                        old_title: orphanedTitle,
+                        new_title: newTitle,
+                      }),
+                    });
+                    historyTitles.splice(historyTitles.indexOf(orphanedTitle), 1);
+                  } catch (e) {
+                    console.error('Update chapter title error:', e);
                   }
+                }
               }
+            }
           }
-          }        saveToCache(normalizedId + '_' + rep.color, {
+        }
+        saveToCache(normalizedId + '_' + rep.color, {
           chapters: chaptersWithMoves,
           title: currentStudyName,
         });
@@ -484,7 +485,9 @@ export const updateChapterList = () => {
           n.children.forEach(countMoves);
         };
         countMoves(tempRoot);
-      } catch (e) {}
+      } catch (e) {
+        console.error('Count moves error:', e);
+      }
       const btn = document.createElement('button');
       btn.className = 'chapter-btn';
       if (idx === previousIdx) {
