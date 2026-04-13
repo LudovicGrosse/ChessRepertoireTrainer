@@ -391,7 +391,7 @@ const startNextVariation = () => {
 export const startTrainingSessionDirect = async (
   studyId,
   repertoireTitle,
-  chapterTitle,
+  chapterId,
   color,
   mode
 ) => {
@@ -403,14 +403,14 @@ export const startTrainingSessionDirect = async (
       const cache = JSON.parse(saved);
       const entry = cache[studyId + '_' + color];
       if (entry && Date.now() - entry.timestamp <= 60 * 60 * 1000) {
-        const chap = entry.chapters.find((c) => c.title === chapterTitle);
+        const chap = entry.chapters.find((c) => c.id === chapterId);
         if (chap) {
           pgnText = chap.pgn;
           state.currentRepertoire = {
             title: entry.title || repertoireTitle,
             chapters: entry.chapters,
           };
-          state.currentChapterIndex = entry.chapters.findIndex((c) => c.title === chapterTitle);
+          state.currentChapterIndex = entry.chapters.findIndex((c) => c.id === chapterId);
         }
       }
     }
@@ -427,7 +427,7 @@ export const startTrainingSessionDirect = async (
       const studyName = fullPgnText.match(/\[StudyName "(.*?)"\]/)?.[1] || repertoireTitle;
       const chapters = parseMultiPgn(fullPgnText);
       state.currentRepertoire = { title: studyName, chapters: chapters };
-      const idx = chapters.findIndex((c) => c.title === chapterTitle);
+      const idx = chapters.findIndex((c) => c.id === chapterId);
       if (idx === -1) throw new Error('Chapitre introuvable');
       state.currentChapterIndex = idx;
       pgnText = chapters[idx].pgn;
@@ -459,7 +459,9 @@ export const startTrainingSessionDirect = async (
 };
 
 const launchTrainingUI = () => {
-  if (!state.selectedChapterPgn) return;
+  if (!state.selectedChapterPgn) {
+    return;
+  }
   try {
     state.rootNode = buildRepertoireTree(state.selectedChapterPgn);
   } catch (e) {

@@ -150,7 +150,7 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
       if (cache && cache.data && cache.data.chapters) {
         cache.data.chapters.forEach((chap) => {
           totalRevisionMoves += chap.moveCount || 0;
-          const hist = rep.chaptersHistory[chap.title];
+          const hist = rep.chaptersHistory[chap.id];
           const latest = hist && hist.revisions.length > 0 ? hist.revisions[0] : null;
           if (latest) {
             totalSuccessMoves += Math.min(
@@ -229,7 +229,7 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
     const renderChapters = (chaptersData) => {
       detail.innerHTML = '';
       chaptersData.forEach((chap) => {
-        const hist = rep.chaptersHistory[chap.title];
+        const hist = rep.chaptersHistory[chap.id];
         const latest = hist && hist.revisions.length > 0 ? hist.revisions[0] : null;
         const hasData = latest !== null;
         const moveCount = chap.moveCount;
@@ -302,7 +302,7 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
             startTrainingSessionDirect(
               normalizedId,
               rep.title,
-              chap.title,
+              chap.id,
               rep.color,
               'decouverte'
             );
@@ -311,10 +311,10 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
           const revBtn = document.createElement('button');
           revBtn.className = 'secondary';
           revBtn.style.cssText = 'flex: 1; padding: 8px; font-size: 13px;';
-          revBtn.textContent = 'Jouer en Révision';
+          revBtn.textContent = 'Mode révision';
           revBtn.onclick = (evt) => {
             evt.stopPropagation();
-            startTrainingSessionDirect(normalizedId, rep.title, chap.title, rep.color, 'revision');
+            startTrainingSessionDirect(normalizedId, rep.title, chap.id, rep.color, 'revision');
           };
 
           actionsDiv.appendChild(decBtn);
@@ -424,37 +424,28 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
           } catch (e) {
             console.error('Count moves error:', e);
           }
-          return { title: chap.title, moveCount, pgn: chap.pgn };
+          return { id: chap.id, title: chap.title, moveCount, pgn: chap.pgn };
         });
 
         if (state.authToken) {
-          const historyTitles = Object.keys(rep.chaptersHistory);
-          if (historyTitles.length > 0) {
-            for (let i = 0; i < chaptersWithMoves.length; i++) {
-              const newTitle = chaptersWithMoves[i].title;
-              if (!rep.chaptersHistory[newTitle]) {
-                const orphanedTitle = historyTitles.find(
-                  (t) => !chaptersWithMoves.some((c) => c.title === t)
-                );
-                if (orphanedTitle) {
-                  try {
-                    await fetch('/api/history/chapter/title', {
-                      method: 'PUT',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${state.authToken}`,
-                      },
-                      body: JSON.stringify({
-                        repertoire_id: normalizedId,
-                        old_title: orphanedTitle,
-                        new_title: newTitle,
-                      }),
-                    });
-                    historyTitles.splice(historyTitles.indexOf(orphanedTitle), 1);
-                  } catch (e) {
-                    console.error('Update chapter title error:', e);
-                  }
-                }
+          for (let chap of chaptersWithMoves) {
+            const hist = rep.chaptersHistory[chap.id];
+            if (hist && hist.title !== chap.title) {
+              try {
+                await fetch('/api/history/chapter/title', {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${state.authToken}`,
+                  },
+                  body: JSON.stringify({
+                    repertoire_id: normalizedId,
+                    chapter_id: chap.id,
+                    new_title: chap.title,
+                  }),
+                });
+              } catch (e) {
+                console.error('Update chapter title error:', e);
               }
             }
           }
