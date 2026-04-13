@@ -558,21 +558,113 @@ header .user-badge span {
 .chapter-row {
   padding: 12px;
   border-radius: 8px;
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1fr 40px;
-  align-items: center;
-  font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-bottom: 4px;
   border: 1px solid transparent;
   position: relative;
 }
+
+.chapter-info-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 40px;
+  align-items: center;
+  font-size: 13px;
+  width: 100%;
+}
+
 .chapter-row:hover {
   background: var(--card-hover);
   border-color: var(--primary);
   transform: translateX(4px);
 }
+
+.chapter-title-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+@media (max-width: 600px) {
+  .chapter-info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .chapter-name-col {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  .chapter-name-col .chapter-title-text {
+    flex: 1;
+  }
+  .chapter-info-grid .play-icon {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    opacity: 0.6 !important;
+    transform: none !important;
+  }
+  .chapter-stat-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    border-top: 1px solid var(--border-color);
+    margin-top: 4px;
+    padding-top: 8px;
+    font-size: 11px;
+  }
+  /* On mobile, we need to hide the individual labels and wrap stats in a centered flexbox */
+  .chapter-stat-col {
+    text-align: center;
+  }
+  /* Re-styling the grid for mobile if needed, but let's use a wrapper for stats */
+}
+
+/* Helper for mobile stats wrapper injected via JS logic or CSS grid adjustment */
+@media (max-width: 600px) {
+  .chapter-info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .chapter-name-col {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding-right: 30px;
+  }
+  .chapter-stat-col {
+    display: none; /* We will use a different approach for mobile stats */
+  }
+  /* Let's try a cleaner CSS-only approach by redefining the grid */
+  .chapter-info-grid {
+    grid-template-areas: 
+      "name play"
+      "stats stats";
+    grid-template-columns: 1fr 40px;
+    gap: 8px;
+  }
+  .chapter-name-col { grid-area: name; padding-right: 0; }
+  .play-icon { grid-area: play; opacity: 0.6 !important; transform: none !important; }
+  
+  /* Create a virtual row for stats */
+  .chapter-row::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 1px;
+    background: var(--border-color);
+    margin: 4px 0;
+  }
+}
+
 .chapter-row .play-icon {
   opacity: 0;
   transform: scale(0.8);
