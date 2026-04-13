@@ -278,10 +278,10 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
                 </div>
                 <div class="play-icon" style="flex-shrink: 0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
             </div>
-            <div class="chapter-stats-info" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; width: 100%; border-top: 1px solid var(--border-color); pt: 8px; margin-top: 4px; padding-top: 8px;">
-                <div><span class="label">Succès</span><span class="${successClass}">${hasData ? finalSuccessRate + '%' : '-'}</span>${progressHtml}</div>
-                <div><span class="label">Coups</span><strong style="color: var(--text-main); font-weight: normal;">${moveCount}</strong></div>
-                <div><span class="label">Dernière</span><span style="color: var(--text-muted);">${formatRelativeTime(latest ? latest.date : null)}</span></div>
+            <div class="chapter-stats-info" style="display: flex; justify-content: center; align-items: center; gap: 20px; width: 100%; border-top: 1px solid var(--border-color); margin-top: 4px; padding-top: 8px; font-size: 11px;">
+                <div style="text-align: center;"><span class="label" style="margin-bottom: 2px;">Succès</span><span class="${successClass}">${hasData ? finalSuccessRate + '%' : '-'}</span>${progressHtml}</div>
+                <div style="text-align: center;"><span class="label" style="margin-bottom: 2px;">Coups</span><strong style="color: var(--text-main); font-weight: normal;">${moveCount}</strong></div>
+                <div style="text-align: center;"><span class="label" style="margin-bottom: 2px;">Dernière</span><span style="color: var(--text-muted);">${formatRelativeTime(latest ? latest.date : null)}</span></div>
             </div>`;
 
         chapRow.onclick = (e) => {
