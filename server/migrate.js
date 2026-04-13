@@ -3,8 +3,46 @@ const { Pool } = require('pg');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl:
+    process.env.NODE_ENV === 'production'
+      ? { rejectUnauthorized: false }
+      : { rejectUnauthorized: false }, // Force SSL for Neon even locally if needed
 });
+
+// Helper to parse PGN and extract chapter IDs and Titles
+function parseChapters(rawPgn) {
+  const chapters = [];
+  const parts = rawPgn.split(/(?=\[Event ")/);
+
+  parts.forEach((part, index) => {
+    if (!part.trim()) return;
+
+    let title = `Chapitre ${index + 1}`;
+    const chapterNameMatch = part.match(/\[ChapterName\s+"([^"]+)"\]/);
+    const eventMatch = part.match(/\[Event\s+"([^"]+)"\]/);
+
+    if (chapterNameMatch && chapterNameMatch[1]) {
+      title = chapterNameMatch[1];
+    } else if (eventMatch && eventMatch[1] && eventMatch[1] !== '?') {
+      title = eventMatch[1];
+    }
+
+    const siteMatch = part.match(/\[Site\s+"([^"]+)"\]/);
+    const studyUrl = siteMatch ? siteMatch[1] : null;
+
+    let chapter_id = `chap_${Date.now()}_${index}`;
+    if (studyUrl) {
+      const chapterIdMatch = studyUrl.match(/study\/[a-zA-Z0-9]+\/([a-zA-Z0-9]+)/);
+      if (chapterIdMatch && chapterIdMatch[1]) {
+        chapter_id = chapterIdMatch[1];
+      }
+    }
+
+    chapters.push({ title, chapter_id });
+  });
+
+  return chapters;
+}
 
 async function migrate() {
   const client = await pool.connect();
@@ -48,7 +86,6 @@ async function migrate() {
     `);
 
     console.log('4. Deduplicating history entries to keep only the latest per chapter');
-    // We delete older rows for the same user, repertoire, chapter_title, and color.
     await client.query(`
       DELETE FROM history a USING history b
       WHERE a.user_id = b.user_id 
@@ -58,7 +95,43 @@ async function migrate() {
         AND a.date < b.date;
     `);
 
-    console.log('5. Filling chapter_id for existing rows with chapter_title');
+    console.log('5. Fetching actual chapter IDs from Lichess...');
+    const { rows: distinctStudies } = await client.query(
+      `SELECT DISTINCT repertoire_id FROM history WHERE repertoire_id IS NOT NULL`
+    );
+
+    for (const row of distinctStudies) {
+      const repId = row.repertoire_id;
+      console.log(`   -> Fetching study: ${repId}`);
+      try {
+        const response = await fetch(`https://lichess.org/api/study/${repId}.pgn`);
+        if (response.ok) {
+          const pgnText = await response.text();
+          const chapters = parseChapters(pgnText);
+
+          for (const chap of chapters) {
+            await client.query(
+              `
+              UPDATE history 
+              SET chapter_id = $1 
+              WHERE repertoire_id = $2 AND chapter_title = $3
+            `,
+              [chap.chapter_id, repId, chap.title]
+            );
+          }
+        } else {
+          console.log(
+            `      [Warning] Could not fetch study ${repId} (Status: ${response.status})`
+          );
+        }
+      } catch (err) {
+        console.log(`      [Error] Failed to fetch study ${repId}: ${err.message}`);
+      }
+    }
+
+    console.log(
+      '5b. Filling chapter_id for any remaining unmatched rows with chapter_title (fallback)'
+    );
     await client.query(`
       UPDATE history SET chapter_id = chapter_title WHERE chapter_id IS NULL;
     `);
