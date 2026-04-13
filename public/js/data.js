@@ -68,7 +68,8 @@ export const buildRepertoireTree = (pgnText) => {
   // Safely remove only standard PGN headers: [Word "Value"]
   let cleanedText = pgnText.replace(/\[[a-zA-Z]+\s+"[^"]*"\]\s*/g, '').trim();
 
-  const tokens = cleanedText.match(/[a-zA-Z0-9\-+=#KQRBN]+|\(|\)|\{[^}]*\}|\$\d+|\d+\.+/g) || [];
+  const tokens =
+    cleanedText.match(/\d+\.+|\d+|\(|\)|\{[^}]*\}|\$\d+|[a-zA-Z0-9\-+=#KQRBN]+/g) || [];
 
   const root = {
     id: 'root',
@@ -89,7 +90,7 @@ export const buildRepertoireTree = (pgnText) => {
   let idCounter = 0;
 
   for (let token of tokens) {
-    if (/^\d+\.+$/.test(token) || /^\$\d+$/.test(token)) {
+    if (/^\d+\.*$/.test(token) || /^\$\d+$/.test(token)) {
       continue;
     }
 

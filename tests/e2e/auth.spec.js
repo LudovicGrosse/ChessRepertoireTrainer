@@ -66,7 +66,7 @@ test.describe('Authentication Flow', () => {
     await page.getByRole('button', { name: 'Se connecter' }).click();
 
     // Expect success toast and dashboard
-    await expect(page.getByText('Connexion réussie')).toBeVisible();
+    await expect(page.getByText('Connexion réussie', { exact: true })).toBeVisible();
 
     // Expect to see user greeting and dashboard titles
     await expect(page.locator('#displayUsername')).toHaveText('testuser');
