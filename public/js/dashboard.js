@@ -91,17 +91,16 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
     ) {
       rep.last_revision = entry.date;
     }
-    const chapterKey = entry.chapter_id || entry.chapter_title;
-    if (!rep.chaptersHistory[chapterKey]) {
-      rep.chaptersHistory[chapterKey] = {
+    if (!rep.chaptersHistory[entry.chapter_id]) {
+      rep.chaptersHistory[entry.chapter_id] = {
         title: entry.chapter_title,
         revisions: [],
         total_revisions: 0,
       };
     }
     if (entry.is_revision) {
-      rep.chaptersHistory[chapterKey].revisions.push(entry);
-      rep.chaptersHistory[chapterKey].total_revisions++;
+      rep.chaptersHistory[entry.chapter_id].revisions.push(entry);
+      rep.chaptersHistory[entry.chapter_id].total_revisions++;
     }
   });
 
