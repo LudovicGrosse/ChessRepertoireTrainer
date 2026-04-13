@@ -5,7 +5,10 @@
   "main": "server/server.js",
   "scripts": {
     "test": "cross-env NODE_ENV=test jest",
-    "start": "node server/server.js"
+    "start": "node server/server.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -20,13 +23,19 @@
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.2",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.59.1",
     "@types/node": "^25.5.2",
     "babel-jest": "^30.3.0",
     "chess.js": "^1.4.0",
     "cross-env": "^10.1.0",
+    "eslint": "^10.2.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.5.0",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
+    "prettier": "^3.8.2",
     "supertest": "^7.2.2"
   },
   "jest": {

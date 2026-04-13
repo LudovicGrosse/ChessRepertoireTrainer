@@ -1,0 +1,26 @@
+﻿2026-04-07T21:45:10.7550993Z ##[group]Run actions/upload-artifact@v4
+2026-04-07T21:45:10.7551289Z with:
+2026-04-07T21:45:10.7551474Z   name: playwright-report-24.x
+2026-04-07T21:45:10.7551719Z   path: playwright-report/
+2026-04-07T21:45:10.7551931Z   retention-days: 10
+2026-04-07T21:45:10.7552139Z   if-no-files-found: warn
+2026-04-07T21:45:10.7552342Z   compression-level: 6
+2026-04-07T21:45:10.7552533Z   overwrite: false
+2026-04-07T21:45:10.7552722Z   include-hidden-files: false
+2026-04-07T21:45:10.7552919Z env:
+2026-04-07T21:45:10.7553097Z   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+2026-04-07T21:45:10.7553339Z ##[endgroup]
+2026-04-07T21:45:10.9221370Z (node:5376) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-04-07T21:45:10.9223477Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-04-07T21:45:10.9286696Z With the provided path, there will be 1 file uploaded
+2026-04-07T21:45:10.9305841Z Artifact name is valid!
+2026-04-07T21:45:10.9308038Z Root directory input is valid!
+2026-04-07T21:45:11.0561642Z Beginning upload of artifact content to blob storage
+2026-04-07T21:45:11.1021433Z (node:5376) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-04-07T21:45:11.3601681Z Uploaded bytes 201461
+2026-04-07T21:45:11.4075956Z Finished uploading artifact content to blob storage!
+2026-04-07T21:45:11.4079640Z SHA256 digest of uploaded artifact zip is 0425198250592cd723a1999d977cb11c11f60946c2c7e8f36f2eb9cbc1d77a86
+2026-04-07T21:45:11.4082831Z Finalizing artifact upload
+2026-04-07T21:45:11.5124092Z Artifact playwright-report-24.x.zip successfully finalized. Artifact ID 6316084778
+2026-04-07T21:45:11.5130487Z Artifact playwright-report-24.x has been successfully uploaded! Final size is 201461 bytes. Artifact ID is 6316084778
+2026-04-07T21:45:11.5134136Z Artifact download URL: https://github.com/LudovicGrosse/ChessRepertoireTrainer/actions/runs/24105912187/artifacts/6316084778

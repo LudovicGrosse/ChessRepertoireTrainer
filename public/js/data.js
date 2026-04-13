@@ -1,5 +1,5 @@
 // data.js
-import { Chess } from "https://cdn.jsdelivr.net/npm/chess.js@1.0.0-beta.8/+esm";
+import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.0.0-beta.8/+esm';
 
 // =========================================
 // PGN PARSING & TREE BUILDING
@@ -28,7 +28,7 @@ export const parseMultiPgn = (rawPgn) => {
 
     if (chapterNameMatch && chapterNameMatch[1]) {
       title = chapterNameMatch[1];
-    } else if (eventMatch && eventMatch[1] && eventMatch[1] !== "?") {
+    } else if (eventMatch && eventMatch[1] && eventMatch[1] !== '?') {
       title = eventMatch[1];
     }
 
@@ -46,7 +46,7 @@ export const parseMultiPgn = (rawPgn) => {
   if (chapters.length === 0 && rawPgn.trim().length > 0) {
     chapters.push({
       id: `chap_${Date.now()}_0`,
-      title: "Chapitre 1",
+      title: 'Chapitre 1',
       pgn: rawPgn.trim(),
     });
   }
@@ -63,19 +63,16 @@ export const parseMultiPgn = (rawPgn) => {
  * @returns {Object} The root node of the repertoire tree.
  */
 export const buildRepertoireTree = (pgnText) => {
-  const startFen =
-    (pgnText.match(/\[FEN\s+"([^"]+)"\]/i) || [])[1] || new Chess().fen();
+  const startFen = (pgnText.match(/\[FEN\s+"([^"]+)"\]/i) || [])[1] || new Chess().fen();
 
   // Safely remove only standard PGN headers: [Word "Value"]
-  let cleanedText = pgnText.replace(/\[[a-zA-Z]+\s+"[^"]*"\]\s*/g, "").trim();
+  let cleanedText = pgnText.replace(/\[[a-zA-Z]+\s+"[^"]*"\]\s*/g, '').trim();
 
-  const tokens =
-    cleanedText.match(/[a-zA-Z0-9\-+=#KQRBN]+|\(|\)|\{[^}]*\}|\$\d+|\d+\.+/g) ||
-    [];
+  const tokens = cleanedText.match(/[a-zA-Z0-9\-+=#KQRBN]+|\(|\)|\{[^}]*\}|\$\d+|\d+\.+/g) || [];
 
   const root = {
-    id: "root",
-    san: "root",
+    id: 'root',
+    san: 'root',
     fen: startFen,
     comment: null,
     shapes: [],
@@ -96,38 +93,38 @@ export const buildRepertoireTree = (pgnText) => {
       continue;
     }
 
-    if (token === "(") {
+    if (token === '(') {
       nodeStack.push(current);
       current = current.parent;
       tempGame.load(current.fen);
-    } else if (token === ")") {
+    } else if (token === ')') {
       current = nodeStack.pop();
       tempGame.load(current.fen);
-    } else if (token.startsWith("{")) {
+    } else if (token.startsWith('{')) {
       let cmt = token.slice(1, -1).trim();
       const shapes = [];
 
       // Extract Lichess arrows: [%cal Gg1f3,Re2e4]
       const calMatch = cmt.match(/\[%cal\s+(.*?)\]/);
       if (calMatch) {
-        calMatch[1].split(",").forEach((s) => {
+        calMatch[1].split(',').forEach((s) => {
           const item = s.trim();
           if (item.length >= 5) {
             const colorCode = item[0];
             const orig = item.substring(1, 3);
             const dest = item.substring(3, 5);
-            let brush = "green";
-            if (colorCode === "R") {
-              brush = "red";
+            let brush = 'green';
+            if (colorCode === 'R') {
+              brush = 'red';
             }
-            if (colorCode === "B") {
-              brush = "blue";
+            if (colorCode === 'B') {
+              brush = 'blue';
             }
-            if (colorCode === "O") {
-              brush = "orange";
+            if (colorCode === 'O') {
+              brush = 'orange';
             }
-            if (colorCode === "Y") {
-              brush = "yellow";
+            if (colorCode === 'Y') {
+              brush = 'yellow';
             }
             shapes.push({ orig, dest, brush });
           }
@@ -137,23 +134,23 @@ export const buildRepertoireTree = (pgnText) => {
       // Extract Lichess circles: [%csl Gg1,Re2]
       const cslMatch = cmt.match(/\[%csl\s+(.*?)\]/);
       if (cslMatch) {
-        cslMatch[1].split(",").forEach((s) => {
+        cslMatch[1].split(',').forEach((s) => {
           const item = s.trim();
           if (item.length >= 3) {
             const colorCode = item[0];
             const orig = item.substring(1, 3);
-            let brush = "green";
-            if (colorCode === "R") {
-              brush = "red";
+            let brush = 'green';
+            if (colorCode === 'R') {
+              brush = 'red';
             }
-            if (colorCode === "B") {
-              brush = "blue";
+            if (colorCode === 'B') {
+              brush = 'blue';
             }
-            if (colorCode === "O") {
-              brush = "orange";
+            if (colorCode === 'O') {
+              brush = 'orange';
             }
-            if (colorCode === "Y") {
-              brush = "yellow";
+            if (colorCode === 'Y') {
+              brush = 'yellow';
             }
             shapes.push({ orig, brush });
           }
@@ -162,12 +159,12 @@ export const buildRepertoireTree = (pgnText) => {
 
       // Clean comment
       cmt = cmt
-        .replace(/\[%cal\s+.*?\]/g, "")
-        .replace(/\[%csl\s+.*?\]/g, "")
+        .replace(/\[%cal\s+.*?\]/g, '')
+        .replace(/\[%csl\s+.*?\]/g, '')
         .trim();
 
       if (current) {
-        current.comment = current.comment ? current.comment + " " + cmt : cmt;
+        current.comment = current.comment ? current.comment + ' ' + cmt : cmt;
         if (shapes.length > 0) {
           current.shapes = (current.shapes || []).concat(shapes);
         }
@@ -177,12 +174,12 @@ export const buildRepertoireTree = (pgnText) => {
         const moveObj = tempGame.move(token);
         if (moveObj) {
           const newNode = {
-            id: "node_" + idCounter++,
+            id: 'node_' + idCounter++,
             san: moveObj.san,
             from: moveObj.from,
             to: moveObj.to,
             fen: tempGame.fen(),
-            color: moveObj.color === "w" ? "white" : "black",
+            color: moveObj.color === 'w' ? 'white' : 'black',
             comment: null,
             shapes: [],
             children: [],

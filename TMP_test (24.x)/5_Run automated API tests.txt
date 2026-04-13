@@ -1,0 +1,67 @@
+﻿2026-04-07T21:44:00.9393844Z ##[group]Run npm test
+2026-04-07T21:44:00.9394121Z [36;1mnpm test[0m
+2026-04-07T21:44:00.9421906Z shell: /usr/bin/bash -e {0}
+2026-04-07T21:44:00.9422155Z env:
+2026-04-07T21:44:00.9422346Z   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+2026-04-07T21:44:00.9422634Z ##[endgroup]
+2026-04-07T21:44:01.0507250Z 
+2026-04-07T21:44:01.0509351Z > v1@1.0.0 test
+2026-04-07T21:44:01.0513231Z > cross-env NODE_ENV=test jest
+2026-04-07T21:44:01.0513570Z 
+2026-04-07T21:44:02.8229361Z PASS __tests__/auth.test.js
+2026-04-07T21:44:02.8363074Z   ● Console
+2026-04-07T21:44:02.8385718Z 
+2026-04-07T21:44:02.8387624Z     console.log
+2026-04-07T21:44:02.8390636Z       [dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+2026-04-07T21:44:02.8392970Z 
+2026-04-07T21:44:02.8394759Z       at _log (node_modules/dotenv/lib/main.js:139:11)
+2026-04-07T21:44:02.8396894Z 
+2026-04-07T21:44:02.8398462Z     console.error
+2026-04-07T21:44:02.8402900Z       REGISTRATION ERROR: Error: Unique constraint failed
+2026-04-07T21:44:02.8404315Z           at Object.<anonymous> (/home/runner/work/ChessRepertoireTrainer/ChessRepertoireTrainer/__tests__/auth.test.js:35:21)
+2026-04-07T21:44:02.8406712Z           at Promise.finally.completed (/home/runner/work/ChessRepertoireTrainer/ChessRepertoireTrainer/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+2026-04-07T21:44:02.8408200Z           at new Promise (<anonymous>)
+2026-04-07T21:44:02.8409696Z           at callAsyncCircusFn (/home/runner/work/ChessRepertoireTrainer/ChessRepertoireTrainer/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+2026-04-07T21:44:02.8412011Z           at _callCircusTest (/home/runner/work/ChessRepertoireTrainer/ChessRepertoireTrainer/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+2026-04-07T21:44:02.8413700Z           at processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-04-07T21:44:02.8415630Z           at _runTest (/home/runner/work/ChessRepertoireTrainer/ChessRepertoireTrainer/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+2026-04-07T21:44:02.8417659Z           at /home/runner/work/ChessRepertoireTrainer/ChessRepertoireTrainer/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+2026-04-07T21:44:02.8419728Z           at _runTestsForDescribeBlock (/home/runner/work/ChessRepertoireTrainer/ChessRepertoireTrainer/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+2026-04-07T21:44:02.8421951Z           at _runTestsForDescribeBlock (/home/runner/work/ChessRepertoireTrainer/ChessRepertoireTrainer/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+2026-04-07T21:44:02.8424252Z           at _runTestsForDescribeBlock (/home/runner/work/ChessRepertoireTrainer/ChessRepertoireTrainer/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+2026-04-07T21:44:02.8444138Z           at run (/home/runner/work/ChessRepertoireTrainer/ChessRepertoireTrainer/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+2026-04-07T21:44:02.8446657Z           at runAndTransformResultsToJestFormat (/home/runner/work/ChessRepertoireTrainer/ChessRepertoireTrainer/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+2026-04-07T21:44:02.8448834Z           at jestAdapter (/home/runner/work/ChessRepertoireTrainer/ChessRepertoireTrainer/node_modules/jest-circus/build/runner.js:101:19)
+2026-04-07T21:44:02.8450806Z           at runTestInternal (/home/runner/work/ChessRepertoireTrainer/ChessRepertoireTrainer/node_modules/jest-runner/build/index.js:275:16)
+2026-04-07T21:44:02.8452721Z           at runTest (/home/runner/work/ChessRepertoireTrainer/ChessRepertoireTrainer/node_modules/jest-runner/build/index.js:343:7) {
+2026-04-07T21:44:02.8453807Z         code: '23505',
+2026-04-07T21:44:02.8454242Z         constraint: 'users_email_key'
+2026-04-07T21:44:02.8454666Z       }
+2026-04-07T21:44:02.8454837Z 
+2026-04-07T21:44:02.8456556Z     [0m [90m 53 |[39m     res[33m.[39mstatus([35m201[39m)[33m.[39mjson({ message[33m:[39m [32m"Compte créé ! Veuillez vérifier votre boîte mail."[39m })[33m;[39m
+2026-04-07T21:44:02.8458399Z      [90m 54 |[39m   } [36mcatch[39m (err) {
+2026-04-07T21:44:02.8459601Z     [31m[1m>[22m[39m[90m 55 |[39m     console[33m.[39merror([32m"REGISTRATION ERROR:"[39m[33m,[39m err)[33m;[39m
+2026-04-07T21:44:02.8460650Z      [90m    |[39m             [31m[1m^[22m[39m
+2026-04-07T21:44:02.8461554Z      [90m 56 |[39m     [36mif[39m (err[33m.[39mcode [33m===[39m [32m"23505"[39m) {
+2026-04-07T21:44:02.8463498Z      [90m 57 |[39m       [36mconst[39m field [33m=[39m err[33m.[39mconstraint[33m.[39mincludes([32m"email"[39m) [33m?[39m [32m"L'email"[39m [33m:[39m [32m"Le nom d'utilisateur"[39m[33m;[39m
+2026-04-07T21:44:02.8466036Z      [90m 58 |[39m       res[33m.[39mstatus([35m400[39m)[33m.[39mjson({ error[33m:[39m [32m`${field} existe déjà.`[39m })[33m;[39m[0m
+2026-04-07T21:44:02.8466891Z 
+2026-04-07T21:44:02.8467173Z       at error (server/routes/authRoutes.js:55:13)
+2026-04-07T21:44:02.8467800Z 
+2026-04-07T21:44:03.2557690Z PASS __tests__/frontend/data.test.js
+2026-04-07T21:44:03.3790511Z PASS __tests__/history.test.js
+2026-04-07T21:44:03.3801041Z   ● Console
+2026-04-07T21:44:03.3801249Z 
+2026-04-07T21:44:03.3807891Z     console.log
+2026-04-07T21:44:03.3808947Z       [dotenv@17.3.1] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+2026-04-07T21:44:03.3809623Z 
+2026-04-07T21:44:03.3809894Z       at _log (node_modules/dotenv/lib/main.js:139:11)
+2026-04-07T21:44:03.3812234Z 
+2026-04-07T21:44:03.4471627Z PASS __tests__/backend/extractor.test.js
+2026-04-07T21:44:03.5057396Z PASS __tests__/frontend/utils.test.js
+2026-04-07T21:44:03.5068084Z 
+2026-04-07T21:44:03.5078629Z Test Suites: 5 passed, 5 total
+2026-04-07T21:44:03.5079785Z Tests:       23 passed, 23 total
+2026-04-07T21:44:03.5080950Z Snapshots:   0 total
+2026-04-07T21:44:03.5081873Z Time:        2.065 s
+2026-04-07T21:44:03.5082659Z Ran all test suites.
