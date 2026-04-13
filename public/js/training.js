@@ -536,6 +536,11 @@ export const initTraining = () => {
   };
 
   document.getElementById('stopBtn').onclick = () => {
+    if (state.isTraining && !state.rootNode.isCompleted) {
+      if (!confirm("Voulez-vous vraiment quitter l'entraînement en cours ?")) {
+        return;
+      }
+    }
     state.isTraining = false;
     trainingView.classList.add('hidden');
     setupView.classList.remove('hidden');

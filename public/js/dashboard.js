@@ -270,13 +270,19 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
           ? `<strong>${chap.title.replace(rep.title + ': ', '')} <span style="color: var(--warning); font-size: 10px; border: 1px solid var(--warning); padding: 1px 4px; border-radius: 4px; margin-left: 4px;">MAJ</span></strong>`
           : `<strong>${chap.title.replace(rep.title + ': ', '')}</strong>`;
 
-        chapRow.innerHTML = `<div style="grid-column: 1 / -1; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 30px; gap: 15px; align-items: center; width: 100%;">
-            <div><span class="label">Chapitre</span>${chapTitleHtml}</div>
-            <div><span class="label">Succès</span><span class="${successClass}">${hasData ? finalSuccessRate + '%' : '-'}</span>${progressHtml}</div>
-            <div><span class="label">Coups</span><strong style="color: var(--text-main); font-weight: normal;">${moveCount}</strong></div>
-            <div><span class="label">Dernière</span><span style="color: var(--text-muted);">${formatRelativeTime(latest ? latest.date : null)}</span></div>
-            <div class="play-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
-        </div>`;
+        chapRow.innerHTML = `
+            <div class="chapter-main-info" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px;">
+                <div style="flex: 1; min-width: 0; padding-right: 10px;">
+                    <span class="label" style="display: block; margin-bottom: 2px;">Chapitre</span>
+                    <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${chapTitleHtml}</div>
+                </div>
+                <div class="play-icon" style="flex-shrink: 0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+            </div>
+            <div class="chapter-stats-info" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; width: 100%; border-top: 1px solid var(--border-color); pt: 8px; margin-top: 4px; padding-top: 8px;">
+                <div><span class="label">Succès</span><span class="${successClass}">${hasData ? finalSuccessRate + '%' : '-'}</span>${progressHtml}</div>
+                <div><span class="label">Coups</span><strong style="color: var(--text-main); font-weight: normal;">${moveCount}</strong></div>
+                <div><span class="label">Dernière</span><span style="color: var(--text-muted);">${formatRelativeTime(latest ? latest.date : null)}</span></div>
+            </div>`;
 
         chapRow.onclick = (e) => {
           e.stopPropagation();
@@ -321,6 +327,18 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
       const footer = document.createElement('div');
       footer.style.cssText =
         'display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 15px; paddingTop: 12px; borderTop: 1px solid var(--border-color);';
+
+      const lichessBtn = document.createElement('button');
+      lichessBtn.className = 'secondary';
+      lichessBtn.style.cssText =
+        'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
+      lichessBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 22 3 22 10"></polyline><line x1="14" y1="10" x2="22" y2="2"></line></svg> Lichess`;
+      lichessBtn.onclick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        window.open(`https://lichess.org/study/${normalizedId}`, '_blank');
+      };
+      footer.appendChild(lichessBtn);
 
       const syncBtn = document.createElement('button');
       syncBtn.className = 'secondary';

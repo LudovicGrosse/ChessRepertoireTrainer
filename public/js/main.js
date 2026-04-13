@@ -21,9 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   document.getElementById('homeBtn').onclick = () => {
-    // check if training is active by checking class
+    // check if training is active
     if (!document.getElementById('training-view').classList.contains('hidden')) {
-      document.getElementById('stopBtn').click();
+      const stopBtn = document.getElementById('stopBtn');
+      if (stopBtn) {
+        stopBtn.click();
+      }
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
