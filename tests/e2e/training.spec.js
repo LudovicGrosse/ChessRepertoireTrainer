@@ -20,7 +20,7 @@ test.describe('Training Engine Flow', () => {
               {
                 id: 1,
                 user_id: 1,
-                study_id: 'test1234',
+                repertoire_id: 'test1234',
                 color: 'white',
                 title: 'My Test Study',
                 total_chapters: 1,

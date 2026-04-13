@@ -75,7 +75,7 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
 
   const histMap = {};
   history.forEach((entry) => {
-    const normalizedId = extractStudyId(entry.study_id);
+    const normalizedId = extractStudyId(entry.repertoire_id);
     const repKey = normalizedId + '_' + entry.color;
     if (!histMap[repKey]) {
       histMap[repKey] = {
@@ -105,11 +105,11 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
   });
 
   const reps = apiRepertoires.map((dbRep) => {
-    const repKey = extractStudyId(dbRep.study_id) + '_' + dbRep.color;
+    const repKey = extractStudyId(dbRep.repertoire_id) + '_' + dbRep.color;
     const historyData = histMap[repKey] || { last_revision: null, chaptersHistory: {} };
     return {
       title: dbRep.title,
-      study_id: dbRep.study_id,
+      repertoire_id: dbRep.repertoire_id,
       color: dbRep.color,
       total_chapters: dbRep.total_chapters,
       last_revision: historyData.last_revision,
@@ -140,7 +140,7 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
 
   const renderRepList = (list) => {
     list.forEach((rep) => {
-      const normalizedId = extractStudyId(rep.study_id);
+      const normalizedId = extractStudyId(rep.repertoire_id);
       const repKey = normalizedId + '_' + rep.color;
 
       let totalSuccessMoves = 0;
@@ -353,7 +353,7 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
         }
         try {
           const res = await fetch(
-            `/api/repertoires?study_id=${encodeURIComponent(normalizedId)}&color=${encodeURIComponent(rep.color)}`,
+            `/api/repertoires?repertoire_id=${encodeURIComponent(normalizedId)}&color=${encodeURIComponent(rep.color)}`,
             {
               method: 'DELETE',
               headers: { Authorization: `Bearer ${state.authToken}` },
@@ -403,7 +403,7 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${state.authToken}`,
               },
-              body: JSON.stringify({ study_id: normalizedId, new_title: currentStudyName }),
+              body: JSON.stringify({ repertoire_id: normalizedId, new_title: currentStudyName }),
             });
           } catch (e) {
             console.error('Update repertoire title error:', e);
@@ -445,7 +445,7 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
                         Authorization: `Bearer ${state.authToken}`,
                       },
                       body: JSON.stringify({
-                        study_id: normalizedId,
+                        repertoire_id: normalizedId,
                         old_title: orphanedTitle,
                         new_title: newTitle,
                       }),

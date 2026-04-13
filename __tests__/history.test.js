@@ -29,7 +29,7 @@ describe('History Endpoints', () => {
         .send({
           repertoire_title: 'My Repertoire',
           chapter_title: 'Chapter 1',
-          study_id: 'study123',
+          repertoire_id: 'study123',
           color: 'white',
           moves_learned: 10,
           total_moves: 20,

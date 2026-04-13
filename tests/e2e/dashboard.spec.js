@@ -8,7 +8,7 @@ test.describe('Dashboard Management', () => {
         {
           id: 1,
           user_id: 1,
-          study_id: 'test1234',
+          repertoire_id: 'test1234',
           repertoire_title: 'My Test Study',
           chapter_title: 'Chapter 1',
           color: 'white',
@@ -27,7 +27,7 @@ test.describe('Dashboard Management', () => {
         {
           id: 1,
           user_id: 1,
-          study_id: 'test1234',
+          repertoire_id: 'test1234',
           color: 'white',
           title: 'My Test Study',
           total_chapters: 1,
@@ -74,7 +74,7 @@ test.describe('Dashboard Management', () => {
 
     // 6. Mocker la requête DELETE
     let deleteCalled = false;
-    await page.route('/api/repertoires?study_id=test1234&color=white', async (route) => {
+    await page.route('/api/repertoires?repertoire_id=test1234&color=white', async (route) => {
       if (route.request().method() === 'DELETE') {
         deleteCalled = true;
         await route.fulfill({ status: 200, json: { message: 'Supprimé' } });
