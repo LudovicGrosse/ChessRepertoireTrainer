@@ -590,13 +590,11 @@ header .user-badge span {
 
 @media (max-width: 600px) {
   .chapter-info-grid {
-    display: block; /* Stack blocks vertically */
+    display: block;
   }
 
   .chapter-name-col {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: block; /* Label and title will stack */
     width: 100%;
     margin-bottom: 10px;
     padding-bottom: 10px;
@@ -604,7 +602,8 @@ header .user-badge span {
   }
 
   .chapter-name-col .chapter-title-text {
-    flex: 1;
+    display: block;
+    margin-top: 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -621,14 +620,11 @@ header .user-badge span {
   /* Ensure labels are visible and correctly sized */
   .chapter-row .label {
     font-size: 11px;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
   .chapter-info-grid .play-icon {
-    display: flex !important;
-    opacity: 0.7 !important;
-    transform: none !important;
-    margin-left: 10px;
+    display: none !important; /* Remove play icon on mobile */
   }
 
   .chapter-row:hover {
