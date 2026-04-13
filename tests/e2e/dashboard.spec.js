@@ -11,6 +11,7 @@ test.describe('Dashboard Management', () => {
           repertoire_id: 'test1234',
           repertoire_title: 'My Test Study',
           chapter_title: 'Chapter 1',
+          chapter_id: 'test',
           color: 'white',
           is_revision: 1,
           total_moves: 10,

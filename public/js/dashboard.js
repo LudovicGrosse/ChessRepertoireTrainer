@@ -91,16 +91,16 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
     ) {
       rep.last_revision = entry.date;
     }
-    if (!rep.chaptersHistory[entry.chapter_title]) {
-      rep.chaptersHistory[entry.chapter_title] = {
+    if (!rep.chaptersHistory[entry.chapter_id]) {
+      rep.chaptersHistory[entry.chapter_id] = {
         title: entry.chapter_title,
         revisions: [],
         total_revisions: 0,
       };
     }
     if (entry.is_revision) {
-      rep.chaptersHistory[entry.chapter_title].revisions.push(entry);
-      rep.chaptersHistory[entry.chapter_title].total_revisions++;
+      rep.chaptersHistory[entry.chapter_id].revisions.push(entry);
+      rep.chaptersHistory[entry.chapter_id].total_revisions++;
     }
   });
 
@@ -299,13 +299,7 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
           decBtn.textContent = 'Mode découverte';
           decBtn.onclick = (evt) => {
             evt.stopPropagation();
-            startTrainingSessionDirect(
-              normalizedId,
-              rep.title,
-              chap.id,
-              rep.color,
-              'decouverte'
-            );
+            startTrainingSessionDirect(normalizedId, rep.title, chap.id, rep.color, 'decouverte');
           };
 
           const revBtn = document.createElement('button');

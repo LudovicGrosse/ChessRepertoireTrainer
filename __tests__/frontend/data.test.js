@@ -20,6 +20,16 @@ describe('data.js', () => {
       const chapters = parseMultiPgn(rawPgn);
       expect(chapters[0].title).toBe('My Secret Chapter');
     });
+
+    it('extracts chapter ID from ChapterURL or Site', () => {
+      const rawPgn = `[Event "Chapter 1"]\n[ChapterURL "https://lichess.org/study/test1234/chapid123"]\n\n1. e4 e5`;
+      const chapters = parseMultiPgn(rawPgn);
+      expect(chapters[0].id).toBe('chapid123');
+
+      const rawPgn2 = `[Event "Chapter 2"]\n[Site "https://lichess.org/study/test1234/chapid456"]\n\n1. d4`;
+      const chapters2 = parseMultiPgn(rawPgn2);
+      expect(chapters2[0].id).toBe('chapid456');
+    });
   });
 
   describe('buildRepertoireTree', () => {
