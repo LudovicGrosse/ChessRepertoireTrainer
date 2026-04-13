@@ -35,6 +35,11 @@ test.describe('Authentication Flow', () => {
     await page.route('/api/history', async (route) => {
       await route.fulfill({ status: 200, json: [] });
     });
+
+    // Mock Repertoires Endpoint (used when logging in)
+    await page.route('/api/repertoires', async (route) => {
+      await route.fulfill({ status: 200, json: [] });
+    });
   });
 
   test('should register and login successfully', async ({ page }) => {
