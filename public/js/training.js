@@ -413,7 +413,9 @@ export const startTrainingSessionDirect = async (
         }
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error('Cache error', e);
+  }
 
   if (!pgnText) {
     showToast("Chargement de l'étude...", 'info');
@@ -438,7 +440,9 @@ export const startTrainingSessionDirect = async (
           timestamp: Date.now(),
         };
         localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
-      } catch (e) {}
+      } catch (e) {
+        console.error('Cache save error', e);
+      }
     } catch (err) {
       showToast(err.message, 'error');
       return;
@@ -455,10 +459,10 @@ export const startTrainingSessionDirect = async (
 
 const launchTrainingUI = () => {
   if (!state.selectedChapterPgn) return;
-  const chap = state.currentRepertoire.chapters[state.currentChapterIndex];
   try {
     state.rootNode = buildRepertoireTree(state.selectedChapterPgn);
   } catch (e) {
+    console.error('PGN parse error:', e);
     showToast('Erreur lors de la lecture du PGN', 'error');
     return;
   }
@@ -468,6 +472,7 @@ const launchTrainingUI = () => {
     return;
   }
 
+  const chap = state.currentRepertoire.chapters[state.currentChapterIndex];
   document.getElementById('trainingHeader').innerHTML =
     `<div style="color: var(--primary);">${state.currentRepertoire.title}</div><div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500; margin-top: 4px;">${chap.title.replace(state.currentRepertoire.title + ': ', '')}</div>`;
   document.getElementById('trainingActions').classList.add('hidden');
@@ -602,13 +607,6 @@ export const initTraining = () => {
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
       navigateView(-1);
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      navigateView(1);
-    }
-  });
-};
-igateView(-1);
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
       navigateView(1);

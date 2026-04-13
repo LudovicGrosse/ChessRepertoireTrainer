@@ -192,6 +192,7 @@ export const buildRepertoireTree = (pgnText) => {
           current = newNode;
         }
       } catch (e) {
+        console.error('Count moves error:', e);
         // Ignore invalid PGN tokens
       }
     }

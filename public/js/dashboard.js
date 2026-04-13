@@ -1,11 +1,4 @@
-import {
-  showToast,
-  state,
-  extractStudyId,
-  formatRelativeTime,
-  getToggleState,
-  setToggleState,
-} from './utils.js';
+import { showToast, state, extractStudyId, formatRelativeTime, getToggleState } from './utils.js';
 import { parseMultiPgn, buildRepertoireTree } from './data.js';
 import { startTrainingSessionDirect } from './training.js';
 
@@ -351,17 +344,21 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
         if (!confirm('Voulez-vous vraiment supprimer ce répertoire ?')) {
           return;
         }
-        const res = await fetch(
-          `/api/repertoires?study_id=${encodeURIComponent(normalizedId)}&color=${encodeURIComponent(rep.color)}`,
-          {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${state.authToken}` },
+        try {
+          const res = await fetch(
+            `/api/repertoires?study_id=${encodeURIComponent(normalizedId)}&color=${encodeURIComponent(rep.color)}`,
+            {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${state.authToken}` },
+            }
+          );
+          if (res.ok) {
+            currentlyOpenRepId = null;
+            showToast('Répertoire supprimé', 'success');
+            fetchHistory();
           }
-        );
-        if (res.ok) {
-          currentlyOpenRepId = null;
-          showToast('Répertoire supprimé', 'success');
-          fetchHistory();
+        } catch (err) {
+          console.error('Delete repertoire error:', err);
         }
       };
       footer.appendChild(delBtn);
@@ -461,6 +458,7 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
         });
         fetchHistory();
       } catch (err) {
+        console.error('Lichess sync error:', err);
         detail.innerHTML = `<div style="padding: 15px; text-align: center; color: var(--danger);">Erreur lors de la synchronisation.</div>`;
       }
     };
@@ -604,6 +602,7 @@ export const initDashboard = () => {
         showToast(data.error || "Erreur lors de l'ajout", 'error');
       }
     } catch (err) {
+      console.error('Add repertoire error:', err);
       showToast('Erreur de connexion', 'error');
     }
   };

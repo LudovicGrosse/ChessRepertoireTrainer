@@ -6,7 +6,7 @@ test.describe('Training Engine Flow', () => {
     await page.route('/api/history', async (route) => {
       await route.fulfill({ status: 200, json: [] });
     });
-    
+
     let added = false;
     await page.route('/api/repertoires', async (route) => {
       if (route.request().method() === 'POST') {
@@ -14,19 +14,22 @@ test.describe('Training Engine Flow', () => {
         await route.fulfill({ status: 201, json: { message: 'Created' } });
       } else if (route.request().method() === 'GET') {
         if (added) {
-           await route.fulfill({ status: 200, json: [
-            {
-              id: 1,
-              user_id: 1,
-              study_id: 'test1234',
-              color: 'white',
-              title: 'My Test Study',
-              total_chapters: 1,
-              added_at: new Date().toISOString(),
-            },
-          ] });
+          await route.fulfill({
+            status: 200,
+            json: [
+              {
+                id: 1,
+                user_id: 1,
+                study_id: 'test1234',
+                color: 'white',
+                title: 'My Test Study',
+                total_chapters: 1,
+                added_at: new Date().toISOString(),
+              },
+            ],
+          });
         } else {
-           await route.fulfill({ status: 200, json: [] });
+          await route.fulfill({ status: 200, json: [] });
         }
       } else {
         await route.continue();
@@ -53,7 +56,9 @@ test.describe('Training Engine Flow', () => {
     await page.reload();
   });
 
-  test('should load a Lichess study, add it to repertoires, and start training', async ({ page }) => {
+  test('should load a Lichess study, add it to repertoires, and start training', async ({
+    page,
+  }) => {
     page.on('console', (msg) => console.log('BROWSER CONSOLE:', msg.text()));
     page.on('pageerror', (err) => console.log('BROWSER ERROR:', err.message));
 
@@ -67,11 +72,13 @@ test.describe('Training Engine Flow', () => {
     await page.getByRole('button', { name: 'Charger le répertoire' }).click();
 
     // Verify study loaded successfully and the title is displayed
-    await expect(page.getByText("Étude chargée avec succès, vous pouvez maintenant l'ajouter.")).toBeVisible();
+    await expect(
+      page.getByText("Étude chargée avec succès, vous pouvez maintenant l'ajouter.")
+    ).toBeVisible();
     await expect(page.locator('#config-title')).toHaveText('Répertoire : My Test Study');
 
     // Click Add
-    await page.getByRole('button', { name: "Ajouter au répertoire" }).click();
+    await page.getByRole('button', { name: 'Ajouter au répertoire' }).click();
 
     // Verify added successfully
     await expect(page.getByText('Répertoire ajouté avec succès')).toBeVisible();
@@ -79,12 +86,12 @@ test.describe('Training Engine Flow', () => {
     // The repertoire should now be in the dashboard list, click it
     await page.locator('.repertoire-header').first().click();
     await expect(page.locator('.chapters-detail')).toHaveClass(/open/);
-    
+
     // Click the chapter row to expand actions
     await page.getByText('Chapter 1').click();
 
     // Click Jouer en Découverte
-    await page.getByRole('button', { name: "Jouer en Découverte" }).click();
+    await page.getByRole('button', { name: 'Jouer en Découverte' }).click();
 
     // Verify the training view appears
     const trainingHeader = page.locator('#trainingHeader');
