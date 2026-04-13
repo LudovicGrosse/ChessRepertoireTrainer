@@ -663,7 +663,7 @@ header .user-badge span {
   border: 1px solid var(--border-color);
   padding: 12px 16px;
   border-radius: 8px;
-  cursor: pointer;
+  cursor: default;
   text-align: left;
   transition: all 0.2s;
   font-size: 14px;
@@ -673,26 +673,12 @@ header .user-badge span {
   align-items: center;
   box-shadow: none;
 }
-.chapter-btn:hover {
-  background: var(--card-hover);
-  border-color: #475569;
-  transform: none;
-}
-.chapter-btn.selected {
-  background: rgba(16, 185, 129, 0.1);
-  border-color: var(--primary);
-  color: var(--primary);
-}
 .chapter-count {
   font-size: 0.85rem;
   color: var(--text-muted);
   background: #1e293b;
   padding: 2px 8px;
   border-radius: 12px;
-}
-.chapter-btn.selected .chapter-count {
-  background: var(--primary);
-  color: white;
 }
 
 /* =========================================

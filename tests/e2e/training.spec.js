@@ -69,7 +69,7 @@ test.describe('Training Engine Flow', () => {
     await page.locator('#lichessInput').fill('test1234');
 
     // Click the load button
-    await page.getByRole('button', { name: 'Charger le répertoire' }).click();
+    await page.getByRole('button', { name: "Charger l'étude" }).click();
 
     // Verify study loaded successfully and the title is displayed
     await expect(
@@ -90,8 +90,8 @@ test.describe('Training Engine Flow', () => {
     // Click the chapter row to expand actions
     await page.getByText('Chapter 1').click();
 
-    // Click Jouer en Découverte
-    await page.getByRole('button', { name: 'Jouer en Découverte' }).click();
+    // Click Mode découverte
+    await page.getByRole('button', { name: 'Mode découverte' }).click();
 
     // Verify the training view appears
     const trainingHeader = page.locator('#trainingHeader');

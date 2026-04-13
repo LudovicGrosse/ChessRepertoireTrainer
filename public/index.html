@@ -341,7 +341,7 @@
             <input type="text" id="lichessInput" placeholder="https://lichess.org/study/xxxxxx" />
           </div>
           <button id="loadBtn" class="secondary" style="margin-top: 4px; padding: 12px">
-            Charger le répertoire
+            Charger l'étude
           </button>
         </div>
 
@@ -356,12 +356,23 @@
                 margin-bottom: 8px;
                 display: block;
               "
-              >Sélectionnez un chapitre :</label
+              >Liste des chapitres :</label
             >
             <div class="chapter-list" id="chapterList"></div>
           </div>
 
-          <div class="toggle-row">
+          <label
+            style="
+              font-size: 0.875rem;
+              color: var(--text-muted);
+              font-weight: 500;
+              margin-bottom: 8px;
+              display: block;
+              margin-top: 12px;
+            "
+            >Sélectionnez votre couleur :</label
+          >
+          <div class="toggle-row" style="margin-top: 0">
             <div class="toggle-container color-toggle" id="colorToggle" data-state="left">
               <div class="toggle-slider"></div>
               <div class="toggle-option active" data-val="white">Blancs</div>

@@ -1,4 +1,11 @@
-import { showToast, state, extractStudyId, formatRelativeTime, getToggleState } from './utils.js';
+import {
+  showToast,
+  state,
+  extractStudyId,
+  formatRelativeTime,
+  getToggleState,
+  initToggles,
+} from './utils.js';
 import { parseMultiPgn, buildRepertoireTree } from './data.js';
 import { startTrainingSessionDirect } from './training.js';
 
@@ -289,7 +296,7 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
           const decBtn = document.createElement('button');
           decBtn.className = 'primary';
           decBtn.style.cssText = 'flex: 1; padding: 8px; font-size: 13px;';
-          decBtn.textContent = 'Jouer en Découverte';
+          decBtn.textContent = 'Mode découverte';
           decBtn.onclick = (evt) => {
             evt.stopPropagation();
             startTrainingSessionDirect(
@@ -562,11 +569,12 @@ export const loadLichessStudy = async (input) => {
     showToast(err.message, 'error');
   } finally {
     loadBtn.disabled = false;
-    loadBtn.textContent = 'Charger le répertoire';
+    loadBtn.textContent = "Charger l'étude";
   }
 };
 
 export const initDashboard = () => {
+  initToggles();
   document.getElementById('colorToggle').onclick = () => {
     setTimeout(updateChapterList, 50);
   };

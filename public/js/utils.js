@@ -81,6 +81,16 @@ export const setToggleState = (id, value) => {
   });
 };
 
+export const initToggles = () => {
+  document.querySelectorAll('.toggle-container').forEach((container) => {
+    container.querySelectorAll('.toggle-option').forEach((option) => {
+      option.addEventListener('click', (e) => {
+        setToggleState(container.id, e.target.dataset.val);
+      });
+    });
+  });
+};
+
 export const formatRelativeTime = (date) => {
   if (!date) {
     return 'Jamais';
