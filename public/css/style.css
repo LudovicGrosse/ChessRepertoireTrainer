@@ -590,78 +590,49 @@ header .user-badge span {
 
 @media (max-width: 600px) {
   .chapter-info-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: block; /* Stack blocks vertically */
   }
+
   .chapter-name-col {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
   }
+
   .chapter-name-col .chapter-title-text {
     flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .chapter-info-grid .play-icon {
-    position: absolute;
-    right: 12px;
-    top: 12px;
-    opacity: 0.6 !important;
-    transform: none !important;
-  }
-  .chapter-stat-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    width: 100%;
-    border-top: 1px solid var(--border-color);
-    margin-top: 4px;
-    padding-top: 8px;
-    font-size: 11px;
-  }
-  /* On mobile, we need to hide the individual labels and wrap stats in a centered flexbox */
-  .chapter-stat-col {
-    text-align: center;
-  }
-  /* Re-styling the grid for mobile if needed, but let's use a wrapper for stats */
-}
 
-/* Helper for mobile stats wrapper injected via JS logic or CSS grid adjustment */
-@media (max-width: 600px) {
-  .chapter-info-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-  .chapter-name-col {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    padding-right: 30px;
-  }
+  /* Stats row container */
   .chapter-stat-col {
-    display: none; /* We will use a different approach for mobile stats */
+    display: inline-block !important;
+    width: 32%;
+    text-align: center;
+    vertical-align: top;
   }
-  /* Let's try a cleaner CSS-only approach by redefining the grid */
-  .chapter-info-grid {
-    grid-template-areas: 
-      "name play"
-      "stats stats";
-    grid-template-columns: 1fr 40px;
-    gap: 8px;
+
+  /* Ensure labels are visible and correctly sized */
+  .chapter-row .label {
+    font-size: 11px;
+    margin-bottom: 4px;
   }
-  .chapter-name-col { grid-area: name; padding-right: 0; }
-  .play-icon { grid-area: play; opacity: 0.6 !important; transform: none !important; }
-  
-  /* Create a virtual row for stats */
-  .chapter-row::after {
-    content: "";
-    display: block;
-    width: 100%;
-    height: 1px;
-    background: var(--border-color);
-    margin: 4px 0;
+
+  .chapter-info-grid .play-icon {
+    display: flex !important;
+    opacity: 0.7 !important;
+    transform: none !important;
+    margin-left: 10px;
+  }
+
+  .chapter-row:hover {
+    transform: none;
   }
 }
 
