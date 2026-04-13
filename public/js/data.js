@@ -35,8 +35,16 @@ export const parseMultiPgn = (rawPgn) => {
     const siteMatch = part.match(/\[Site\s+"([^"]+)"\]/);
     const studyUrl = siteMatch ? siteMatch[1] : null;
 
+    let chapter_id = `chap_${Date.now()}_${index}`;
+    if (studyUrl) {
+      const chapterIdMatch = studyUrl.match(/study\/[a-zA-Z0-9]+\/([a-zA-Z0-9]+)/);
+      if (chapterIdMatch && chapterIdMatch[1]) {
+        chapter_id = chapterIdMatch[1];
+      }
+    }
+
     chapters.push({
-      id: `chap_${Date.now()}_${index}`,
+      id: chapter_id,
       title: title,
       pgn: part.trim(),
       studyUrl: studyUrl,
@@ -48,6 +56,7 @@ export const parseMultiPgn = (rawPgn) => {
       id: `chap_${Date.now()}_0`,
       title: 'Chapitre 1',
       pgn: rawPgn.trim(),
+      studyUrl: null,
     });
   }
 

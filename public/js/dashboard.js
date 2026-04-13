@@ -486,7 +486,7 @@ export const saveHistory = async (stats) => {
   if (!state.authToken) {
     return;
   }
-  // Now we need studyId and totalChapters from stats directly, as the lichessInput may not be filled.
+  // Now we need repertoireId and totalChapters from stats directly, as the lichessInput may not be filled.
   try {
     const res = await fetch('/api/history', {
       method: 'POST',
@@ -548,17 +548,20 @@ export const loadLichessStudy = async (input) => {
   if (!input) {
     return;
   }
-  const studyId = extractStudyId(input);
+  const repertoireId = extractStudyId(input);
   const loadBtn = document.getElementById('loadBtn');
   loadBtn.disabled = true;
   loadBtn.textContent = 'Chargement...';
   try {
-    const response = await fetch(`https://lichess.org/api/study/${studyId}.pgn?v=${Date.now()}`);
+    const response = await fetch(
+      `https://lichess.org/api/study/${repertoireId}.pgn?v=${Date.now()}`
+    );
     if (!response.ok) {
       throw new Error('Étude non trouvée.');
     }
     const pgnText = await response.text();
-    const studyName = pgnText.match(/\[StudyName "(.*?)"\]/)?.[1] || `Étude Lichess (${studyId})`;
+    const studyName =
+      pgnText.match(/\[StudyName "(.*?)"\]/)?.[1] || `Étude Lichess (${repertoireId})`;
     state.currentRepertoire = { title: studyName, chapters: parseMultiPgn(pgnText) };
     document.getElementById('config-title').textContent = `Répertoire : ${studyName}`;
     document.getElementById('config-card').style.display = 'flex';
@@ -586,7 +589,7 @@ export const initDashboard = () => {
   document.getElementById('addRepertoireBtn').onclick = async () => {
     if (!state.currentRepertoire || !state.authToken) return;
 
-    const studyId = extractStudyId(document.getElementById('lichessInput').value.trim());
+    const repertoireId = extractStudyId(document.getElementById('lichessInput').value.trim());
     const color = getToggleState('colorToggle');
 
     try {
@@ -594,7 +597,7 @@ export const initDashboard = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${state.authToken}` },
         body: JSON.stringify({
-          study_id: studyId,
+          repertoire_id: repertoireId,
           title: state.currentRepertoire.title,
           color: color,
           total_chapters: state.currentRepertoire.chapters.length,

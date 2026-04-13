@@ -8,7 +8,8 @@ router.post('/', authenticateToken, async (req, res) => {
   const {
     repertoire_title,
     chapter_title,
-    study_id,
+    repertoire_id,
+    chapter_id,
     color,
     moves_learned,
     total_moves,
@@ -19,26 +20,37 @@ router.post('/', authenticateToken, async (req, res) => {
   const date = new Date().toISOString();
 
   try {
-    if (study_id && repertoire_title) {
+    if (repertoire_id && repertoire_title) {
       await db.query(
         `
                 UPDATE history SET repertoire_title = $1 
-                WHERE user_id = $2 AND study_id = $3
+                WHERE user_id = $2 AND repertoire_id = $3
             `,
-        [repertoire_title, req.user.id, study_id]
+        [repertoire_title, req.user.id, repertoire_id]
       );
     }
 
     await db.query(
       `
-            INSERT INTO history (user_id, repertoire_title, chapter_title, study_id, color, date, moves_learned, total_moves, errors, total_chapters, is_revision)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            INSERT INTO history (user_id, repertoire_title, chapter_title, repertoire_id, chapter_id, color, date, moves_learned, total_moves, errors, total_chapters, is_revision)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            ON CONFLICT (user_id, repertoire_id, chapter_id, color) 
+            DO UPDATE SET 
+              date = EXCLUDED.date, 
+              moves_learned = EXCLUDED.moves_learned, 
+              total_moves = EXCLUDED.total_moves, 
+              errors = EXCLUDED.errors, 
+              is_revision = EXCLUDED.is_revision, 
+              total_chapters = EXCLUDED.total_chapters,
+              repertoire_title = EXCLUDED.repertoire_title,
+              chapter_title = EXCLUDED.chapter_title
         `,
       [
         req.user.id,
         repertoire_title,
         chapter_title,
-        study_id,
+        repertoire_id,
+        chapter_id,
         color,
         date,
         moves_learned,
@@ -69,17 +81,17 @@ router.get('/', authenticateToken, async (req, res) => {
 
 router.put('/chapter/title', authenticateToken, async (req, res) => {
   try {
-    const { study_id, old_title, new_title } = req.body;
-    if (!study_id || !old_title || !new_title) {
+    const { repertoire_id, chapter_id, new_title } = req.body;
+    if (!repertoire_id || !chapter_id || !new_title) {
       return res.status(400).json({ error: 'Missing parameters' });
     }
 
     await db.query(
       `
             UPDATE history SET chapter_title = $1 
-            WHERE user_id = $2 AND (study_id = $3 OR study_id LIKE '%' || $3) AND chapter_title = $4
+            WHERE user_id = $2 AND repertoire_id = $3 AND chapter_id = $4
         `,
-      [new_title, req.user.id, study_id, old_title]
+      [new_title, req.user.id, repertoire_id, chapter_id]
     );
 
     res.sendStatus(200);

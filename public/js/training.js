@@ -286,7 +286,8 @@ const handleEnd = () => {
       saveHistory({
         repertoire_title: state.currentRepertoire.title,
         chapter_title: state.currentRepertoire.chapters[state.currentChapterIndex].title,
-        study_id: state.currentStudyId,
+        chapter_id: state.currentRepertoire.chapters[state.currentChapterIndex].id,
+        repertoire_id: state.currentStudyId,
         total_chapters: state.currentRepertoire.chapters.length,
         moves_learned: state.learnedMoves,
         total_moves: state.totalMoves,
