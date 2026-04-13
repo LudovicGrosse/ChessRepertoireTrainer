@@ -11,7 +11,6 @@ test.describe('Dashboard Management', () => {
           study_id: 'test1234',
           repertoire_title: 'My Test Study',
           chapter_title: 'Chapter 1',
-          player_color: 'white', // Backend uses player_color or color? Let's check dashboard.js
           color: 'white',
           is_revision: 1,
           total_moves: 10,
@@ -21,6 +20,21 @@ test.describe('Dashboard Management', () => {
         },
       ];
       await route.fulfill({ status: 200, json: history });
+    });
+
+    await page.route('/api/repertoires', async (route) => {
+      const reps = [
+        {
+          id: 1,
+          user_id: 1,
+          study_id: 'test1234',
+          color: 'white',
+          title: 'My Test Study',
+          total_chapters: 1,
+          added_at: new Date().toISOString(),
+        },
+      ];
+      await route.fulfill({ status: 200, json: reps });
     });
 
     // Mock Lichess API for the expansion
@@ -60,7 +74,7 @@ test.describe('Dashboard Management', () => {
 
     // 6. Mocker la requête DELETE
     let deleteCalled = false;
-    await page.route('/api/history/repertoire?study_id=test1234&color=white', async (route) => {
+    await page.route('/api/repertoires?study_id=test1234&color=white', async (route) => {
       if (route.request().method() === 'DELETE') {
         deleteCalled = true;
         await route.fulfill({ status: 200, json: { message: 'Supprimé' } });
@@ -69,41 +83,29 @@ test.describe('Dashboard Management', () => {
       }
     });
 
-    // 7. Mock history again to return empty after delete
-    await page.route(
-      '/api/history',
-      async (route) => {
-        if (deleteCalled) {
-          await route.fulfill({ status: 200, json: [] });
-        } else {
-          // This might not be needed if we don't reload, but fetchHistory() is called after delete
-          const history = [
-            {
-              id: 1,
-              user_id: 1,
-              study_id: 'test1234',
-              repertoire_title: 'My Test Study',
-              chapter_title: 'Chapter 1',
-              color: 'white',
-              is_revision: 1,
-              total_moves: 10,
-              errors: 0,
-              date: new Date().toISOString(),
-              total_chapters: 1,
-            },
-          ];
-          await route.fulfill({ status: 200, json: history });
-        }
-      },
-      { times: 2 }
-    ); // Allow it to be called again
+    // 7. Mock history and repertoires again to return empty after delete
+    await page.route('/api/history', async (route) => {
+      if (deleteCalled) {
+        await route.fulfill({ status: 200, json: [] });
+      } else {
+        await route.continue();
+      }
+    });
+    
+    await page.route('/api/repertoires', async (route) => {
+      if (deleteCalled) {
+        await route.fulfill({ status: 200, json: [] });
+      } else {
+        await route.continue();
+      }
+    });
 
     // Click "Supprimer"
     await page.getByRole('button', { name: 'Supprimer' }).click();
 
     // 8. Vérifier que le répertoire disparaît visuellement
     await expect(page.getByText('Répertoire supprimé')).toBeVisible();
-    await expect(page.getByText('Aucun historique.')).toBeVisible();
+    await expect(page.getByText('Aucun répertoire configuré.')).toBeVisible();
     await expect(page.getByText('My Test Study')).toBeHidden();
   });
 });

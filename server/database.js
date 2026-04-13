@@ -37,6 +37,24 @@ const initDB = async () => {
                 is_revision INTEGER DEFAULT 0,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
+
+            CREATE TABLE IF NOT EXISTS repertoires (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                study_id VARCHAR(255) NOT NULL,
+                color VARCHAR(50) NOT NULL,
+                title VARCHAR(255),
+                total_chapters INTEGER,
+                added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                UNIQUE(user_id, study_id, color)
+            );
+
+            INSERT INTO repertoires (user_id, study_id, color, title, total_chapters, added_at)
+            SELECT user_id, study_id, color, repertoire_title, total_chapters, MIN(date)
+            FROM history 
+            GROUP BY user_id, study_id, color, repertoire_title, total_chapters
+            ON CONFLICT (user_id, study_id, color) DO NOTHING;
         `);
     console.log('PostgreSQL Database initialized');
   } catch (err) {

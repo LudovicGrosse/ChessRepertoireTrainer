@@ -67,45 +67,6 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
-router.put('/repertoire/title', authenticateToken, async (req, res) => {
-  try {
-    const { study_id, new_title } = req.body;
-    if (!study_id || !new_title) {
-      return res.status(400).json({ error: 'Missing study_id or new_title' });
-    }
-
-    await db.query(
-      `
-            UPDATE history SET repertoire_title = $1 
-            WHERE user_id = $2 AND (study_id = $3 OR study_id LIKE '%' || $3)
-        `,
-      [new_title, req.user.id, study_id]
-    );
-
-    res.sendStatus(200);
-  } catch (err) {
-    console.error('Update title error:', err);
-    res.status(500).json({ error: 'Failed to update repertoire title' });
-  }
-});
-
-router.delete('/repertoire', authenticateToken, async (req, res) => {
-  try {
-    const { study_id, color } = req.query;
-    await db.query(
-      `
-            DELETE FROM history 
-            WHERE user_id = $1 AND (study_id = $2 OR study_id LIKE '%' || $2) AND color = $3
-        `,
-      [req.user.id, study_id, color]
-    );
-    res.sendStatus(200);
-  } catch (err) {
-    console.error('Delete history error:', err);
-    res.status(500).json({ error: 'Failed to delete history' });
-  }
-});
-
 router.put('/chapter/title', authenticateToken, async (req, res) => {
   try {
     const { study_id, old_title, new_title } = req.body;

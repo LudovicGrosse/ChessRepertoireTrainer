@@ -5,6 +5,7 @@ const path = require('path');
 
 const authRoutes = require('./routes/authRoutes');
 const historyRoutes = require('./routes/historyRoutes');
+const repertoireRoutes = require('./routes/repertoireRoutes');
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 // API Routes
 app.use('/api', authRoutes);
 app.use('/api/history', historyRoutes);
+app.use('/api/repertoires', repertoireRoutes);
 
 // Fallback to index.html for SPA (Single Page Application) behavior
 app.get(/.*/, (req, res) => {

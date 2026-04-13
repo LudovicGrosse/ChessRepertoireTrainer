@@ -1,7 +1,7 @@
 import { Chessground } from 'https://cdn.jsdelivr.net/npm/chessground@9.0.5/+esm';
-import { state, showToast, getToggleState } from './utils.js';
-import { buildRepertoireTree } from './data.js';
-import { updateChapterList, saveHistory } from './dashboard.js';
+import { state, showToast } from './utils.js';
+import { buildRepertoireTree, parseMultiPgn } from './data.js';
+import { saveHistory } from './dashboard.js';
 
 const trainingView = document.getElementById('training-view');
 const setupView = document.getElementById('setup-view');
@@ -286,6 +286,8 @@ const handleEnd = () => {
       saveHistory({
         repertoire_title: state.currentRepertoire.title,
         chapter_title: state.currentRepertoire.chapters[state.currentChapterIndex].title,
+        study_id: state.currentStudyId,
+        total_chapters: state.currentRepertoire.chapters.length,
         moves_learned: state.learnedMoves,
         total_moves: state.totalMoves,
         errors: state.errorCount,
@@ -304,18 +306,9 @@ const handleEnd = () => {
     btn.style.padding = '12px';
     btn.onclick = () => {
       if (state.trainingMode === 'decouverte') {
-        const modeToggle = document.getElementById('modeToggle');
-        const options = modeToggle.querySelectorAll('.toggle-option');
-        options.forEach((opt) => {
-          if (opt.dataset.val === 'revision') {
-            opt.classList.add('active');
-            modeToggle.dataset.state = 'right';
-          } else {
-            opt.classList.remove('active');
-          }
-        });
+        state.trainingMode = 'revision';
       }
-      document.getElementById('startBtn').onclick();
+      launchTrainingUI();
     };
     actions.appendChild(btn);
 
@@ -334,8 +327,7 @@ const handleEnd = () => {
       nextBtn.onclick = () => {
         state.currentChapterIndex = nextChapIdx;
         state.selectedChapterPgn = state.currentRepertoire.chapters[nextChapIdx].pgn;
-        updateChapterList();
-        document.getElementById('startBtn').onclick();
+        launchTrainingUI();
       };
       actions.appendChild(nextBtn);
     }
@@ -395,92 +387,143 @@ const startNextVariation = () => {
   }
 };
 
-export const initTraining = () => {
-  document.getElementById('startBtn').onclick = () => {
-    if (!state.selectedChapterPgn) {
-      return;
+export const startTrainingSessionDirect = async (
+  studyId,
+  repertoireTitle,
+  chapterTitle,
+  color,
+  mode
+) => {
+  let pgnText = null;
+  const CACHE_KEY = 'repertoire_cache';
+  try {
+    const saved = localStorage.getItem(CACHE_KEY);
+    if (saved) {
+      const cache = JSON.parse(saved);
+      const entry = cache[studyId + '_' + color];
+      if (entry && Date.now() - entry.timestamp <= 60 * 60 * 1000) {
+        const chap = entry.chapters.find((c) => c.title === chapterTitle);
+        if (chap) {
+          pgnText = chap.pgn;
+          state.currentRepertoire = {
+            title: entry.title || repertoireTitle,
+            chapters: entry.chapters,
+          };
+          state.currentChapterIndex = entry.chapters.findIndex((c) => c.title === chapterTitle);
+        }
+      }
     }
-    const chap = state.currentRepertoire.chapters[state.currentChapterIndex];
-    state.playerColor = getToggleState('colorToggle');
-    state.trainingMode = getToggleState('modeToggle');
-    try {
-      state.rootNode = buildRepertoireTree(state.selectedChapterPgn);
-    } catch (e) {
-      showToast('Erreur lors de la lecture du PGN', 'error');
-      return;
-    }
-    initializeStats(state.rootNode);
-    if (state.totalMoves === 0) {
-      showToast('Pas de coups pour cette couleur dans ce chapitre.', 'warning');
-      return;
-    }
+  } catch (e) {}
 
-    if (state.authToken) {
-      saveHistory({
-        repertoire_title: state.currentRepertoire.title,
-        chapter_title: chap.title,
-        moves_learned: 0,
-        total_moves: state.totalMoves,
-        errors: 0,
-        is_revision: false,
+  if (!pgnText) {
+    showToast("Chargement de l'étude...", 'info');
+    try {
+      const response = await fetch(`https://lichess.org/api/study/${studyId}.pgn?v=${Date.now()}`);
+      if (!response.ok) throw new Error('Étude non trouvée.');
+      const fullPgnText = await response.text();
+      const studyName = fullPgnText.match(/\[StudyName "(.*?)"\]/)?.[1] || repertoireTitle;
+      const chapters = parseMultiPgn(fullPgnText);
+      state.currentRepertoire = { title: studyName, chapters: chapters };
+      const idx = chapters.findIndex((c) => c.title === chapterTitle);
+      if (idx === -1) throw new Error('Chapitre introuvable');
+      state.currentChapterIndex = idx;
+      pgnText = chapters[idx].pgn;
+
+      // Also update cache if we fetched it
+      try {
+        const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
+        cache[studyId + '_' + color] = {
+          title: studyName,
+          chapters: chapters,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+      } catch (e) {}
+    } catch (err) {
+      showToast(err.message, 'error');
+      return;
+    }
+  }
+
+  state.selectedChapterPgn = pgnText;
+  state.playerColor = color;
+  state.trainingMode = mode;
+  state.currentStudyId = studyId;
+
+  launchTrainingUI();
+};
+
+const launchTrainingUI = () => {
+  if (!state.selectedChapterPgn) return;
+  const chap = state.currentRepertoire.chapters[state.currentChapterIndex];
+  try {
+    state.rootNode = buildRepertoireTree(state.selectedChapterPgn);
+  } catch (e) {
+    showToast('Erreur lors de la lecture du PGN', 'error');
+    return;
+  }
+  initializeStats(state.rootNode);
+  if (state.totalMoves === 0) {
+    showToast('Pas de coups pour cette couleur dans ce chapitre.', 'warning');
+    return;
+  }
+
+  document.getElementById('trainingHeader').innerHTML =
+    `<div style="color: var(--primary);">${state.currentRepertoire.title}</div><div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500; margin-top: 4px;">${chap.title.replace(state.currentRepertoire.title + ': ', '')}</div>`;
+  document.getElementById('trainingActions').classList.add('hidden');
+
+  document.getElementById('errorStatRow').parentElement.style.gridTemplateColumns =
+    state.trainingMode === 'decouverte' ? '1fr 1fr' : '1fr 1fr 1fr';
+  document
+    .getElementById('errorStatRow')
+    .classList.toggle('hidden', state.trainingMode === 'decouverte');
+  document
+    .getElementById('hintBtn')
+    .classList.toggle('hidden', state.trainingMode === 'decouverte');
+  document
+    .getElementById('analysisLink')
+    .classList.toggle('hidden', state.trainingMode === 'revision');
+  document.getElementById('restartBtn').classList.remove('hidden');
+
+  state.isTraining = true;
+  setupView.classList.add('hidden');
+  trainingView.classList.remove('hidden');
+  trainingView.classList.add('fade-in');
+
+  setTimeout(() => {
+    if (!state.cg) {
+      state.cg = Chessground(document.getElementById('board'), {
+        coordinates: true,
+        movable: { color: undefined, dests: new Map() },
+        drawable: {
+          brushes: {
+            green: { key: 'g', color: '#15781B', opacity: 1, lineWidth: 10 },
+            red: { key: 'r', color: '#882020', opacity: 1, lineWidth: 10 },
+            blue: { key: 'b', color: '#003088', opacity: 1, lineWidth: 10 },
+            yellow: { key: 'y', color: '#e68f00', opacity: 1, lineWidth: 10 },
+            paleBlue: { key: 'pb', color: '#003088', opacity: 0.4, lineWidth: 15 },
+            paleGreen: { key: 'pg', color: '#15781B', opacity: 0.4, lineWidth: 15 },
+            paleRed: { key: 'pr', color: '#882020', opacity: 0.4, lineWidth: 15 },
+            paleGrey: { key: 'pgr', color: '#4a4a4a', opacity: 0.35, lineWidth: 15 },
+            hint: { key: 'h', color: '#cbd5e1', opacity: 0.9, lineWidth: 15 },
+          },
+        },
       });
     }
+    state.cg.set({ orientation: state.playerColor });
+    state.game.load(state.rootNode.fen);
+    showToast(
+      state.trainingMode === 'decouverte' ? 'Mode Découverte activé' : 'Mode Révision activé',
+      'info'
+    );
+    startNextVariation();
+  }, 50);
+};
 
-    document.getElementById('trainingHeader').innerHTML =
-      `<div style="color: var(--primary);">${state.currentRepertoire.title}</div><div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500; margin-top: 4px;">${chap.title.replace(state.currentRepertoire.title + ': ', '')}</div>`;
-    document.getElementById('trainingActions').classList.add('hidden');
-
-    document.getElementById('errorStatRow').parentElement.style.gridTemplateColumns =
-      state.trainingMode === 'decouverte' ? '1fr 1fr' : '1fr 1fr 1fr';
-    document
-      .getElementById('errorStatRow')
-      .classList.toggle('hidden', state.trainingMode === 'decouverte');
-    document
-      .getElementById('hintBtn')
-      .classList.toggle('hidden', state.trainingMode === 'decouverte');
-    document
-      .getElementById('analysisLink')
-      .classList.toggle('hidden', state.trainingMode === 'revision');
-    document.getElementById('restartBtn').classList.remove('hidden');
-
-    state.isTraining = true;
-    setupView.classList.add('hidden');
-    trainingView.classList.remove('hidden');
-    trainingView.classList.add('fade-in');
-
-    setTimeout(() => {
-      if (!state.cg) {
-        state.cg = Chessground(document.getElementById('board'), {
-          coordinates: true,
-          movable: { color: undefined, dests: new Map() },
-          drawable: {
-            brushes: {
-              green: { key: 'g', color: '#15781B', opacity: 1, lineWidth: 10 },
-              red: { key: 'r', color: '#882020', opacity: 1, lineWidth: 10 },
-              blue: { key: 'b', color: '#003088', opacity: 1, lineWidth: 10 },
-              yellow: { key: 'y', color: '#e68f00', opacity: 1, lineWidth: 10 },
-              paleBlue: { key: 'pb', color: '#003088', opacity: 0.4, lineWidth: 15 },
-              paleGreen: { key: 'pg', color: '#15781B', opacity: 0.4, lineWidth: 15 },
-              paleRed: { key: 'pr', color: '#882020', opacity: 0.4, lineWidth: 15 },
-              paleGrey: { key: 'pgr', color: '#4a4a4a', opacity: 0.35, lineWidth: 15 },
-              hint: { key: 'h', color: '#cbd5e1', opacity: 0.9, lineWidth: 15 },
-            },
-          },
-        });
-      }
-      state.cg.set({ orientation: state.playerColor });
-      state.game.load(state.rootNode.fen);
-      showToast(
-        state.trainingMode === 'decouverte' ? 'Mode Découverte activé' : 'Mode Révision activé',
-        'info'
-      );
-      startNextVariation();
-    }, 50);
-  };
-
+export const initTraining = () => {
   document.getElementById('restartBtn').onclick = () => {
     if (state.isTraining) {
-      document.getElementById('startBtn').onclick();
+      launchTrainingUI();
     }
   };
 
@@ -559,6 +602,13 @@ export const initTraining = () => {
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
       navigateView(-1);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      navigateView(1);
+    }
+  });
+};
+igateView(-1);
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
       navigateView(1);

@@ -7,6 +7,7 @@ import {
   setToggleState,
 } from './utils.js';
 import { parseMultiPgn, buildRepertoireTree } from './data.js';
+import { startTrainingSessionDirect } from './training.js';
 
 const CACHE_KEY = 'repertoire_cache';
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in ms
@@ -39,53 +40,51 @@ export const fetchHistory = async () => {
     return;
   }
   try {
-    const res = await fetch('/api/history', {
-      headers: { Authorization: `Bearer ${state.authToken}` },
-    });
-    if (res.ok) {
-      renderInteractiveDashboard(await res.json());
-    } else if (res.status === 401 || res.status === 403) {
+    const [repsRes, histRes] = await Promise.all([
+      fetch('/api/repertoires', { headers: { Authorization: `Bearer ${state.authToken}` } }),
+      fetch('/api/history', { headers: { Authorization: `Bearer ${state.authToken}` } }),
+    ]);
+
+    if (repsRes.ok && histRes.ok) {
+      const repertoires = await repsRes.json();
+      const history = await histRes.json();
+      renderInteractiveDashboard(repertoires, history);
+    } else if (
+      repsRes.status === 401 ||
+      repsRes.status === 403 ||
+      histRes.status === 401 ||
+      histRes.status === 403
+    ) {
       console.warn('Session expired or invalid. Logging out...');
       document.getElementById('logoutBtn').click();
     }
   } catch (err) {
-    console.error('Failed to fetch history:', err);
+    console.error('Failed to fetch dashboard data:', err);
   }
 };
 
 let currentlyOpenRepId = null;
 
-const renderInteractiveDashboard = (history) => {
+const renderInteractiveDashboard = (apiRepertoires, history) => {
   const repertoireListEl = document.getElementById('repertoireList');
-  if (history.length === 0) {
+  if (apiRepertoires.length === 0) {
     repertoireListEl.innerHTML =
-      '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Aucun historique.</div>';
+      '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Aucun répertoire configuré.</div>';
     return;
   }
 
-  const repertoires = {};
+  const histMap = {};
   history.forEach((entry) => {
     const normalizedId = extractStudyId(entry.study_id);
     const repKey = normalizedId + '_' + entry.color;
-    if (!repertoires[repKey]) {
-      repertoires[repKey] = {
-        title: entry.repertoire_title,
-        study_id: normalizedId,
-        color: entry.color,
-        chaptersHistory: {},
+    if (!histMap[repKey]) {
+      histMap[repKey] = {
         last_revision: null,
-        total_chapters: entry.total_chapters || 0,
+        chaptersHistory: {},
       };
     }
-    const rep = repertoires[repKey];
+    const rep = histMap[repKey];
 
-    if (!rep.last_date || new Date(entry.date) > new Date(rep.last_date)) {
-      rep.title = entry.repertoire_title;
-      rep.last_date = entry.date;
-    }
-    if (entry.total_chapters > rep.total_chapters) {
-      rep.total_chapters = entry.total_chapters;
-    }
     if (
       entry.is_revision &&
       (!rep.last_revision || new Date(entry.date) > new Date(rep.last_revision))
@@ -105,9 +104,22 @@ const renderInteractiveDashboard = (history) => {
     }
   });
 
+  const reps = apiRepertoires.map((dbRep) => {
+    const repKey = extractStudyId(dbRep.study_id) + '_' + dbRep.color;
+    const historyData = histMap[repKey] || { last_revision: null, chaptersHistory: {} };
+    return {
+      title: dbRep.title,
+      study_id: dbRep.study_id,
+      color: dbRep.color,
+      total_chapters: dbRep.total_chapters,
+      last_revision: historyData.last_revision,
+      chaptersHistory: historyData.chaptersHistory,
+    };
+  });
+
   repertoireListEl.innerHTML = '';
 
-  const allReps = Object.values(repertoires).sort(
+  const allReps = reps.sort(
     (a, b) =>
       (b.last_revision ? new Date(b.last_revision) : 0) -
       (a.last_revision ? new Date(a.last_revision) : 0)
@@ -258,10 +270,56 @@ const renderInteractiveDashboard = (history) => {
           ? `<strong>${chap.title.replace(rep.title + ': ', '')} <span style="color: var(--warning); font-size: 10px; border: 1px solid var(--warning); padding: 1px 4px; border-radius: 4px; margin-left: 4px;">MAJ</span></strong>`
           : `<strong>${chap.title.replace(rep.title + ': ', '')}</strong>`;
 
-        chapRow.innerHTML = `<div><span class="label">Chapitre</span>${chapTitleHtml}</div><div><span class="label">Succès</span><span class="${successClass}">${hasData ? finalSuccessRate + '%' : '-'}</span>${progressHtml}</div><div><span class="label">Coups</span><strong style="color: var(--text-main); font-weight: normal;">${moveCount}</strong></div><div><span class="label">Dernière</span><span style="color: var(--text-muted);">${formatRelativeTime(latest ? latest.date : null)}</span></div><div class="play-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>`;
+        chapRow.innerHTML = `<div style="grid-column: 1 / -1; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 30px; gap: 15px; align-items: center; width: 100%;">
+            <div><span class="label">Chapitre</span>${chapTitleHtml}</div>
+            <div><span class="label">Succès</span><span class="${successClass}">${hasData ? finalSuccessRate + '%' : '-'}</span>${progressHtml}</div>
+            <div><span class="label">Coups</span><strong style="color: var(--text-main); font-weight: normal;">${moveCount}</strong></div>
+            <div><span class="label">Dernière</span><span style="color: var(--text-muted);">${formatRelativeTime(latest ? latest.date : null)}</span></div>
+            <div class="play-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+        </div>`;
+
         chapRow.onclick = (e) => {
           e.stopPropagation();
-          relaunchStudy(normalizedId, chap.title, rep.color);
+          const existingActions = chapRow.querySelector('.inline-actions');
+          if (existingActions) {
+            existingActions.remove();
+            return;
+          }
+
+          document.querySelectorAll('.inline-actions').forEach((el) => el.remove());
+
+          const actionsDiv = document.createElement('div');
+          actionsDiv.className = 'inline-actions fade-in';
+          actionsDiv.style.cssText =
+            'grid-column: 1 / -1; display: flex; gap: 8px; margin-top: 8px; padding: 8px; background: var(--bg-hover); border-radius: 6px;';
+
+          const decBtn = document.createElement('button');
+          decBtn.className = 'primary';
+          decBtn.style.cssText = 'flex: 1; padding: 8px; font-size: 13px;';
+          decBtn.textContent = 'Jouer en Découverte';
+          decBtn.onclick = (evt) => {
+            evt.stopPropagation();
+            startTrainingSessionDirect(
+              normalizedId,
+              rep.title,
+              chap.title,
+              rep.color,
+              'decouverte'
+            );
+          };
+
+          const revBtn = document.createElement('button');
+          revBtn.className = 'secondary';
+          revBtn.style.cssText = 'flex: 1; padding: 8px; font-size: 13px;';
+          revBtn.textContent = 'Jouer en Révision';
+          revBtn.onclick = (evt) => {
+            evt.stopPropagation();
+            startTrainingSessionDirect(normalizedId, rep.title, chap.title, rep.color, 'revision');
+          };
+
+          actionsDiv.appendChild(decBtn);
+          actionsDiv.appendChild(revBtn);
+          chapRow.appendChild(actionsDiv);
         };
         detail.appendChild(chapRow);
       });
@@ -294,7 +352,7 @@ const renderInteractiveDashboard = (history) => {
           return;
         }
         const res = await fetch(
-          `/api/history/repertoire?study_id=${encodeURIComponent(normalizedId)}&color=${encodeURIComponent(rep.color)}`,
+          `/api/repertoires?study_id=${encodeURIComponent(normalizedId)}&color=${encodeURIComponent(rep.color)}`,
           {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${state.authToken}` },
@@ -335,7 +393,7 @@ const renderInteractiveDashboard = (history) => {
 
         if (currentStudyName !== rep.title && state.authToken) {
           try {
-            await fetch('/api/history/repertoire/title', {
+            await fetch('/api/repertoires/title', {
               method: 'PUT',
               headers: {
                 'Content-Type': 'application/json',
@@ -419,27 +477,18 @@ const renderInteractiveDashboard = (history) => {
   }
 };
 
-const relaunchStudy = async (studyId, chapterTitle, color) => {
-  document.getElementById('lichessInput').value = studyId;
-  setToggleState('colorToggle', color);
-  setToggleState('modeToggle', 'revision');
-  await loadLichessStudy(studyId, chapterTitle);
-};
-
 export const saveHistory = async (stats) => {
   if (!state.authToken) {
     return;
   }
-  const normalizedId = extractStudyId(document.getElementById('lichessInput').value.trim());
+  // Now we need studyId and totalChapters from stats directly, as the lichessInput may not be filled.
   try {
     const res = await fetch('/api/history', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${state.authToken}` },
       body: JSON.stringify({
         ...stats,
-        study_id: normalizedId,
         color: state.playerColor,
-        total_chapters: state.currentRepertoire ? state.currentRepertoire.chapters.length : 0,
       }),
     });
     if (res.status === 401 || res.status === 403) {
@@ -458,23 +507,15 @@ export const updateChapterList = () => {
   }
   const chapterListEl = document.getElementById('chapterList');
   const chapterSelectionArea = document.getElementById('chapter-selection-area');
-  const startBtn = document.getElementById('startBtn');
 
   state.playerColor = getToggleState('colorToggle');
-  const previousIdx = state.currentChapterIndex;
   chapterListEl.innerHTML = '';
-  state.selectedChapterPgn = null;
-  state.currentChapterIndex = -1;
 
   if (state.currentRepertoire.chapters.length === 1) {
     chapterSelectionArea.classList.add('hidden');
-    state.selectedChapterPgn = state.currentRepertoire.chapters[0].pgn;
-    state.currentChapterIndex = 0;
-    startBtn.disabled = false;
   } else {
     chapterSelectionArea.classList.remove('hidden');
-    startBtn.disabled = true;
-    state.currentRepertoire.chapters.forEach((chap, idx) => {
+    state.currentRepertoire.chapters.forEach((chap) => {
       let moveCount = 0;
       try {
         const tempRoot = buildRepertoireTree(chap.pgn);
@@ -488,30 +529,16 @@ export const updateChapterList = () => {
       } catch (e) {
         console.error('Count moves error:', e);
       }
-      const btn = document.createElement('button');
+      const btn = document.createElement('div');
       btn.className = 'chapter-btn';
-      if (idx === previousIdx) {
-        btn.classList.add('selected');
-        state.selectedChapterPgn = chap.pgn;
-        state.currentChapterIndex = idx;
-        startBtn.disabled = false;
-      }
+      btn.style.cursor = 'default';
       btn.innerHTML = `<span>${chap.title}</span><span class="chapter-count">${moveCount} coups</span>`;
-      btn.onclick = () => {
-        document.querySelectorAll('.chapter-btn').forEach((b) => {
-          b.classList.remove('selected');
-        });
-        btn.classList.add('selected');
-        state.selectedChapterPgn = chap.pgn;
-        state.currentChapterIndex = idx;
-        startBtn.disabled = false;
-      };
       chapterListEl.appendChild(btn);
     });
   }
 };
 
-export const loadLichessStudy = async (input, targetChapterTitle = null) => {
+export const loadLichessStudy = async (input) => {
   document.getElementById('config-card').style.display = 'none';
   if (!input) {
     return;
@@ -530,13 +557,8 @@ export const loadLichessStudy = async (input, targetChapterTitle = null) => {
     state.currentRepertoire = { title: studyName, chapters: parseMultiPgn(pgnText) };
     document.getElementById('config-title').textContent = `Répertoire : ${studyName}`;
     document.getElementById('config-card').style.display = 'flex';
-    if (targetChapterTitle) {
-      state.currentChapterIndex = state.currentRepertoire.chapters.findIndex(
-        (c) => c.title === targetChapterTitle
-      );
-    }
     updateChapterList();
-    showToast('Étude chargée avec succès', 'success');
+    showToast("Étude chargée avec succès, vous pouvez maintenant l'ajouter.", 'success');
     document.getElementById('config-card').scrollIntoView({ behavior: 'smooth' });
   } catch (err) {
     showToast(err.message, 'error');
@@ -553,5 +575,36 @@ export const initDashboard = () => {
 
   document.getElementById('loadBtn').onclick = () => {
     loadLichessStudy(document.getElementById('lichessInput').value.trim());
+  };
+
+  document.getElementById('addRepertoireBtn').onclick = async () => {
+    if (!state.currentRepertoire || !state.authToken) return;
+
+    const studyId = extractStudyId(document.getElementById('lichessInput').value.trim());
+    const color = getToggleState('colorToggle');
+
+    try {
+      const res = await fetch('/api/repertoires', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${state.authToken}` },
+        body: JSON.stringify({
+          study_id: studyId,
+          title: state.currentRepertoire.title,
+          color: color,
+          total_chapters: state.currentRepertoire.chapters.length,
+        }),
+      });
+      if (res.ok) {
+        showToast('Répertoire ajouté avec succès', 'success');
+        document.getElementById('config-card').style.display = 'none';
+        document.getElementById('lichessInput').value = '';
+        fetchHistory(); // Refresh dashboard
+      } else {
+        const data = await res.json();
+        showToast(data.error || "Erreur lors de l'ajout", 'error');
+      }
+    } catch (err) {
+      showToast('Erreur de connexion', 'error');
+    }
   };
 };
