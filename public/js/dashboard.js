@@ -149,10 +149,10 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
 
       if (cache && cache.data && cache.data.chapters) {
         cache.data.chapters.forEach((chap) => {
-          totalRevisionMoves += chap.moveCount || 0;
           const hist = rep.chaptersHistory[chap.id];
           const latest = hist && hist.revisions.length > 0 ? hist.revisions[0] : null;
           if (latest) {
+            totalRevisionMoves += chap.moveCount || 0;
             totalSuccessMoves += Math.min(
               chap.moveCount || 0,
               Math.max(0, latest.total_moves - latest.errors)
