@@ -25,6 +25,14 @@ test.describe('Training Engine Flow', () => {
                 title: 'My Test Study',
                 total_chapters: 1,
                 added_at: new Date().toISOString(),
+                chapters: [
+                  {
+                    id: 'test',
+                    title: 'Chapter 1',
+                    white_moves: 10,
+                    black_moves: 10
+                  }
+                ]
               },
             ],
           });
@@ -106,6 +114,9 @@ test.describe('Training Engine Flow', () => {
     await expect(page.getByRole('button', { name: 'Notes' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Solution' })).toBeHidden(); // Hidden in Discovery mode
     await expect(page.getByRole('button', { name: 'Quitter' })).toBeVisible();
+
+    // Handle the confirm dialog before clicking Quitter
+    page.on('dialog', (dialog) => dialog.accept());
 
     // Click "Quitter"
     await page.getByRole('button', { name: 'Quitter' }).click();

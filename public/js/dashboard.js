@@ -10,7 +10,6 @@ import { parseMultiPgn, buildRepertoireTree } from './data.js';
 import { startTrainingSessionDirect } from './training.js';
 
 const CACHE_KEY = 'repertoire_cache';
-const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in ms
 let repertoireCache = {};
 try {
   const saved = localStorage.getItem(CACHE_KEY);
@@ -24,15 +23,6 @@ try {
 const saveToCache = (id, data) => {
   repertoireCache[id] = { ...data, timestamp: Date.now() };
   localStorage.setItem(CACHE_KEY, JSON.stringify(repertoireCache));
-};
-
-const getFromCache = (id) => {
-  const entry = repertoireCache[id];
-  if (!entry) {
-    return null;
-  }
-  const isExpired = Date.now() - entry.timestamp > CACHE_DURATION;
-  return { data: entry, isExpired };
 };
 
 export const fetchHistory = async () => {
@@ -93,7 +83,6 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
     }
     if (!rep.chaptersHistory[entry.chapter_id]) {
       rep.chaptersHistory[entry.chapter_id] = {
-        title: entry.chapter_title,
         revisions: [],
         total_revisions: 0,
       };
@@ -112,6 +101,8 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
       repertoire_id: dbRep.repertoire_id,
       color: dbRep.color,
       total_chapters: dbRep.total_chapters,
+      lichess_updated_at: dbRep.lichess_updated_at,
+      dbChapters: dbRep.chapters || [],
       last_revision: historyData.last_revision,
       chaptersHistory: historyData.chaptersHistory,
     };
@@ -145,29 +136,17 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
 
       let totalSuccessMoves = 0;
       let totalRevisionMoves = 0;
-      const cache = getFromCache(normalizedId + '_' + rep.color);
 
-      if (cache && cache.data && cache.data.chapters) {
-        cache.data.chapters.forEach((chap) => {
-          const hist = rep.chaptersHistory[chap.id];
-          const latest = hist && hist.revisions.length > 0 ? hist.revisions[0] : null;
-          if (latest) {
-            totalRevisionMoves += chap.moveCount || 0;
-            totalSuccessMoves += Math.min(
-              chap.moveCount || 0,
-              Math.max(0, latest.total_moves - latest.errors)
-            );
-          }
-        });
-      } else {
-        Object.values(rep.chaptersHistory).forEach((chapHist) => {
-          const latest = chapHist.revisions.length > 0 ? chapHist.revisions[0] : null;
-          if (latest && latest.total_moves > 0) {
-            totalSuccessMoves += Math.max(0, latest.total_moves - latest.errors);
-            totalRevisionMoves += latest.total_moves;
-          }
-        });
-      }
+      rep.dbChapters.forEach((chap) => {
+        const moveCount = rep.color === 'white' ? chap.white_moves : chap.black_moves;
+        totalRevisionMoves += moveCount;
+
+        const hist = rep.chaptersHistory[chap.id];
+        const latest = hist && hist.revisions.length > 0 ? hist.revisions[0] : null;
+        if (latest && moveCount > 0) {
+          totalSuccessMoves += Math.min(moveCount, Math.max(0, latest.total_moves - latest.errors));
+        }
+      });
 
       const globalRate =
         totalRevisionMoves > 0 ? Math.round((totalSuccessMoves / totalRevisionMoves) * 100) : 0;
@@ -203,11 +182,16 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
           i.textContent = '+';
         });
 
+        const oneHour = 60 * 60 * 1000;
+        const needsSync =
+          !rep.lichess_updated_at ||
+          Date.now() - new Date(rep.lichess_updated_at).getTime() > oneHour;
+
         if (!isOpen) {
           currentlyOpenRepId = repKey;
           detail.classList.add('open');
           icon.textContent = '−';
-          expandRepertoire(rep, detail, normalizedId);
+          expandRepertoire(rep, detail, normalizedId, needsSync);
         } else {
           currentlyOpenRepId = null;
         }
@@ -217,7 +201,7 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
         detail.classList.add('open');
         icon.textContent = '−';
         setTimeout(() => {
-          expandRepertoire(rep, detail, normalizedId);
+          expandRepertoire(rep, detail, normalizedId, false);
         }, 0);
       }
 
@@ -225,14 +209,14 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
     });
   };
 
-  const expandRepertoire = (rep, detail, normalizedId) => {
-    const renderChapters = (chaptersData) => {
+  const expandRepertoire = (rep, detail, normalizedId, autoSync = false) => {
+    const renderChapters = () => {
       detail.innerHTML = '';
-      chaptersData.forEach((chap) => {
+      rep.dbChapters.forEach((chap) => {
         const hist = rep.chaptersHistory[chap.id];
         const latest = hist && hist.revisions.length > 0 ? hist.revisions[0] : null;
         const hasData = latest !== null;
-        const moveCount = chap.moveCount;
+        const moveCount = rep.color === 'white' ? chap.white_moves : chap.black_moves;
 
         let finalSuccessRate = 0;
         let isUpdated = false;
@@ -395,12 +379,9 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
     };
 
     const syncFromLichess = async (force = false) => {
-      if (!force) {
-        const cache = getFromCache(normalizedId + '_' + rep.color);
-        if (cache && !cache.isExpired) {
-          renderChapters(cache.data.chapters);
-          return;
-        }
+      if (!force && !autoSync) {
+        renderChapters();
+        return;
       }
 
       detail.innerHTML =
@@ -417,28 +398,15 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
         const allChapters = parseMultiPgn(pgnText);
         const currentStudyName = pgnText.match(/\[StudyName "(.*?)"\]/)?.[1] || rep.title;
 
-        if (currentStudyName !== rep.title && state.authToken) {
-          try {
-            await fetch('/api/repertoires/title', {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${state.authToken}`,
-              },
-              body: JSON.stringify({ repertoire_id: normalizedId, new_title: currentStudyName }),
-            });
-          } catch (e) {
-            console.error('Update repertoire title error:', e);
-          }
-        }
-
         const chaptersWithMoves = allChapters.map((chap) => {
-          let moveCount = 0;
+          let white_moves = 0;
+          let black_moves = 0;
           try {
             const tempRoot = buildRepertoireTree(chap.pgn);
             const countMoves = (n) => {
-              if (n.id !== 'root' && n.color === rep.color) {
-                moveCount++;
+              if (n.id !== 'root') {
+                if (n.color === 'white') white_moves++;
+                if (n.color === 'black') black_moves++;
               }
               n.children.forEach(countMoves);
             };
@@ -446,36 +414,36 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
           } catch (e) {
             console.error('Count moves error:', e);
           }
-          return { id: chap.id, title: chap.title, moveCount, pgn: chap.pgn };
+          return { id: chap.id, title: chap.title, white_moves, black_moves, pgn: chap.pgn };
         });
 
         if (state.authToken) {
-          for (let chap of chaptersWithMoves) {
-            const hist = rep.chaptersHistory[chap.id];
-            if (hist && hist.title !== chap.title) {
-              try {
-                await fetch('/api/history/chapter/title', {
-                  method: 'PUT',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${state.authToken}`,
-                  },
-                  body: JSON.stringify({
-                    repertoire_id: normalizedId,
-                    chapter_id: chap.id,
-                    new_title: chap.title,
-                  }),
-                });
-              } catch (e) {
-                console.error('Update chapter title error:', e);
-              }
-            }
-          }
+          await fetch('/api/repertoires', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${state.authToken}`,
+            },
+            body: JSON.stringify({
+              repertoire_id: normalizedId,
+              title: currentStudyName,
+              color: rep.color,
+              chapters: chaptersWithMoves.map((c) => ({
+                id: c.id,
+                title: c.title,
+                white_moves: c.white_moves,
+                black_moves: c.black_moves,
+              })),
+            }),
+          });
         }
+
         saveToCache(normalizedId + '_' + rep.color, {
           chapters: chaptersWithMoves,
           title: currentStudyName,
         });
+
+        // Use fetchHistory to re-fetch and render the updated data properly
         fetchHistory();
       } catch (err) {
         console.error('Lichess sync error:', err);
@@ -499,7 +467,6 @@ export const saveHistory = async (stats) => {
   if (!state.authToken) {
     return;
   }
-  // Now we need repertoireId and totalChapters from stats directly, as the lichessInput may not be filled.
   try {
     const res = await fetch('/api/history', {
       method: 'POST',
@@ -605,6 +572,25 @@ export const initDashboard = () => {
     const repertoireId = extractStudyId(document.getElementById('lichessInput').value.trim());
     const color = getToggleState('colorToggle');
 
+    const chaptersWithMoves = state.currentRepertoire.chapters.map((chap) => {
+      let white_moves = 0;
+      let black_moves = 0;
+      try {
+        const tempRoot = buildRepertoireTree(chap.pgn);
+        const countMoves = (n) => {
+          if (n.id !== 'root') {
+            if (n.color === 'white') white_moves++;
+            if (n.color === 'black') black_moves++;
+          }
+          n.children.forEach(countMoves);
+        };
+        countMoves(tempRoot);
+      } catch (e) {
+        console.error('Count moves error:', e);
+      }
+      return { id: chap.id, title: chap.title, white_moves, black_moves };
+    });
+
     try {
       const res = await fetch('/api/repertoires', {
         method: 'POST',
@@ -613,7 +599,7 @@ export const initDashboard = () => {
           repertoire_id: repertoireId,
           title: state.currentRepertoire.title,
           color: color,
-          total_chapters: state.currentRepertoire.chapters.length,
+          chapters: chaptersWithMoves,
         }),
       });
       if (res.ok) {

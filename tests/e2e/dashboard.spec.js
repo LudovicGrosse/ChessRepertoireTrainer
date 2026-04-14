@@ -33,6 +33,14 @@ test.describe('Dashboard Management', () => {
           title: 'My Test Study',
           total_chapters: 1,
           added_at: new Date().toISOString(),
+          chapters: [
+            {
+              id: 'test',
+              title: 'Chapter 1',
+              white_moves: 10,
+              black_moves: 10
+            }
+          ]
         },
       ];
       await route.fulfill({ status: 200, json: reps });
