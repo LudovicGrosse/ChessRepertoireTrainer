@@ -271,7 +271,7 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
           : `<strong>${chap.title.replace(rep.title + ': ', '')}</strong>`;
 
         chapRow.innerHTML = `
-            <div class="chapter-info-grid pc-only">
+            <div class="chapter-info-grid">
                 <div class="chapter-name-col">
                     <span class="label">Chapitre</span>
                     <div class="chapter-title-text">${chapTitleHtml}</div>
@@ -291,17 +291,6 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
                 </div>
                 <div class="play-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                </div>
-            </div>
-            <div class="chapter-info-mobile mobile-only">
-                <div class="chapter-main-info">
-                    <span class="label">Chapitre</span>
-                    <div class="chapter-title-text">${chapTitleHtml}</div>
-                </div>
-                <div class="chapter-stats-info">
-                    <div class="stat-item"><span class="label">Succès</span><span class="${successClass}">${hasData ? finalSuccessRate + '%' : '-'}</span>${progressHtml}</div>
-                    <div class="stat-item"><span class="label">Coups</span><strong style="color: var(--text-main); font-weight: normal;">${moveCount}</strong></div>
-                    <div class="stat-item"><span class="label">Dernière</span><span style="color: var(--text-muted);">${formatRelativeTime(latest ? latest.date : null)}</span></div>
                 </div>
             </div>`;
 

@@ -940,42 +940,42 @@ cg-board square.move-dest {
     transform: none;
   }
 
-  .pc-only {
-    display: none !important;
+  .chapter-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-areas: 
+      "name name name"
+      "stat1 stat2 stat3";
+    gap: 12px 0;
   }
-  .mobile-only {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 8px;
-  }
-  .chapter-info-mobile .chapter-main-info {
+  .chapter-info-grid .chapter-name-col {
+    grid-area: name;
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 8px;
+    width: 100%;
   }
-  .chapter-info-mobile .chapter-main-info .label {
+  .chapter-info-grid .chapter-name-col .label {
     display: block;
     margin-bottom: 4px;
   }
-  .chapter-info-mobile .chapter-main-info .chapter-title-text {
+  .chapter-info-grid .chapter-name-col .chapter-title-text {
     display: block;
     white-space: normal;
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--text-main);
   }
-  .chapter-info-mobile .chapter-stats-info {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    font-size: 11px;
+  .chapter-info-grid .chapter-stat-col:nth-child(2) {
+    grid-area: stat1;
+    text-align: left;
   }
-  .chapter-info-mobile .stat-item {
+  .chapter-info-grid .chapter-stat-col:nth-child(3) {
+    grid-area: stat2;
     text-align: center;
   }
-  .chapter-info-mobile .stat-item .label {
-    margin-bottom: 2px;
+  .chapter-info-grid .chapter-stat-col:nth-child(4) {
+    grid-area: stat3;
+    text-align: right;
+  }
+  .chapter-info-grid .play-icon {
+    display: none;
   }
 
   .header-title {
