@@ -567,7 +567,8 @@ header .user-badge span {
 
 .chapter-info-grid {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1fr 40px;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 40px;
+  gap: 12px;
   align-items: center;
   font-size: 13px;
   width: 100%;
@@ -584,12 +585,12 @@ header .user-badge span {
 }
 
 .chapter-title-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-weight: 600;
   font-size: 14px;
   color: var(--text-main);
+  word-break: break-word;
+  line-height: 1.4;
+  padding-bottom: 2px;
 }
 
 .chapter-row .play-icon {

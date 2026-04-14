@@ -267,7 +267,7 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
           ? `<div class="mini-progress-bg"><div class="mini-progress-fill" style="width: ${finalSuccessRate}%; background: ${finalSuccessRate >= 80 ? 'var(--success)' : finalSuccessRate < 50 ? 'var(--danger)' : 'var(--warning)'}"></div></div>`
           : '';
         const chapTitleHtml = isUpdated
-          ? `<strong>${chap.title.replace(rep.title + ': ', '')} <span style="color: var(--warning); font-size: 10px; border: 1px solid var(--warning); padding: 1px 4px; border-radius: 4px; margin-left: 4px;">MAJ</span></strong>`
+          ? `<strong>${chap.title.replace(rep.title + ': ', '')} <span style="display: inline-block; line-height: 1; color: var(--warning); font-size: 10px; border: 1px solid var(--warning); padding: 2px 4px; border-radius: 4px; margin-left: 4px; vertical-align: middle;">MAJ</span></strong>`
           : `<strong>${chap.title.replace(rep.title + ': ', '')}</strong>`;
 
         chapRow.innerHTML = `
