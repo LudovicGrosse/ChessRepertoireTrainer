@@ -30,9 +30,9 @@ test.describe('Training Engine Flow', () => {
                     id: 'test',
                     title: 'Chapter 1',
                     white_moves: 10,
-                    black_moves: 10
-                  }
-                ]
+                    black_moves: 10,
+                  },
+                ],
               },
             ],
           });
