@@ -1,5 +1,0 @@
-﻿2026-04-07T21:45:11.5270692Z Post job cleanup.
-2026-04-07T21:45:11.6502024Z (node:5389) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-2026-04-07T21:45:11.6504232Z (Use `node --trace-deprecation ...` to show where the warning was created)
-2026-04-07T21:45:11.6743582Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/ChessRepertoireTrainer/ChessRepertoireTrainer --files-from manifest.txt --use-compress-program zstdmt
-2026-04-07T21:45:11.9594434Z Failed to save: Unable to reserve cache with key node-cache-Linux-x64-npm-364e53e8a36c7d9944492856dfe2137ee4eb78a09196a88a68a573a9deeb69ec, another job may be creating this cache.

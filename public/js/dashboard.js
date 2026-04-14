@@ -115,8 +115,8 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
       (b.last_revision ? new Date(b.last_revision) : 0) -
       (a.last_revision ? new Date(a.last_revision) : 0)
   );
-  const whiteReps = allReps.filter((r) => r.color === 'white');
-  const blackReps = allReps.filter((r) => r.color === 'black');
+  const whiteReps = allReps.filter((r) => r.color === 'white' && r.dbChapters.reduce((acc, c) => acc + c.white_moves, 0) > 0);
+  const blackReps = allReps.filter((r) => r.color === 'black' && r.dbChapters.reduce((acc, c) => acc + c.black_moves, 0) > 0);
 
   const createSectionHeader = (title) => {
     const h3 = document.createElement('h3');
@@ -150,6 +150,11 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
 
       const globalRate =
         totalRevisionMoves > 0 ? Math.round((totalSuccessMoves / totalRevisionMoves) * 100) : 0;
+
+      if (totalRevisionMoves === 0) {
+        return; // Ne pas afficher les répertoires avec 0 coups
+      }
+
       const rateClass = globalRate >= 80 ? 'high' : globalRate < 50 ? 'low' : 'medium';
 
       const repItem = document.createElement('div');
