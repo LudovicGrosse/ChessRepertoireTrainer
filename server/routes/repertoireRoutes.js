@@ -27,15 +27,15 @@ router.post('/', authenticateToken, async (req, res) => {
     );
 
     // 2. Upsert chapters
-    for (const chap of chapters) {
+    for (const [index, chap] of chapters.entries()) {
       await client.query(
         `
-        INSERT INTO chapters (id, repertoire_id, title, white_moves, black_moves)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO chapters (id, repertoire_id, title, white_moves, black_moves, sort_order)
+        VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT (id) 
-        DO UPDATE SET title = EXCLUDED.title, white_moves = EXCLUDED.white_moves, black_moves = EXCLUDED.black_moves
+        DO UPDATE SET title = EXCLUDED.title, white_moves = EXCLUDED.white_moves, black_moves = EXCLUDED.black_moves, sort_order = EXCLUDED.sort_order
         `,
-        [chap.id, repertoire_id, chap.title, chap.white_moves || 0, chap.black_moves || 0]
+        [chap.id, repertoire_id, chap.title, chap.white_moves || 0, chap.black_moves || 0, index]
       );
     }
 
@@ -76,7 +76,7 @@ router.get('/', authenticateToken, async (req, res) => {
                       'title', c.title, 
                       'white_moves', c.white_moves, 
                       'black_moves', c.black_moves
-                  )
+                  ) ORDER BY c.sort_order ASC
               ) 
               FROM chapters c 
               WHERE c.repertoire_id = r.id

@@ -48,8 +48,16 @@ const initDB = async () => {
                 title VARCHAR(255) NOT NULL,
                 white_moves INTEGER DEFAULT 0,
                 black_moves INTEGER DEFAULT 0,
+                sort_order INTEGER DEFAULT 0,
                 FOREIGN KEY (repertoire_id) REFERENCES repertoires(id) ON DELETE CASCADE
             );
+
+            DO $$ 
+            BEGIN
+              IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'chapters') THEN
+                ALTER TABLE chapters ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0;
+              END IF;
+            END $$;
 
             CREATE TABLE IF NOT EXISTS user_repertoires (
                 user_id INTEGER NOT NULL,
