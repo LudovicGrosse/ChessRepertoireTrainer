@@ -944,9 +944,9 @@ cg-board square.move-dest {
   .chapter-info-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    grid-template-areas: 
-      "name name name"
-      "stat1 stat2 stat3";
+    grid-template-areas:
+      'name name name'
+      'stat1 stat2 stat3';
     gap: 12px 0;
   }
   .chapter-info-grid .chapter-name-col {

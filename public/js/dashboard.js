@@ -115,8 +115,12 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
       (b.last_revision ? new Date(b.last_revision) : 0) -
       (a.last_revision ? new Date(a.last_revision) : 0)
   );
-  const whiteReps = allReps.filter((r) => r.color === 'white' && r.dbChapters.reduce((acc, c) => acc + c.white_moves, 0) > 0);
-  const blackReps = allReps.filter((r) => r.color === 'black' && r.dbChapters.reduce((acc, c) => acc + c.black_moves, 0) > 0);
+  const whiteReps = allReps.filter(
+    (r) => r.color === 'white' && r.dbChapters.reduce((acc, c) => acc + c.white_moves, 0) > 0
+  );
+  const blackReps = allReps.filter(
+    (r) => r.color === 'black' && r.dbChapters.reduce((acc, c) => acc + c.black_moves, 0) > 0
+  );
 
   const createSectionHeader = (title) => {
     const h3 = document.createElement('h3');
