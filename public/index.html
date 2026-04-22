@@ -101,7 +101,16 @@
         <div class="modal-body">
           <div class="setup-card" style="margin-bottom: 20px">
             <div style="display: flex; justify-content: space-between; align-items: center">
-              <h3 style="margin: 0; border: none; padding: 0">Compte Lichess</h3>
+              <h3 style="margin: 0; border: none; padding: 0">Mon Compte</h3>
+              <button id="logoutBtn" class="secondary" style="padding: 6px 12px; font-size: 12px">
+                Déconnexion
+              </button>
+            </div>
+          </div>
+
+          <div class="setup-card" style="margin-bottom: 20px">
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              <h3 style="margin: 0; border: none; padding: 0">Lichess</h3>
               <div id="lichess-status-container">
                 <button
                   id="connectLichessBtn"
@@ -117,13 +126,26 @@
             </p>
           </div>
 
-          <div class="setup-card" style="border: 1px solid var(--danger)">
-            <h3 style="margin-top: 0; color: var(--danger)">Zone de Danger</h3>
+          <div class="setup-card">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+              "
+            >
+              <h3 style="margin: 0; border: none; padding: 0">Suppression du compte</h3>
+            </div>
             <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px">
-              La suppression de votre compte est définitive et effacera tout votre historique
-              d'entraînement ainsi que vos répertoires.
+              Cette action est définitive et effacera tout votre historique d'entraînement ainsi que
+              vos répertoires.
             </p>
-            <button id="showDeleteAccountBtn" class="danger" style="width: 100%">
+            <button
+              id="showDeleteAccountBtn"
+              class="secondary"
+              style="width: 100%; color: var(--danger); border-color: var(--danger)"
+            >
               Supprimer mon compte
             </button>
 
@@ -162,9 +184,7 @@
                   </button>
                 </div>
                 <div style="display: flex; gap: 8px">
-                  <button type="submit" class="danger" style="flex: 1">
-                    Confirmer la suppression
-                  </button>
+                  <button type="submit" class="danger" style="flex: 1">Confirmer</button>
                   <button
                     type="button"
                     id="cancelDeleteAccountBtn"
