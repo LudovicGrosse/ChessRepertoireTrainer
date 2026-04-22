@@ -397,9 +397,10 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
         '<div style="padding: 15px; text-align: center; color: var(--text-muted);">Synchronisation Lichess...</div>';
 
       try {
-        const response = await fetch(
-          `https://lichess.org/api/study/${normalizedId}.pgn?v=${Date.now()}`
-        );
+        const token = state.authToken || localStorage.getItem('chess_token');
+        const response = await fetch(`/api/lichess/study/${normalizedId}.pgn?v=${Date.now()}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
         if (!response.ok) {
           throw new Error('Lichess error');
         }
@@ -625,4 +626,67 @@ export const initDashboard = () => {
       showToast('Erreur de connexion', 'error');
     }
   };
+
+  // Lichess OAuth Callbacks and Button setup
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('lichess_success')) {
+    setTimeout(() => showToast('Compte Lichess connecté avec succès !', 'success'), 500);
+    window.history.replaceState({}, document.title, window.location.pathname);
+  } else if (urlParams.get('lichess_error')) {
+    setTimeout(() => showToast('Erreur Lichess : ' + urlParams.get('lichess_error'), 'error'), 500);
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
+  updateLichessStatus();
+};
+
+export const updateLichessStatus = async () => {
+  if (!state.authToken) return;
+  const container = document.getElementById('lichess-status-container');
+  if (!container) return;
+
+  try {
+    const res = await fetch('/api/lichess/status', {
+      headers: { Authorization: `Bearer ${state.authToken}` },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.isConnected) {
+        container.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 13px; color: var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>Connecté en tant que <strong>${data.username}</strong></span>
+            <button id="disconnectLichessBtn" class="secondary" style="padding: 4px 8px; font-size: 11px;">Déconnecter</button>
+          </div>
+        `;
+        document.getElementById('disconnectLichessBtn').onclick = async () => {
+          if (!confirm('Voulez-vous déconnecter votre compte Lichess ?')) return;
+          await fetch('/api/lichess/disconnect', {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${state.authToken}` },
+          });
+          showToast('Compte Lichess déconnecté', 'info');
+          updateLichessStatus();
+        };
+      } else {
+        container.innerHTML =
+          '<button id="connectLichessBtn" class="secondary" style="padding: 6px 12px; font-size: 12px;">Connecter Lichess</button>';
+        document.getElementById('connectLichessBtn').onclick = async () => {
+          if (!state.authToken) return;
+          try {
+            const res = await fetch('/api/lichess/login-url', {
+              headers: { Authorization: `Bearer ${state.authToken}` },
+            });
+            const data = await res.json();
+            if (data.url) {
+              window.location.href = data.url;
+            }
+          } catch (err) {
+            showToast('Erreur de connexion au serveur', 'error');
+          }
+        };
+      }
+    }
+  } catch (e) {
+    console.error('Failed to get lichess status', e);
+  }
 };

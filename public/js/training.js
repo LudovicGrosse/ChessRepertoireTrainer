@@ -421,7 +421,10 @@ export const startTrainingSessionDirect = async (
   if (!pgnText) {
     showToast("Chargement de l'étude...", 'info');
     try {
-      const response = await fetch(`https://lichess.org/api/study/${studyId}.pgn?v=${Date.now()}`);
+      const token = state.authToken || localStorage.getItem('chess_token');
+      const response = await fetch(`/api/lichess/study/${studyId}.pgn?v=${Date.now()}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       if (!response.ok) throw new Error('Étude non trouvée.');
       const fullPgnText = await response.text();
       const studyName = fullPgnText.match(/\[StudyName "(.*?)"\]/)?.[1] || repertoireTitle;

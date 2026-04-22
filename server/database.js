@@ -19,8 +19,22 @@ const initDB = async () => {
                 is_verified INTEGER DEFAULT 0,
                 verification_token VARCHAR(255),
                 reset_token VARCHAR(255),
-                reset_token_expiry TIMESTAMP
+                reset_token_expiry TIMESTAMP,
+                lichess_access_token VARCHAR(255),
+                lichess_refresh_token VARCHAR(255),
+                lichess_token_expiry TIMESTAMP,
+                lichess_username VARCHAR(255)
             );
+
+            DO $$ 
+            BEGIN
+              IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'users') THEN
+                ALTER TABLE users ADD COLUMN IF NOT EXISTS lichess_access_token VARCHAR(255);
+                ALTER TABLE users ADD COLUMN IF NOT EXISTS lichess_refresh_token VARCHAR(255);
+                ALTER TABLE users ADD COLUMN IF NOT EXISTS lichess_token_expiry TIMESTAMP;
+                ALTER TABLE users ADD COLUMN IF NOT EXISTS lichess_username VARCHAR(255);
+              END IF;
+            END $$;
 
             DO $$ 
             BEGIN
