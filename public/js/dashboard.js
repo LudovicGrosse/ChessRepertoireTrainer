@@ -543,11 +543,12 @@ export const loadLichessStudy = async (input) => {
   loadBtn.disabled = true;
   loadBtn.textContent = 'Chargement...';
   try {
-    const response = await fetch(
-      `https://lichess.org/api/study/${repertoireId}.pgn?v=${Date.now()}`
-    );
+    const token = state.authToken || localStorage.getItem('chess_token');
+    const response = await fetch(`/api/lichess/study/${repertoireId}.pgn?v=${Date.now()}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     if (!response.ok) {
-      throw new Error('Étude non trouvée.');
+      throw new Error('Étude non trouvée ou accès refusé.');
     }
     const pgnText = await response.text();
     const studyName =
