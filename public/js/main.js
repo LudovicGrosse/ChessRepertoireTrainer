@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const helpBtn = document.getElementById('helpBtn');
   const closeHelpBtn = document.getElementById('closeHelpBtn');
 
+  const settingsModal = document.getElementById('settingsModal');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+
   helpBtn.onclick = () => {
     helpModal.classList.add('show');
   };
@@ -17,6 +21,18 @@ document.addEventListener('DOMContentLoaded', () => {
   helpModal.onclick = (e) => {
     if (e.target === helpModal) {
       helpModal.classList.remove('show');
+    }
+  };
+
+  settingsBtn.onclick = () => {
+    settingsModal.classList.add('show');
+  };
+  closeSettingsBtn.onclick = () => {
+    settingsModal.classList.remove('show');
+  };
+  settingsModal.onclick = (e) => {
+    if (e.target === settingsModal) {
+      settingsModal.classList.remove('show');
     }
   };
 

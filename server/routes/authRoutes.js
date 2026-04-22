@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 const db = require('../database');
 const { sendEmail } = require('../mailer');
+const authenticateToken = require('../middleware/authMiddleware');
 
 const router = express.Router();
 const SECRET_KEY = process.env.JWT_SECRET || 'your_secret_key_here';
@@ -176,6 +177,28 @@ router.post('/reset-password', authLimiter, async (req, res) => {
   } catch (err) {
     console.error('RESET PWD ERROR:', err);
     res.status(500).json({ error: 'Erreur serveur.' });
+  }
+});
+
+router.delete('/account', authenticateToken, authLimiter, async (req, res) => {
+  const { password } = req.body;
+  if (!password) {
+    return res.status(400).json({ error: 'Mot de passe requis pour confirmer la suppression.' });
+  }
+
+  try {
+    const { rows } = await db.query('SELECT password_hash FROM users WHERE id = $1', [req.user.id]);
+    const user = rows[0];
+
+    if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+      return res.status(403).json({ error: 'Mot de passe incorrect.' });
+    }
+
+    await db.query('DELETE FROM users WHERE id = $1', [req.user.id]);
+    res.json({ message: 'Compte supprimé avec succès.' });
+  } catch (err) {
+    console.error('DELETE ACCOUNT ERROR:', err);
+    res.status(500).json({ error: 'Erreur serveur lors de la suppression.' });
   }
 });
 

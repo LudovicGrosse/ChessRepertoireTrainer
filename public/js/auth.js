@@ -198,4 +198,57 @@ export const initAuth = () => {
     showToast('Déconnexion réussie', 'info');
     updateAuthUI();
   };
+
+  const showDeleteAccountBtn = document.getElementById('showDeleteAccountBtn');
+  const cancelDeleteAccountBtn = document.getElementById('cancelDeleteAccountBtn');
+  const deleteAccountConfirmArea = document.getElementById('deleteAccountConfirmArea');
+  const deleteAccountForm = document.getElementById('deleteAccountForm');
+  const settingsModal = document.getElementById('settingsModal');
+
+  if (showDeleteAccountBtn) {
+    showDeleteAccountBtn.onclick = () => {
+      showDeleteAccountBtn.classList.add('hidden');
+      deleteAccountConfirmArea.classList.remove('hidden');
+    };
+  }
+
+  if (cancelDeleteAccountBtn) {
+    cancelDeleteAccountBtn.onclick = () => {
+      deleteAccountConfirmArea.classList.add('hidden');
+      showDeleteAccountBtn.classList.remove('hidden');
+      document.getElementById('deleteAccountPassword').value = '';
+    };
+  }
+
+  if (deleteAccountForm) {
+    deleteAccountForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const password = document.getElementById('deleteAccountPassword').value;
+      if (!password) return;
+
+      try {
+        const res = await fetch('/api/account', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${state.authToken}`,
+          },
+          body: JSON.stringify({ password }),
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          showToast(data.message, 'success');
+          // Hide modal
+          if (settingsModal) settingsModal.classList.remove('show');
+          // Trigger logout logic
+          document.getElementById('logoutBtn').click();
+        } else {
+          throw new Error(data.error || 'Erreur lors de la suppression du compte.');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    };
+  }
 };
