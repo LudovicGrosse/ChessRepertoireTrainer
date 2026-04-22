@@ -1,5 +1,5 @@
 import { showToast, state } from './utils.js';
-import { fetchHistory } from './dashboard.js';
+import { fetchHistory, updateLichessStatus } from './dashboard.js';
 
 const setupView = document.getElementById('setup-view');
 const mainSetupContent = document.getElementById('main-setup-content');
@@ -26,6 +26,7 @@ export const updateAuthUI = () => {
     topBar.classList.remove('hidden');
     displayUsername.textContent = user.username || 'Utilisateur';
     fetchHistory();
+    updateLichessStatus();
   } else {
     authSection.classList.remove('hidden');
     document.getElementById('main-title').classList.remove('hidden');
