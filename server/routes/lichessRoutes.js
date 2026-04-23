@@ -3,11 +3,20 @@ const db = require('../database');
 const authenticateToken = require('../middleware/authMiddleware');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
 const SECRET_KEY = process.env.JWT_SECRET || 'your_secret_key_here';
 const LICHESS_CLIENT_ID = process.env.LICHESS_CLIENT_ID;
 const LICHESS_REDIRECT_URI = process.env.LICHESS_REDIRECT_URI;
+
+const lichessLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30, // Limit each IP to 30 requests per `window`
+  message: { error: 'Trop de requêtes vers Lichess, veuillez ralentir.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // PKCE Helper Functions
 const base64URLEncode = (str) => {
@@ -159,7 +168,7 @@ router.delete('/disconnect', authenticateToken, async (req, res) => {
 
 // Proxy route for fetching PGN
 // Note: This needs to support optional authentication (public studies)
-router.get('/study/:id.pgn', authenticateToken, async (req, res) => {
+router.get('/study/:id.pgn', authenticateToken, lichessLimiter, async (req, res) => {
   const studyId = req.params.id;
 
   try {

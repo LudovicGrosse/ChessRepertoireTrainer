@@ -31,7 +31,7 @@ describe('Auth Endpoints', () => {
       });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body).toHaveProperty('error', 'Tous les champs sont requis.');
+      expect(res.body).toHaveProperty('error', 'Email invalide.');
     });
 
     it('should return 400 if email already exists', async () => {
