@@ -11,13 +11,21 @@
     />
     <style>
       .legal-container {
-        max-width: 800px;
+        max-width: 1000px;
+        width: 95%;
         margin: 2rem auto;
         padding: 2rem;
         background: var(--surface);
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow-md);
         color: var(--text-primary);
+        box-sizing: border-box;
+      }
+      @media (max-width: 600px) {
+        .legal-container {
+          margin: 1rem auto;
+          padding: 1.5rem;
+        }
       }
       .legal-container h1 {
         margin-bottom: 0.5rem;
