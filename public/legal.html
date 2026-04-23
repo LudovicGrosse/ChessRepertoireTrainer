@@ -10,20 +10,24 @@
       rel="stylesheet"
     />
     <style>
+      body {
+        /* Override global body padding-top (80px) to remove empty space at the top */
+        padding-top: 20px;
+      }
       .legal-container {
         max-width: 1000px;
-        width: 95%;
-        margin: 2rem auto;
+        width: 100%;
+        margin: 0 auto 2rem auto;
         padding: 2rem;
-        background: var(--surface);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-md);
-        color: var(--text-primary);
+        background: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        color: var(--text-main);
         box-sizing: border-box;
       }
       @media (max-width: 600px) {
         .legal-container {
-          margin: 1rem auto;
+          margin: 0 auto 1rem auto;
           padding: 1.5rem;
         }
       }
@@ -35,13 +39,13 @@
         margin-top: 2rem;
         margin-bottom: 1rem;
         padding-bottom: 0.5rem;
-        border-bottom: 1px solid var(--border);
+        border-bottom: 1px solid var(--border-color);
       }
       .legal-container p,
       .legal-container li {
         line-height: 1.6;
         margin-bottom: 1rem;
-        color: var(--text-secondary);
+        color: var(--text-muted);
       }
       .legal-container ul {
         margin-left: 1.5rem;
@@ -121,9 +125,11 @@
           vos études et répertoires depuis lichess.org.
         </li>
         <li>
-          <strong>Historique d'entraînement :</strong> Les coups réussis ou échoués lors de vos
-          sessions d'entraînement sont enregistrés afin de calculer votre progression et vos scores
-          par chapitre.
+          <strong>Historique d'entraînement :</strong> Lors de vos sessions,
+          <strong>seul le nombre total</strong> de coups réussis et échoués est enregistré dans
+          notre base de données afin de calculer vos scores. L'application
+          <strong>ne stocke pas</strong> les fichiers PGN complets de vos études, ni l'historique
+          détaillé (coup par coup) dans sa base de données.
         </li>
       </ul>
       <p>
@@ -147,8 +153,12 @@
       <ul>
         <li>Stockage du jeton de session (JWT) pour vous maintenir connecté.</li>
         <li>
-          Mise en cache temporaire (1 heure) des fichiers PGN téléchargés afin d'alléger les
-          requêtes vers l'API de Lichess.
+          <strong>Mise en cache temporaire (1 heure) :</strong> Les fichiers PGN téléchargés sont
+          temporairement stockés dans votre navigateur pour éviter de surcharger les serveurs de
+          Lichess.
+          <strong>Ces fichiers PGN ne sont jamais envoyés ni stockés sur nos serveurs.</strong> Si
+          le cache expire, un nouveau chargement à la volée s'effectue depuis Lichess au démarrage
+          de l'entraînement.
         </li>
       </ul>
       <p><strong>Vos Droits (Accès, Rectification, Effacement) :</strong></p>
