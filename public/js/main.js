@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   helpBtn.onclick = () => {
     helpModal.classList.add('show');
+    const body = helpModal.querySelector('.modal-body');
+    if (body) body.scrollTop = 0;
   };
   closeHelpBtn.onclick = () => {
     helpModal.classList.remove('show');
@@ -26,6 +28,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   settingsBtn.onclick = () => {
     settingsModal.classList.add('show');
+    const body = settingsModal.querySelector('.modal-body');
+    if (body) body.scrollTop = 0;
+
+    const showBtn = document.getElementById('showDeleteAccountBtn');
+    const area = document.getElementById('deleteAccountConfirmArea');
+    const form = document.getElementById('deleteAccountForm');
+    if (showBtn && area && form) {
+      showBtn.classList.remove('hidden');
+      area.classList.add('hidden');
+      form.reset();
+    }
   };
   closeSettingsBtn.onclick = () => {
     settingsModal.classList.remove('show');
