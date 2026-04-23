@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mentions Légales & Confidentialité - La Boîte à Ouvertures</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      .legal-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        color: var(--text-primary);
+      }
+      .legal-container h1 {
+        margin-bottom: 0.5rem;
+        color: var(--primary);
+      }
+      .legal-container h2 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .legal-container p,
+      .legal-container li {
+        line-height: 1.6;
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
+      }
+      .legal-container ul {
+        margin-left: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      .back-btn {
+        display: inline-block;
+        margin-bottom: 2rem;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+      .back-btn:hover {
+        color: var(--primary-hover);
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="legal-container">
+      <a href="/" class="back-btn">&larr; Retour à l'application</a>
+
+      <h1>Informations Légales</h1>
+      <p>Dernière mise à jour : <span id="last-update">Avril 2026</span></p>
+
+      <h2>1. Mentions Légales</h2>
+      <p>
+        <strong>Éditeur du site :</strong><br />
+        Ce service est édité à titre personnel. Pour toute demande, vous pouvez contacter l'éditeur
+        à l'adresse email suivante :
+        <a href="mailto:chessrepertoiretrainer@gmail.com">chessrepertoiretrainer@gmail.com</a>.
+      </p>
+      <p>
+        <strong>Hébergement :</strong><br />
+        L'application (serveur et base de données) est hébergée par <strong>Render</strong> (Render
+        Networks, Inc.), situé à San Francisco, CA, États-Unis.
+      </p>
+      <p>
+        <strong>Propriété Intellectuelle :</strong><br />
+        Le code source de l'application "La Boîte à Ouvertures"
+        <strong>n'est pas open source</strong>. Tous droits réservés. L'application utilise les
+        librairies open source tierces suivantes, sous leurs licences respectives :
+      </p>
+      <ul>
+        <li>
+          <a
+            href="https://github.com/lichess-org/chessground"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Chessground</a
+          >
+          (GPL-3.0)
+        </li>
+        <li>
+          <a href="https://github.com/jhlywa/chess.js" target="_blank" rel="noopener noreferrer"
+            >Chess.js</a
+          >
+          (BSD-2-Clause)
+        </li>
+        <li>Les icônes proviennent de bibliothèques tierces comme Lucide ou Heroicons.</li>
+      </ul>
+
+      <h2>2. Politique de Confidentialité (RGPD)</h2>
+      <p>
+        Dans le cadre de l'utilisation de l'application, nous sommes amenés à collecter et traiter
+        certaines de vos données personnelles.
+      </p>
+      <p><strong>Données collectées et finalités :</strong></p>
+      <ul>
+        <li>
+          <strong>Adresse email & mot de passe (haché cryptographiquement) :</strong> Nécessaires
+          pour la création du compte et l'authentification.
+        </li>
+        <li>
+          <strong>Identifiants Lichess (OAuth) :</strong> Utilisés <em>uniquement</em> pour importer
+          vos études et répertoires depuis lichess.org.
+        </li>
+        <li>
+          <strong>Historique d'entraînement :</strong> Les coups réussis ou échoués lors de vos
+          sessions d'entraînement sont enregistrés afin de calculer votre progression et vos scores
+          par chapitre.
+        </li>
+      </ul>
+      <p>
+        Ces données sont strictement utilisées pour le fonctionnement de l'application.
+        <strong>Elles ne sont ni vendues, ni partagées à des fins commerciales.</strong>
+      </p>
+      <p><strong>Sous-traitants et Services Tiers :</strong></p>
+      <ul>
+        <li><strong>Lichess (API) :</strong> Pour la synchronisation des répertoires.</li>
+        <li>
+          <strong>Brevo (Sendinblue) :</strong> Pour l'envoi d'emails transactionnels (ex:
+          réinitialisation de mot de passe).
+        </li>
+      </ul>
+      <p><strong>Cookies et Stockage Local (LocalStorage) :</strong></p>
+      <p>
+        L'application n'utilise pas de cookies de traçage publicitaire. Le stockage local de votre
+        navigateur (<code>localStorage</code>) est utilisé uniquement pour des nécessités techniques
+        :
+      </p>
+      <ul>
+        <li>Stockage du jeton de session (JWT) pour vous maintenir connecté.</li>
+        <li>
+          Mise en cache temporaire (1 heure) des fichiers PGN téléchargés afin d'alléger les
+          requêtes vers l'API de Lichess.
+        </li>
+      </ul>
+      <p><strong>Vos Droits (Accès, Rectification, Effacement) :</strong></p>
+      <p>
+        Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et d'effacement de
+        vos données. Vous pouvez supprimer l'intégralité de vos données instantanément en utilisant
+        le bouton <strong>"Supprimer mon compte"</strong> situé dans les paramètres de
+        l'application. Cette action est irréversible et supprime toutes vos données de la base.
+      </p>
+
+      <h2>3. Conditions Générales d'Utilisation (CGU)</h2>
+      <p>
+        L'accès au service est fourni "en l'état" (<em>best effort</em>). S'agissant d'un projet
+        personnel/portfolio, l'éditeur ne garantit aucune disponibilité continue ni pérennité du
+        service. Le service peut être interrompu à tout moment pour maintenance (notamment lors des
+        redémarrages de l'hébergement gratuit).
+      </p>
+      <p>
+        En utilisant ce service, vous vous engagez à l'utiliser de manière responsable. La
+        synchronisation avec Lichess utilise l'API de lichess.org. Vous vous engagez à ne pas
+        détourner l'usage de l'application de façon à générer un trafic abusif envers Lichess, sous
+        peine de blocage de votre compte ou de suspension du service.
+      </p>
+    </div>
+  </body>
+</html>
