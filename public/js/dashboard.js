@@ -682,6 +682,7 @@ export const updateLichessStatus = async () => {
               window.location.href = data.url;
             }
           } catch (err) {
+            console.error('Lichess connection error:', err);
             showToast('Erreur de connexion au serveur', 'error');
           }
         };

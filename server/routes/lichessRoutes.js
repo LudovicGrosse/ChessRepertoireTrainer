@@ -70,6 +70,7 @@ router.get('/callback', async (req, res) => {
     userId = decoded.userId;
     codeVerifier = decoded.codeVerifier;
   } catch (err) {
+    console.error('Invalid state token:', err);
     return res.redirect('/?lichess_error=invalid_state');
   }
 
@@ -145,6 +146,7 @@ router.get('/status', authenticateToken, async (req, res) => {
       res.json({ isConnected: false });
     }
   } catch (err) {
+    console.error('Error fetching Lichess connection status:', err);
     res.status(500).json({ error: 'Database error' });
   }
 });
@@ -162,6 +164,7 @@ router.delete('/disconnect', authenticateToken, async (req, res) => {
     );
     res.sendStatus(200);
   } catch (err) {
+    console.error('Error disconnecting Lichess account:', err);
     res.status(500).json({ error: 'Database error' });
   }
 });
