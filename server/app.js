@@ -27,7 +27,7 @@ app.use(
         ],
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
         imgSrc: ["'self'", 'data:', 'https://lichess1.org'],
-        connectSrc: ["'self'", 'https://lichess.org'],
+        connectSrc: ["'self'", 'https://lichess.org', 'https://cdn.jsdelivr.net'],
       },
     },
   })
