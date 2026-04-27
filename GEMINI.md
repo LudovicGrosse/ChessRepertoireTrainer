@@ -9,12 +9,14 @@ Ce fichier `GEMINI.md` contient les règles absolues et l'architecture du projet
 - **Syntaxe Stricte (ESLint/Prettier) :**
   - Utilisation obligatoire des accolades `{}` pour TOUTES les structures de contrôle (`if`, `for`, `while`), même pour une seule ligne.
   - Guillemets simples `'` privilégiés en JS (géré par Prettier).
+- **Propriété Intellectuelle :** L'application est une solution logicielle propriétaire dont le code source demeure privé. Ce n'est pas un projet open-source.
 
 ## 2. Architecture & Stack Technique
 
-- **Frontend (`public/`) :** Vanilla JavaScript (ES Modules), HTML5, CSS3. L'interface principale réside dans `public/index.html`. Aucun framework lourd (pas de React/Vue). Utilise **Chessground** pour l'échiquier et **Chess.js** pour la validation des coups.
-- **Backend (`server/`) :** Node.js, Express, PostgreSQL (`pg-pool`). Authentification par JWT.
-- **Base de Données (3NF) :** Architecture relationnelle stricte séparant les données globales des données utilisateurs :
+- **Frontend (`public/`) :** Vanilla JavaScript (ES Modules), HTML5, CSS3. L'interface principale réside dans `public/index.html`. Modales (Paramètres, Aide) intégrées pour optimiser l'UI/UX mobile.
+- **Backend (`server/`) :** Node.js, Express, PostgreSQL (`pg-pool`). Authentification par JWT. Middleware de sécurité via `helmet`, `express-validator`, et `express-rate-limit`.
+- **Base de Données (3NF) :** Architecture relationnelle stricte :
+  - `users` : Gestion des utilisateurs et de leurs tokens Lichess OAuth (PKCE).
   - `repertoires` et `chapters` : Structure universelle des études Lichess (titres, ID, nombre exact de coups blancs/noirs).
   - `user_repertoires` : Abonnements des joueurs à des études spécifiques (avec choix de la couleur).
   - `history` : Journal d'entraînement personnel (identifiants, date, erreurs, coups réussis).
@@ -23,23 +25,19 @@ Ce fichier `GEMINI.md` contient les règles absolues et l'architecture du projet
 
 ## 3. Logique Métier & Synchronisation (Crucial)
 
-- **Calcul des Scores :** Le pourcentage de réussite global d'un répertoire est calculé dynamiquement sur le frontend. Il se base sur les totaux de coups (`white_moves`/`black_moves` fournis par la table `chapters`) et l'historique des sessions, ce qui garantit un calcul exact à 100% (incluant les chapitres non travaillés à 0%).
-- **Affichage Dashboard :** Les répertoires qui possèdent 0 coup total pour la couleur sélectionnée sont automatiquement masqués de l'interface.
-- **Synchronisation Lichess (Auto-Sync) :** Le cache `localStorage` est utilisé pour stocker les PGN complets pendant 1 heure pour éviter le "Rate Limiting". De plus, à l'ouverture d'un répertoire sur le Dashboard, si sa dernière mise à jour (`lichess_updated_at` en base de données) date de plus d'une heure, une synchronisation silencieuse avec Lichess est déclenchée pour mettre à jour la structure des chapitres en base de données de manière globale.
+- **Calcul des Scores :** Le pourcentage de réussite global d'un répertoire est calculé dynamiquement sur le frontend. Il se base sur les totaux de coups (`white_moves`/`black_moves` fournis par la table `chapters`) et l'historique des sessions.
+- **Lichess OAuth & Proxy :** Les utilisateurs lient leur compte Lichess via le flux OAuth PKCE. Les requêtes PGN sont faites via le backend proxy (`/api/lichess/study/:id.pgn`) afin d'insérer le jeton utilisateur en toute sécurité et d'accéder aux études privées.
+- **Synchronisation Lichess (Auto-Sync) :** Le cache `localStorage` est utilisé pour stocker les PGN complets pendant 1 heure pour éviter le "Rate Limiting" et les appels inutiles (aucune donnée PGN n'est conservée côté backend). À l'ouverture d'un répertoire, si la MAJ date de plus d'une heure, une synchronisation silencieuse est déclenchée pour mettre à jour la structure des chapitres en BDD.
 
 ## 4. Stratégie de Test (Crucial)
 
-- **Backend & Frontend Logic (Jest) :** Les tests unitaires/intégration se trouvent dans `__tests__/`.
-  - _Mocks :_ La base de données et l'envoi d'email sont systématiquement mockés globalement via `__tests__/setup.js`.
-  - _Frontend :_ Les tests du dossier `public/js/` nécessitent Babel (`babel.config.js`) pour transpiler les ES Modules pour Jest.
+- **Backend & Frontend Logic (Jest) :** Les tests unitaires/intégration se trouvent dans `__tests__/`. (Authentification, Historique, Répertoires, Lichess, Utils).
 - **Interface / E2E (Playwright) :** Les tests interactifs se trouvent dans `tests/e2e/`.
-  - _Mocks Réseau :_ Playwright NE DOIT PAS utiliser la vraie base de données. Tous les appels `/api/*` et `https://lichess.org/api/study/*` DOIVENT être interceptés et mockés via `page.route()`.
-  - _Configuration :_ Si un serveur tourne déjà localement sur le port 3000, Playwright doit le réutiliser (`reuseExistingServer: true`).
 
 ## 5. Déploiement & CI/CD (GitHub Actions -> Render)
 
 - **Workflow (`.github/workflows/test.yml`) :** S'exécute sur Node 24.x uniquement.
-- **Tests Conditionnels :** Les tests unitaires et le linting s'exécutent à chaque commit. Les tests lourds de Playwright (téléchargement des navigateurs) ne se déclenchent **QUE SI** le message du commit contient le mot-clé `[ui]`.
+- **Tests Conditionnels :** Les tests unitaires et le linting s'exécutent à chaque commit. Les tests lourds de Playwright ne se déclenchent **QUE SI** le message du commit contient le mot-clé `[ui]`.
 
 ## 6. Flux de Travail Autorisé
 
