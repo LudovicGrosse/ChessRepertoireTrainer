@@ -64,4 +64,27 @@ describe('History Endpoints', () => {
       );
     });
   });
+
+  describe('PUT /api/history/chapter/title', () => {
+    it('should return 400 if missing parameters', async () => {
+      const res = await request(app)
+        .put('/api/history/chapter/title')
+        .send({})
+        .set('Authorization', `Bearer ${validToken}`);
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should update chapter title and return 200', async () => {
+      db.query.mockResolvedValueOnce({});
+      const res = await request(app)
+        .put('/api/history/chapter/title')
+        .send({ chapter_id: 'chap1', new_title: 'New Title' })
+        .set('Authorization', `Bearer ${validToken}`);
+      expect(res.statusCode).toBe(200);
+      expect(db.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE chapters SET title = $1'),
+        ['New Title', 'chap1']
+      );
+    });
+  });
 });

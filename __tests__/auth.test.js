@@ -2,6 +2,10 @@ const request = require('supertest');
 const app = require('../server/app');
 const db = require('../server/database');
 
+jest.mock('../server/mailer', () => ({
+  sendEmail: jest.fn().mockResolvedValue(true),
+}));
+
 describe('Auth Endpoints', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -106,6 +110,70 @@ describe('Auth Endpoints', () => {
         'error',
         'Veuillez vérifier votre email avant de vous connecter.'
       );
+    });
+  });
+
+  describe('POST /api/forgot-password', () => {
+    it('should return 404 if email not found', async () => {
+      db.query.mockResolvedValueOnce({ rows: [] });
+      const res = await request(app)
+        .post('/api/forgot-password')
+        .send({ email: 'notfound@example.com' });
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('should send reset link and return 200', async () => {
+      db.query.mockResolvedValueOnce({ rows: [{ id: 1, username: 'testuser' }] });
+      db.query.mockResolvedValueOnce({});
+      const res = await request(app)
+        .post('/api/forgot-password')
+        .send({ email: 'test@example.com' });
+      expect(res.statusCode).toBe(200);
+    });
+  });
+
+  describe('POST /api/reset-password', () => {
+    it('should return 400 for invalid token', async () => {
+      db.query.mockResolvedValueOnce({ rows: [] });
+      const res = await request(app)
+        .post('/api/reset-password')
+        .send({ token: 'invalid', newPassword: 'new' });
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should reset password and return 200', async () => {
+      db.query.mockResolvedValueOnce({
+        rows: [{ id: 1, reset_token_expiry: new Date(Date.now() + 100000).toISOString() }],
+      });
+      db.query.mockResolvedValueOnce({});
+      const res = await request(app)
+        .post('/api/reset-password')
+        .send({ token: 'valid', newPassword: 'new' });
+      expect(res.statusCode).toBe(200);
+    });
+  });
+
+  describe('DELETE /api/account', () => {
+    const jwt = require('jsonwebtoken');
+    const token = jwt.sign({ id: 1 }, process.env.JWT_SECRET || 'your_secret_key_here');
+
+    it('should return 400 if password missing', async () => {
+      const res = await request(app)
+        .delete('/api/account')
+        .set('Authorization', `Bearer ${token}`)
+        .send({});
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should delete account if password correct', async () => {
+      const bcrypt = require('bcryptjs');
+      db.query.mockResolvedValueOnce({ rows: [{ password_hash: bcrypt.hashSync('pass', 10) }] });
+      db.query.mockResolvedValueOnce({});
+      const res = await request(app)
+        .delete('/api/account')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ password: 'pass' });
+      expect(res.statusCode).toBe(200);
     });
   });
 });
