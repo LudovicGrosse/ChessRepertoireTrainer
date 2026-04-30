@@ -32,7 +32,14 @@ router.post(
   authLimiter,
   [
     body('email').isEmail().withMessage('Email invalide.').normalizeEmail(),
-    body('username').trim().escape().notEmpty().withMessage("Le nom d'utilisateur est requis."),
+    body('username')
+      .trim()
+      .escape()
+      .notEmpty()
+      .withMessage("Le nom d'utilisateur est requis.")
+      .not()
+      .matches(/@/)
+      .withMessage("Le nom d'utilisateur ne peut pas contenir le symbole @."),
     body('password').notEmpty().withMessage('Le mot de passe est requis.'),
   ],
   validateRequest,

@@ -183,6 +183,9 @@ export const initAuth = () => {
   };
 
   document.getElementById('logoutBtn').onclick = () => {
+    const settingsModal = document.getElementById('settingsModal');
+    if (settingsModal) settingsModal.classList.remove('show');
+
     state.isTraining = false;
     trainingView.classList.add('hidden');
     setupView.classList.remove('hidden');
