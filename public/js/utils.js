@@ -133,7 +133,7 @@ export const showConfirmModal = (title, message) => {
     titleEl.textContent = title;
     messageEl.textContent = message;
 
-    if (title === 'Quitter' || title === 'Recommencer') {
+    if (title === 'Quitter') {
       titleEl.style.color = 'var(--danger)';
       yesBtn.className = 'danger';
     } else {

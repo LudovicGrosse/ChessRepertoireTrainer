@@ -3,6 +3,9 @@ import { state, showToast, showConfirmModal } from './utils.js';
 import { buildRepertoireTree, parseMultiPgn } from './data.js';
 import { saveHistory } from './dashboard.js';
 
+const COMMENT_OPEN_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`;
+const COMMENT_CLOSED_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>`;
+
 const trainingView = document.getElementById('training-view');
 const setupView = document.getElementById('setup-view');
 
@@ -499,10 +502,12 @@ const launchTrainingUI = () => {
   const toggleCommentsBtn = document.getElementById('toggleCommentsBtn');
   if (state.trainingMode === 'revision') {
     commentBox.style.display = 'none';
-    toggleCommentsBtn.textContent = 'Afficher Notes';
+    toggleCommentsBtn.innerHTML = COMMENT_CLOSED_SVG;
+    toggleCommentsBtn.title = 'Afficher Notes';
   } else {
     commentBox.style.display = 'block';
-    toggleCommentsBtn.textContent = 'Masquer Notes';
+    toggleCommentsBtn.innerHTML = COMMENT_OPEN_SVG;
+    toggleCommentsBtn.title = 'Masquer Notes';
   }
 
   setTimeout(() => {
@@ -569,12 +574,15 @@ export const initTraining = () => {
 
   document.getElementById('toggleCommentsBtn').onclick = () => {
     const box = document.getElementById('commentBox');
+    const btn = document.getElementById('toggleCommentsBtn');
     if (box.style.display === 'none') {
       box.style.display = 'block';
-      document.getElementById('toggleCommentsBtn').textContent = 'Masquer Notes';
+      btn.innerHTML = COMMENT_OPEN_SVG;
+      btn.title = 'Masquer Notes';
     } else {
       box.style.display = 'none';
-      document.getElementById('toggleCommentsBtn').textContent = 'Afficher Notes';
+      btn.innerHTML = COMMENT_CLOSED_SVG;
+      btn.title = 'Afficher Notes';
     }
   };
 
