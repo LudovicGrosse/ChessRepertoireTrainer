@@ -931,7 +931,8 @@ cg-board square.move-dest {
   line-height: 1 !important;
 }
 .cg-wrap coords.ranks {
-  right: 2px !important;
+  left: 2px !important; /* Put ranks coordinates on the LEFT border of the board */
+  right: auto !important;
   top: 0;
   height: 100%;
   flex-direction: column-reverse;
@@ -942,26 +943,30 @@ cg-board square.move-dest {
   flex: 1 1 auto;
   display: flex;
   align-items: flex-start;
-  justify-content: flex-end;
-  padding-top: 4px !important;
-  padding-right: 2px !important;
+  justify-content: flex-start;
+  padding-top: 2px !important;
+  padding-left: 2px !important;
   font-size: 11px !important;
   font-weight: 700 !important;
   line-height: 1 !important;
 }
 
 /* Coordinates Alternating Colors for Contrast */
-.cg-wrap coords.files coord:nth-child(odd) {
-  color: #fff !important; /* White on dark squares */
-}
-.cg-wrap coords.files coord:nth-child(even) {
-  color: #5c3d24 !important; /* Dark brown on light squares */
-}
+.cg-wrap coords.files coord:nth-child(odd),
 .cg-wrap coords.ranks coord:nth-child(odd) {
-  color: #5c3d24 !important; /* Dark brown on light squares */
+  color: #fff !important; /* White on dark squares (a1, c1... / a1, a3...) */
 }
+.cg-wrap coords.files coord:nth-child(even),
 .cg-wrap coords.ranks coord:nth-child(even) {
-  color: #fff !important; /* White on dark squares */
+  color: #5c3d24 !important; /* Dark brown on light squares (b1, d1... / a2, a4...) */
+}
+
+/* Navigation buttons visibility helper classes (PC vs Mobile) */
+.mobile-only-btn {
+  display: none !important;
+}
+.pc-navigation-row {
+  display: flex !important;
 }
 
 @media (max-width: 768px) {
@@ -1197,5 +1202,11 @@ cg-board square.move-dest {
   .pgn-navigation-row .nav-btn {
     flex: 0 0 40px;
     height: 40px;
+  }
+  .mobile-only-btn {
+    display: inline-flex !important;
+  }
+  .pc-navigation-row {
+    display: none !important;
   }
 }

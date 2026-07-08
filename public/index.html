@@ -604,23 +604,17 @@
             style="display: flex; align-items: center; gap: 8px; width: 100%"
           >
             <button
-              id="prevBtn"
-              class="secondary nav-btn"
+              id="prevBtnMobile"
+              class="secondary nav-btn mobile-only-btn"
               disabled
               style="flex: 0 0 40px; height: 40px; padding: 0"
             >
               ◀
             </button>
-            <div
-              id="activeLineDisplay"
-              class="active-line"
-              style="flex: 1; min-height: 40px; height: 40px; padding: 10px; overflow-y: hidden"
-            >
-              Position initiale
-            </div>
+            <div id="activeLineDisplay" class="active-line">Position initiale</div>
             <button
-              id="nextBtn"
-              class="secondary nav-btn"
+              id="nextBtnMobile"
+              class="secondary nav-btn mobile-only-btn"
               disabled
               style="flex: 0 0 40px; height: 40px; padding: 0"
             >
@@ -633,6 +627,17 @@
         </div>
 
         <div class="controls">
+          <div
+            class="pc-navigation-row"
+            style="display: flex; gap: 8px; width: 100%; margin-bottom: 8px"
+          >
+            <button id="prevBtn" class="secondary nav-btn" disabled style="flex: 1; height: 40px">
+              ◀
+            </button>
+            <button id="nextBtn" class="secondary nav-btn" disabled style="flex: 1; height: 40px">
+              ▶
+            </button>
+          </div>
           <div class="action-buttons-row" style="display: flex; gap: 8px; width: 100%">
             <button
               id="toggleCommentsBtn"

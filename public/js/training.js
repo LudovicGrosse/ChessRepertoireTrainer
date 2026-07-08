@@ -95,8 +95,12 @@ const renderPgnHtml = () => {
 };
 
 const updateNavigationButtons = () => {
-  document.getElementById('prevBtn').disabled = state.viewIndex <= 0;
-  document.getElementById('nextBtn').disabled = state.viewIndex >= state.currentPath.length - 1;
+  const isAtStart = state.viewIndex <= 0;
+  const isAtEnd = state.viewIndex >= state.currentPath.length - 1;
+  document.getElementById('prevBtn').disabled = isAtStart;
+  document.getElementById('prevBtnMobile').disabled = isAtStart;
+  document.getElementById('nextBtn').disabled = isAtEnd;
+  document.getElementById('nextBtnMobile').disabled = isAtEnd;
 };
 
 const navigateView = (step) => {
@@ -609,13 +613,17 @@ export const initTraining = () => {
     }
   };
 
-  document.getElementById('prevBtn').onclick = () => {
+  const prevAction = () => {
     navigateView(-1);
   };
+  document.getElementById('prevBtn').onclick = prevAction;
+  document.getElementById('prevBtnMobile').onclick = prevAction;
 
-  document.getElementById('nextBtn').onclick = () => {
+  const nextAction = () => {
     navigateView(1);
   };
+  document.getElementById('nextBtn').onclick = nextAction;
+  document.getElementById('nextBtnMobile').onclick = nextAction;
 
   document.getElementById('activeLineDisplay').addEventListener('click', (e) => {
     const moveSpan = e.target.closest('.pgn-move');
