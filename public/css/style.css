@@ -907,6 +907,63 @@ cg-board square.move-dest {
   background: radial-gradient(rgba(0, 0, 0, 0.15) 20%, transparent 20%);
 }
 
+/* Chessground Coordinates Overrides for better contrast and alignment */
+.cg-wrap coords {
+  pointer-events: none;
+  display: flex;
+  z-index: 5;
+  font-family: 'Inter', system-ui, sans-serif !important;
+}
+.cg-wrap coords.files {
+  bottom: 2px !important;
+  left: 0;
+  width: 100%;
+  flex-direction: row;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.cg-wrap coords.files coord {
+  flex: 1 1 auto;
+  text-align: right;
+  padding-right: 4px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+}
+.cg-wrap coords.ranks {
+  right: 2px !important;
+  top: 0;
+  height: 100%;
+  flex-direction: column-reverse;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.cg-wrap coords.ranks coord {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding-top: 4px !important;
+  padding-right: 2px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+}
+
+/* Coordinates Alternating Colors for Contrast */
+.cg-wrap coords.files coord:nth-child(odd) {
+  color: #fff !important; /* White on dark squares */
+}
+.cg-wrap coords.files coord:nth-child(even) {
+  color: #5c3d24 !important; /* Dark brown on light squares */
+}
+.cg-wrap coords.ranks coord:nth-child(odd) {
+  color: #5c3d24 !important; /* Dark brown on light squares */
+}
+.cg-wrap coords.ranks coord:nth-child(even) {
+  color: #fff !important; /* White on dark squares */
+}
+
 @media (max-width: 768px) {
   body {
     padding: 10px;
