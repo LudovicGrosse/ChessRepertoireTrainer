@@ -497,9 +497,21 @@ const launchTrainingUI = () => {
   document.getElementById('restartBtn').classList.remove('hidden');
 
   state.isTraining = true;
+  document.body.classList.add('training-active');
   setupView.classList.add('hidden');
   trainingView.classList.remove('hidden');
   trainingView.classList.add('fade-in');
+
+  // Hide comments by default in revision mode to optimize vertical space
+  const commentBox = document.getElementById('commentBox');
+  const toggleCommentsBtn = document.getElementById('toggleCommentsBtn');
+  if (state.trainingMode === 'revision') {
+    commentBox.style.display = 'none';
+    toggleCommentsBtn.textContent = 'Afficher Notes';
+  } else {
+    commentBox.style.display = 'block';
+    toggleCommentsBtn.textContent = 'Masquer Notes';
+  }
 
   setTimeout(() => {
     if (!state.cg) {
@@ -545,6 +557,7 @@ export const initTraining = () => {
       }
     }
     state.isTraining = false;
+    document.body.classList.remove('training-active');
     trainingView.classList.add('hidden');
     setupView.classList.remove('hidden');
     setupView.classList.add('fade-in');

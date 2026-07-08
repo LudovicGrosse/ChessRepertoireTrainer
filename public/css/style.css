@@ -997,35 +997,137 @@ cg-board square.move-dest {
     padding: 16px;
   }
 
-  #training-view {
-    flex-direction: column-reverse;
-    gap: 16px;
+  body.training-active {
+    padding-top: 10px !important;
   }
-  .board-wrapper {
-    max-width: 100%;
-    position: sticky;
-    top: 70px;
-    z-index: 10;
+  body.training-active header#top-bar {
+    display: none !important;
+  }
+
+  #training-view {
+    flex-direction: column;
+    gap: 8px;
   }
   .sidebar {
-    min-width: 100%;
-    max-width: 100%;
-    gap: 12px;
+    display: contents;
+  }
+  #trainingHeader {
+    order: 1;
+    margin-bottom: 2px;
+    font-size: 1.05rem;
+  }
+  #trainingHeader div {
+    display: inline-block;
+  }
+  #trainingHeader div:first-child::after {
+    content: ' - ';
+    color: var(--text-muted);
+  }
+  #trainingHeader div:last-child {
+    font-size: 0.85rem !important;
+    margin-top: 0 !important;
+    display: inline-block !important;
+  }
+  .stats-panel {
+    order: 2;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    gap: 4px;
+  }
+  .stats-panel .progress-container {
+    height: 4px;
+    margin-bottom: 2px;
+  }
+  .stats-panel .progress-container + div {
+    font-size: 11px !important;
+    margin-bottom: 4px !important;
+  }
+  .stats-panel .stat-grid {
+    display: flex;
+    justify-content: space-around;
+    gap: 6px;
+  }
+  .stats-panel .stat-box {
+    padding: 4px 6px;
+    flex: 1;
+    border-radius: 6px;
+  }
+  .stats-panel .stat-box .label {
+    font-size: 9px;
+  }
+  .stats-panel .stat-box .value {
+    font-size: 13px;
+    margin-top: 0;
   }
 
+  .pgn-container {
+    order: 3;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    gap: 4px;
+  }
   .active-line {
-    max-height: 90px;
-    overflow-y: auto;
+    min-height: 36px;
+    max-height: 52px;
+    padding: 4px 8px;
+    font-size: 12.5px;
+    border-radius: 6px;
+  }
+  .comment-box {
+    padding: 6px 10px;
+    font-size: 12.5px;
+    min-height: auto;
+    border-radius: 0 6px 6px 0;
   }
 
+  .board-wrapper {
+    order: 4;
+    max-width: 100%;
+    position: relative;
+    top: 0;
+    z-index: 10;
+  }
+  .cg-wrap {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  .controls {
+    order: 5;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    gap: 6px;
+  }
   .row-buttons {
-    flex-wrap: wrap;
+    display: flex;
+    gap: 5px;
+    flex-wrap: nowrap;
+    width: 100%;
   }
   .row-buttons button,
   .row-buttons .btn-link {
-    flex: 1 1 calc(33% - 8px);
+    flex: 1;
+    padding: 8px 4px;
+    font-size: 12px;
+    white-space: nowrap;
   }
   .row-buttons .nav-btn {
-    flex: 1 1 calc(15% - 8px);
+    flex: 0 0 42px;
+    font-size: 14px;
+    padding: 8px 0;
+  }
+  .controls div[style*='display: flex'] {
+    margin-top: 4px !important;
+    gap: 6px !important;
+  }
+  .controls button#restartBtn,
+  .controls button#stopBtn {
+    padding: 10px;
+    font-size: 13px;
   }
 }
