@@ -837,22 +837,36 @@ header .user-badge span {
   font-weight: 600;
 }
 
-.row-buttons {
+.action-buttons-row {
   display: flex;
   gap: 8px;
-  flex-wrap: nowrap;
+  width: 100%;
 }
-.row-buttons button,
-.row-buttons .btn-link {
+.action-buttons-row button,
+.action-buttons-row .btn-link {
   flex: 1;
-  padding: 8px 6px;
-  font-size: 13px;
-  white-space: nowrap;
+  height: 40px;
+  padding: 0 !important;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
 }
-.row-buttons .nav-btn {
-  flex: 0 0 36px;
-  padding: 8px 0;
+.pgn-navigation-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.pgn-navigation-row .nav-btn {
+  flex: 0 0 40px;
+  height: 40px;
+  padding: 0 !important;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   font-size: 16px;
+  border-radius: 8px;
 }
 
 /* Board Styling */
@@ -1013,20 +1027,19 @@ cg-board square.move-dest {
   }
   #trainingHeader {
     order: 1;
-    margin-bottom: 2px;
-    font-size: 1.05rem;
+    margin-bottom: 4px;
+    font-size: 1.1rem;
+    text-align: center;
   }
-  #trainingHeader div {
-    display: inline-block;
-  }
-  #trainingHeader div:first-child::after {
-    content: ' - ';
-    color: var(--text-muted);
+  #trainingHeader div:first-child {
+    color: var(--primary);
+    font-weight: 700;
   }
   #trainingHeader div:last-child {
-    font-size: 0.85rem !important;
-    margin-top: 0 !important;
-    display: inline-block !important;
+    font-size: 0.8rem !important;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 2px !important;
   }
   .stats-panel {
     order: 2;
@@ -1045,13 +1058,11 @@ cg-board square.move-dest {
     margin-bottom: 4px !important;
   }
   .stats-panel .stat-grid {
-    display: flex;
-    justify-content: space-around;
+    display: grid;
     gap: 6px;
   }
   .stats-panel .stat-box {
     padding: 4px 6px;
-    flex: 1;
     border-radius: 6px;
   }
   .stats-panel .stat-box .label {
@@ -1062,30 +1073,8 @@ cg-board square.move-dest {
     margin-top: 0;
   }
 
-  .pgn-container {
-    order: 3;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    padding: 0;
-    gap: 4px;
-  }
-  .active-line {
-    min-height: 36px;
-    max-height: 52px;
-    padding: 4px 8px;
-    font-size: 12.5px;
-    border-radius: 6px;
-  }
-  .comment-box {
-    padding: 6px 10px;
-    font-size: 12.5px;
-    min-height: auto;
-    border-radius: 0 6px 6px 0;
-  }
-
   .board-wrapper {
-    order: 4;
+    order: 3;
     max-width: 100%;
     position: relative;
     top: 0;
@@ -1093,6 +1082,37 @@ cg-board square.move-dest {
   }
   .cg-wrap {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  .pgn-container {
+    order: 4;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    gap: 4px;
+  }
+  .active-line {
+    white-space: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none; /* Firefox */
+    height: 40px !important;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    font-size: 12.5px;
+    border-radius: 6px;
+  }
+  .active-line::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+  .comment-box {
+    padding: 6px 10px;
+    font-size: 12.5px;
+    min-height: auto;
+    border-radius: 0 6px 6px 0;
   }
 
   .controls {
@@ -1103,31 +1123,22 @@ cg-board square.move-dest {
     padding: 0;
     gap: 6px;
   }
-  .row-buttons {
+  .action-buttons-row {
     display: flex;
-    gap: 5px;
-    flex-wrap: nowrap;
+    gap: 8px;
     width: 100%;
   }
-  .row-buttons button,
-  .row-buttons .btn-link {
+  .action-buttons-row button,
+  .action-buttons-row .btn-link {
     flex: 1;
-    padding: 8px 4px;
-    font-size: 12px;
-    white-space: nowrap;
+    height: 44px;
+    padding: 0 !important;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
   }
-  .row-buttons .nav-btn {
-    flex: 0 0 42px;
-    font-size: 14px;
-    padding: 8px 0;
-  }
-  .controls div[style*='display: flex'] {
-    margin-top: 4px !important;
-    gap: 6px !important;
-  }
-  .controls button#restartBtn,
-  .controls button#stopBtn {
-    padding: 10px;
-    font-size: 13px;
+  .pgn-navigation-row .nav-btn {
+    flex: 0 0 40px;
+    height: 40px;
   }
 }

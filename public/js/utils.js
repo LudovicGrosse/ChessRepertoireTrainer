@@ -121,3 +121,36 @@ export const formatRelativeTime = (date) => {
   }
   return `Il y a ${years} ${years > 1 ? 'ans' : 'an'}`;
 };
+
+export const showConfirmModal = (title, message) => {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('confirmModal');
+    const titleEl = document.getElementById('confirmTitle');
+    const messageEl = document.getElementById('confirmMessage');
+    const yesBtn = document.getElementById('confirmYesBtn');
+    const noBtn = document.getElementById('confirmNoBtn');
+
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+
+    if (title === 'Quitter' || title === 'Recommencer') {
+      titleEl.style.color = 'var(--danger)';
+      yesBtn.className = 'danger';
+    } else {
+      titleEl.style.color = 'var(--primary)';
+      yesBtn.className = 'primary';
+    }
+
+    modal.classList.add('show');
+
+    const cleanUp = (result) => {
+      modal.classList.remove('show');
+      yesBtn.onclick = null;
+      noBtn.onclick = null;
+      resolve(result);
+    };
+
+    yesBtn.onclick = () => cleanUp(true);
+    noBtn.onclick = () => cleanUp(false);
+  });
+};

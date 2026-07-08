@@ -1,5 +1,5 @@
 import { Chessground } from 'https://cdn.jsdelivr.net/npm/chessground@9.0.5/+esm';
-import { state, showToast } from './utils.js';
+import { state, showToast, showConfirmModal } from './utils.js';
 import { buildRepertoireTree, parseMultiPgn } from './data.js';
 import { saveHistory } from './dashboard.js';
 
@@ -9,8 +9,6 @@ const setupView = document.getElementById('setup-view');
 const initializeStats = (node) => {
   state.totalMoves = 0;
   state.learnedMoves = 0;
-  state.totalVariations = 0;
-  state.learnedVariations = 0;
   state.errorCount = 0;
   state.currentMoveErrorLogged = false;
   const traverse = (n) => {
@@ -19,7 +17,6 @@ const initializeStats = (node) => {
     }
     if (n.children.length === 0 && n.id !== 'root') {
       n.isLeaf = true;
-      state.totalVariations++;
     }
     n.children.forEach(traverse);
   };
@@ -29,8 +26,6 @@ const initializeStats = (node) => {
 
 const updateStatsUI = () => {
   document.getElementById('statMoves').textContent = `${state.learnedMoves}/${state.totalMoves}`;
-  document.getElementById('statVars').textContent =
-    `${state.learnedVariations}/${state.totalVariations}`;
   document.getElementById('statErrors').textContent = state.errorCount;
 
   let progress =
@@ -86,8 +81,8 @@ const renderPgnHtml = () => {
   const active = display.querySelector('.active-move');
 
   if (active) {
-    display.scrollTop =
-      active.offsetTop - display.offsetTop - display.clientHeight / 2 + active.clientHeight / 2;
+    display.scrollLeft =
+      active.offsetLeft - display.offsetLeft - display.clientWidth / 2 + active.clientWidth / 2;
   }
 
   const node = state.currentPath[state.viewIndex];
@@ -260,9 +255,6 @@ const playOpponent = () => {
 
 const markCompleted = (node) => {
   node.isCompleted = true;
-  if (node.isLeaf) {
-    state.learnedVariations++;
-  }
 
   let p = node.parent;
   while (p && p.id !== 'root') {
@@ -484,7 +476,7 @@ const launchTrainingUI = () => {
   document.getElementById('trainingActions').classList.add('hidden');
 
   document.getElementById('errorStatRow').parentElement.style.gridTemplateColumns =
-    state.trainingMode === 'decouverte' ? '1fr 1fr' : '1fr 1fr 1fr';
+    state.trainingMode === 'decouverte' ? '1fr' : '1fr 1fr';
   document
     .getElementById('errorStatRow')
     .classList.toggle('hidden', state.trainingMode === 'decouverte');
@@ -544,15 +536,25 @@ const launchTrainingUI = () => {
 };
 
 export const initTraining = () => {
-  document.getElementById('restartBtn').onclick = () => {
+  document.getElementById('restartBtn').onclick = async () => {
     if (state.isTraining) {
-      launchTrainingUI();
+      const confirm = await showConfirmModal(
+        'Recommencer',
+        'Voulez-vous vraiment recommencer ce chapitre ?'
+      );
+      if (confirm) {
+        launchTrainingUI();
+      }
     }
   };
 
-  document.getElementById('stopBtn').onclick = () => {
+  document.getElementById('stopBtn').onclick = async () => {
     if (state.isTraining && !state.rootNode.isCompleted) {
-      if (!confirm("Voulez-vous vraiment quitter l'entraînement en cours ?")) {
+      const confirm = await showConfirmModal(
+        'Quitter',
+        "Voulez-vous vraiment quitter l'entraînement en cours ?"
+      );
+      if (!confirm) {
         return;
       }
     }
