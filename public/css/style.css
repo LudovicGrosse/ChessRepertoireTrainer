@@ -804,6 +804,7 @@ header .user-badge span {
   color: #e2e8f0;
   line-height: 1.5;
   min-height: 48px;
+  white-space: pre-line;
 }
 
 /* PGN Badges */
@@ -1161,7 +1162,7 @@ cg-board square.move-dest {
     box-shadow: none;
     padding: 0;
     gap: 8px;
-    margin-top: 4px;
+    margin-top: -4px !important;
     margin-bottom: 4px;
   }
   .active-line {

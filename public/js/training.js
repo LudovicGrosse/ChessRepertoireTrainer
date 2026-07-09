@@ -113,7 +113,7 @@ const showContinueButton = (callback) => {
 
   btn.style.width = '100%';
   btn.style.marginTop = '10px';
-  btn.style.marginBottom = '10px';
+  btn.style.marginBottom = '4px';
   btn.style.padding = '10px';
   btn.style.fontSize = '14px';
   btn.style.fontWeight = '600';
