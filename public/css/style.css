@@ -1090,14 +1090,14 @@ cg-board square.move-dest {
 
   #training-view {
     flex-direction: column;
-    gap: 8px;
+    gap: 16px;
   }
   .sidebar {
     display: contents;
   }
   #trainingHeader {
     order: 1;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
     font-size: 1.1rem;
     text-align: center;
   }
@@ -1117,11 +1117,11 @@ cg-board square.move-dest {
     border: none;
     box-shadow: none;
     padding: 0;
-    gap: 4px;
+    gap: 8px;
   }
   .stats-panel .progress-container {
     height: 4px;
-    margin-bottom: 2px;
+    margin-bottom: 6px;
   }
   .stats-panel .progress-container + div {
     font-size: 11px !important;
@@ -1160,7 +1160,9 @@ cg-board square.move-dest {
     border: none;
     box-shadow: none;
     padding: 0;
-    gap: 4px;
+    gap: 8px;
+    margin-top: 4px;
+    margin-bottom: 4px;
   }
   .active-line {
     white-space: nowrap !important;
@@ -1168,6 +1170,7 @@ cg-board square.move-dest {
     overflow-y: hidden !important;
     scrollbar-width: none; /* Firefox */
     height: 40px !important;
+    min-height: 40px !important;
     display: flex;
     align-items: center;
     gap: 4px;
@@ -1191,7 +1194,8 @@ cg-board square.move-dest {
     border: none;
     box-shadow: none;
     padding: 0;
-    gap: 6px;
+    gap: 12px;
+    margin-top: 8px;
   }
   .action-buttons-row {
     display: flex;
@@ -1201,7 +1205,7 @@ cg-board square.move-dest {
   .action-buttons-row button,
   .action-buttons-row .btn-link {
     flex: 1;
-    height: 44px;
+    height: 48px;
     padding: 0 !important;
     display: inline-flex;
     justify-content: center;

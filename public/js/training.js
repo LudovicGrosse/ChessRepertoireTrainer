@@ -302,7 +302,7 @@ const handleEnd = () => {
     btn.className = 'secondary';
     btn.textContent =
       state.trainingMode === 'decouverte' ? 'Passer en mode Révision' : 'Refaire ce chapitre';
-    btn.style.width = '100%';
+    btn.style.flex = '1';
     btn.style.padding = '12px';
     btn.onclick = () => {
       if (state.trainingMode === 'decouverte') {
@@ -320,9 +320,8 @@ const handleEnd = () => {
       }
 
       const nextBtn = document.createElement('button');
-      nextBtn.style.width = '100%';
+      nextBtn.style.flex = '1';
       nextBtn.style.padding = '12px';
-      nextBtn.style.marginTop = '8px';
       nextBtn.textContent = isLast ? 'Premier chapitre' : 'Chapitre suivant';
       nextBtn.onclick = () => {
         state.currentChapterIndex = nextChapIdx;
