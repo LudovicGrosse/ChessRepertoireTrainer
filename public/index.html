@@ -397,153 +397,147 @@
             Ajouter au répertoire
           </button>
         </div>
+      </div>
 
-        <!-- TEACHER VIEW -->
-        <div
-          id="teacher-view"
-          class="hidden fade-in"
-          style="display: flex; flex-direction: column; gap: 24px"
-        >
-          <div style="display: flex; align-items: center; justify-content: space-between">
-            <button
-              id="backToDashboardBtn"
-              class="secondary"
-              style="padding: 8px 16px; font-size: 13px"
-            >
-              ◀ Retour à l'accueil
-            </button>
-            <h1 style="margin: 0; font-size: 1.5rem; color: var(--primary)">Espace Professeur</h1>
-          </div>
+      <!-- TEACHER VIEW -->
+      <div
+        id="teacher-view"
+        class="hidden fade-in"
+        style="display: flex; flex-direction: column; gap: 24px"
+      >
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <button
+            id="backToDashboardBtn"
+            class="secondary"
+            style="padding: 8px 16px; font-size: 13px"
+          >
+            ◀ Retour à l'accueil
+          </button>
+          <h1 style="margin: 0; font-size: 1.5rem; color: var(--primary)">Espace Professeur</h1>
+        </div>
 
-          <div class="setup-card">
-            <h2>Partager des études</h2>
-            <form id="shareStudyForm" class="form-group" style="gap: 16px">
-              <div class="form-group">
-                <label for="shareStudentUsernames">Pseudos Lichess des élèves</label>
-                <textarea
-                  id="shareStudentUsernames"
-                  rows="3"
-                  placeholder="Ex: pseudo1, pseudo2, pseudo3 (séparés par des virgules ou retours à la ligne)"
-                  required
-                ></textarea>
-                <span style="font-size: 12px; color: var(--text-muted); margin-top: 4px">
-                  Les élèves recevront une notification à leur connexion.
-                </span>
-              </div>
+        <div class="setup-card">
+          <h2>Partager des études</h2>
+          <form id="shareStudyForm" class="form-group" style="gap: 16px">
+            <div class="form-group">
+              <label for="shareStudentUsernames">Pseudos Lichess des élèves</label>
+              <textarea
+                id="shareStudentUsernames"
+                rows="3"
+                placeholder="Ex: pseudo1, pseudo2, pseudo3 (séparés par des virgules ou retours à la ligne)"
+                required
+              ></textarea>
+              <span style="font-size: 12px; color: var(--text-muted); margin-top: 4px">
+                Les élèves recevront une notification à leur connexion.
+              </span>
+            </div>
 
-              <div class="form-group">
-                <label for="shareLichessUrls">Études Lichess à partager</label>
-                <textarea
-                  id="shareLichessUrls"
-                  rows="3"
-                  placeholder="Ex: https://lichess.org/study/xxxxxx (un lien ou ID par ligne)"
-                  required
-                ></textarea>
-              </div>
+            <div class="form-group">
+              <label for="shareLichessUrls">Études Lichess à partager</label>
+              <textarea
+                id="shareLichessUrls"
+                rows="3"
+                placeholder="Ex: https://lichess.org/study/xxxxxx (un lien ou ID par ligne)"
+                required
+              ></textarea>
+            </div>
 
-              <div class="form-group">
-                <label style="margin-bottom: 8px; display: block"
-                  >Couleur d'entraînement imposée</label
-                >
-                <div class="toggle-row" style="margin-top: 0">
-                  <div
-                    class="toggle-container color-toggle"
-                    id="shareColorToggle"
-                    data-state="left"
-                  >
-                    <div class="toggle-slider"></div>
-                    <div class="toggle-option active" data-val="white">Blancs</div>
-                    <div class="toggle-option" data-val="black">Noirs</div>
-                  </div>
+            <div class="form-group">
+              <label style="margin-bottom: 8px; display: block"
+                >Couleur d'entraînement imposée</label
+              >
+              <div class="toggle-row" style="margin-top: 0">
+                <div class="toggle-container color-toggle" id="shareColorToggle" data-state="left">
+                  <div class="toggle-slider"></div>
+                  <div class="toggle-option active" data-val="white">Blancs</div>
+                  <div class="toggle-option" data-val="black">Noirs</div>
                 </div>
               </div>
+            </div>
 
-              <button
-                type="submit"
-                id="shareBtn"
-                style="padding: 14px; font-size: 16px; margin-top: 8px"
-              >
-                Partager les études
-              </button>
-            </form>
-          </div>
-
-          <!-- UNREGISTERED INVITATIONS BOX -->
-          <div
-            id="unregisteredInvitationBox"
-            class="setup-card hidden"
-            style="border-left: 4px solid var(--primary)"
-          >
-            <h3 style="margin: 0 0 8px 0; color: var(--primary); font-size: 1.1rem">
-              Inviter des élèves non inscrits
-            </h3>
-            <p style="font-size: 13px; margin: 0 0 16px 0; color: var(--text-muted)">
-              Certains élèves ne se sont pas encore connectés sur le site. Vous pouvez copier le
-              message d'invitation ci-dessous pour leur envoyer facilement. Dès qu'ils se
-              connecteront via Lichess, ils auront accès aux études partagées.
-            </p>
-            <div
-              style="
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-                background: rgba(0, 0, 0, 0.02);
-                padding: 12px;
-                border-radius: 6px;
-                border: 1px dashed var(--border-color);
-              "
+            <button
+              type="submit"
+              id="shareBtn"
+              style="padding: 14px; font-size: 16px; margin-top: 8px"
             >
-              <div
-                id="inviteTextTemplate"
-                style="
-                  font-size: 13px;
-                  font-family: monospace;
-                  white-space: pre-wrap;
-                  word-break: break-all;
-                  line-height: 1.4;
-                "
-              ></div>
-              <button
-                type="button"
-                id="copyInviteTextBtn"
-                class="secondary"
-                style="padding: 8px 12px; font-size: 12px; align-self: flex-start"
-              >
-                Copier le message d'invitation
-              </button>
-            </div>
-          </div>
+              Partager les études
+            </button>
+          </form>
+        </div>
 
-          <!-- SHARE HISTORY -->
-          <div class="setup-card">
-            <h2>Historique des partages</h2>
-            <div style="overflow-x: auto">
-              <table
-                style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left"
-              >
-                <thead>
-                  <tr
-                    style="border-bottom: 2px solid var(--border-color); color: var(--text-muted)"
+        <!-- UNREGISTERED INVITATIONS BOX -->
+        <div
+          id="unregisteredInvitationBox"
+          class="setup-card hidden"
+          style="border-left: 4px solid var(--primary)"
+        >
+          <h3 style="margin: 0 0 8px 0; color: var(--primary); font-size: 1.1rem">
+            Inviter des élèves non inscrits
+          </h3>
+          <p style="font-size: 13px; margin: 0 0 16px 0; color: var(--text-muted)">
+            Certains élèves ne se sont pas encore connectés sur le site. Vous pouvez copier le
+            message d'invitation ci-dessous pour leur envoyer facilement. Dès qu'ils se connecteront
+            via Lichess, ils auront accès aux études partagées.
+          </p>
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              gap: 12px;
+              background: rgba(0, 0, 0, 0.02);
+              padding: 12px;
+              border-radius: 6px;
+              border: 1px dashed var(--border-color);
+            "
+          >
+            <div
+              id="inviteTextTemplate"
+              style="
+                font-size: 13px;
+                font-family: monospace;
+                white-space: pre-wrap;
+                word-break: break-all;
+                line-height: 1.4;
+              "
+            ></div>
+            <button
+              type="button"
+              id="copyInviteTextBtn"
+              class="secondary"
+              style="padding: 8px 12px; font-size: 12px; align-self: flex-start"
+            >
+              Copier le message d'invitation
+            </button>
+          </div>
+        </div>
+
+        <!-- SHARE HISTORY -->
+        <div class="setup-card">
+          <h2>Historique des partages</h2>
+          <div style="overflow-x: auto">
+            <table
+              style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left"
+            >
+              <thead>
+                <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted)">
+                  <th style="padding: 10px 8px">Étude</th>
+                  <th style="padding: 10px 8px">Élève</th>
+                  <th style="padding: 10px 8px">Couleur</th>
+                  <th style="padding: 10px 8px">Statut</th>
+                  <th style="padding: 10px 8px">Date</th>
+                </tr>
+              </thead>
+              <tbody id="shareHistoryTableBody">
+                <tr>
+                  <td
+                    colspan="5"
+                    style="text-align: center; padding: 20px; color: var(--text-muted)"
                   >
-                    <th style="padding: 10px 8px">Étude</th>
-                    <th style="padding: 10px 8px">Élève</th>
-                    <th style="padding: 10px 8px">Couleur</th>
-                    <th style="padding: 10px 8px">Statut</th>
-                    <th style="padding: 10px 8px">Date</th>
-                  </tr>
-                </thead>
-                <tbody id="shareHistoryTableBody">
-                  <tr>
-                    <td
-                      colspan="5"
-                      style="text-align: center; padding: 20px; color: var(--text-muted)"
-                    >
-                      Aucun partage enregistré.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                    Aucun partage enregistré.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
