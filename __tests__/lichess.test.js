@@ -13,10 +13,8 @@ describe('Lichess Endpoints', () => {
   });
 
   describe('GET /api/lichess/login-url', () => {
-    it('should return oauth url', async () => {
-      const res = await request(app)
-        .get('/api/lichess/login-url')
-        .set('Authorization', `Bearer ${validToken}`);
+    it('should return oauth url without authentication', async () => {
+      const res = await request(app).get('/api/lichess/login-url');
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveProperty('url');
       expect(res.body.url).toContain('https://lichess.org/oauth');
@@ -36,8 +34,8 @@ describe('Lichess Endpoints', () => {
       expect(res.headers.location).toContain('invalid_state');
     });
 
-    it('should handle oauth flow', async () => {
-      const state = jwt.sign({ userId: 1, codeVerifier: 'verifier' }, SECRET_KEY);
+    it('should handle oauth flow (user creation)', async () => {
+      const state = jwt.sign({ codeVerifier: 'verifier' }, SECRET_KEY);
 
       global.fetch.mockResolvedValueOnce({
         ok: true,
@@ -51,41 +49,45 @@ describe('Lichess Endpoints', () => {
         ok: true,
         json: async () => ({ username: 'lichess_user' }),
       });
+
+      // Select returns no user (creation)
+      db.query.mockResolvedValueOnce({ rows: [] });
+      // Insert returns new user
+      db.query.mockResolvedValueOnce({ rows: [{ id: 10, username: 'lichess_user' }] });
+
+      const res = await request(app).get(`/api/lichess/callback?code=auth_code&state=${state}`);
+      expect(res.statusCode).toBe(302);
+      expect(res.headers.location).toContain('?token=');
+      expect(res.headers.location).toContain('username=lichess_user');
+      expect(db.query).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle oauth flow (user exists)', async () => {
+      const state = jwt.sign({ codeVerifier: 'verifier' }, SECRET_KEY);
+
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          access_token: 'token123',
+          refresh_token: 'refresh123',
+          expires_in: 3600,
+        }),
+      });
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ username: 'lichess_user' }),
+      });
+
+      // Select returns user
+      db.query.mockResolvedValueOnce({ rows: [{ id: 10, username: 'lichess_user' }] });
+      // Update tokens
       db.query.mockResolvedValueOnce({});
 
       const res = await request(app).get(`/api/lichess/callback?code=auth_code&state=${state}`);
       expect(res.statusCode).toBe(302);
-      expect(res.headers.location).toContain('lichess_success=1');
-      expect(db.query).toHaveBeenCalled();
-    });
-  });
-
-  describe('GET /api/lichess/status', () => {
-    it('should return connection status', async () => {
-      db.query.mockResolvedValueOnce({ rows: [{ lichess_username: 'test' }] });
-      const res = await request(app)
-        .get('/api/lichess/status')
-        .set('Authorization', `Bearer ${validToken}`);
-      expect(res.statusCode).toBe(200);
-      expect(res.body.isConnected).toBe(true);
-    });
-    it('should return disconnected if no username', async () => {
-      db.query.mockResolvedValueOnce({ rows: [] });
-      const res = await request(app)
-        .get('/api/lichess/status')
-        .set('Authorization', `Bearer ${validToken}`);
-      expect(res.statusCode).toBe(200);
-      expect(res.body.isConnected).toBe(false);
-    });
-  });
-
-  describe('DELETE /api/lichess/disconnect', () => {
-    it('should disconnect lichess account', async () => {
-      db.query.mockResolvedValueOnce({});
-      const res = await request(app)
-        .delete('/api/lichess/disconnect')
-        .set('Authorization', `Bearer ${validToken}`);
-      expect(res.statusCode).toBe(200);
+      expect(res.headers.location).toContain('?token=');
+      expect(res.headers.location).toContain('username=lichess_user');
+      expect(db.query).toHaveBeenCalledTimes(2);
     });
   });
 

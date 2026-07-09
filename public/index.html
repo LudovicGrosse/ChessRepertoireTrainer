@@ -122,32 +122,6 @@
             </div>
           </div>
 
-          <div class="setup-card" style="margin-bottom: 20px">
-            <div
-              style="
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: space-between;
-                align-items: center;
-                gap: 12px;
-              "
-            >
-              <h3 style="margin: 0; border: none; padding: 0">Lichess</h3>
-              <div id="lichess-status-container">
-                <button
-                  id="connectLichessBtn"
-                  class="secondary"
-                  style="padding: 6px 12px; font-size: 12px"
-                >
-                  Connecter Lichess
-                </button>
-              </div>
-            </div>
-            <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px">
-              Connectez votre compte pour importer vos études privées.
-            </p>
-          </div>
-
           <div class="setup-card">
             <div
               style="
@@ -177,41 +151,19 @@
               style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color)"
             >
               <form id="deleteAccountForm" class="form-group" style="gap: 12px">
-                <label
-                  for="deleteAccountPassword"
-                  style="font-size: 13px; font-weight: bold; color: var(--danger)"
-                  >Confirmez avec votre mot de passe :</label
-                >
-                <div class="password-container">
-                  <input
-                    type="password"
-                    id="deleteAccountPassword"
-                    placeholder="Mot de passe actuel"
-                    required
-                  />
-                  <button type="button" class="password-toggle" tabindex="-1">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </button>
-                </div>
+                <p style="font-size: 13px; font-weight: bold; color: var(--danger); margin: 0">
+                  Voulez-vous vraiment supprimer définitivement votre compte ChessPGN et toutes ses
+                  données ?
+                </p>
                 <div style="display: flex; gap: 8px">
-                  <button type="submit" class="danger" style="flex: 1">Confirmer</button>
+                  <button type="submit" class="danger" style="flex: 1; padding: 10px">
+                    Confirmer
+                  </button>
                   <button
                     type="button"
                     id="cancelDeleteAccountBtn"
                     class="secondary"
-                    style="flex: 1"
+                    style="flex: 1; padding: 10px"
                   >
                     Annuler
                   </button>
@@ -313,161 +265,33 @@
       </h1>
 
       <!-- AUTH SECTION -->
-      <div id="auth-section" class="setup-card">
-        <div id="login-view">
-          <h2>Connexion</h2>
-          <form id="loginForm" class="form-group" style="gap: 12px">
-            <div class="form-group">
-              <label for="loginUsername">Nom d'utilisateur ou Email</label>
-              <input
-                type="text"
-                id="loginUsername"
-                name="login_username"
-                autocomplete="username"
-                placeholder="Pseudo ou Email"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="loginPassword">Mot de passe</label>
-              <div class="password-container">
-                <input
-                  type="password"
-                  id="loginPassword"
-                  name="login_password"
-                  autocomplete="current-password"
-                  placeholder="Mot de passe"
-                  required
-                />
-                <button type="button" class="password-toggle" tabindex="-1">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <button type="submit" id="loginBtn" style="margin-top: 8px; padding: 12px">
-              Se connecter
-            </button>
-          </form>
-          <div style="display: flex; justify-content: space-between; margin-top: 16px">
-            <span class="text-link" id="showRegisterBtn">Créer un compte</span>
-            <span class="text-link" id="showForgotBtn">Mot de passe oublié ?</span>
-          </div>
-        </div>
-
-        <div id="register-view" class="hidden">
-          <h2>Inscription</h2>
-          <form id="registerForm" class="form-group" style="gap: 12px">
-            <div class="form-group">
-              <label for="regUsername">Nom d'utilisateur</label>
-              <input
-                type="text"
-                id="regUsername"
-                name="reg_username"
-                autocomplete="username"
-                placeholder="Choisissez un pseudo"
-                pattern="^[^@]+$"
-                title="Le nom d'utilisateur ne peut pas contenir le symbole @"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="regEmail">Email</label>
-              <input
-                type="email"
-                id="regEmail"
-                name="reg_email"
-                autocomplete="email"
-                placeholder="votre@email.com"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="regPassword">Mot de passe</label>
-              <div class="password-container">
-                <input
-                  type="password"
-                  id="regPassword"
-                  name="reg_password"
-                  autocomplete="new-password"
-                  placeholder="Mot de passe"
-                  required
-                />
-                <button type="button" class="password-toggle" tabindex="-1">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <button type="submit" id="registerBtn" style="margin-top: 8px; padding: 12px">
-              S'inscrire
-            </button>
-          </form>
-          <div style="margin-top: 16px; text-align: center">
-            <span class="text-link" id="showLoginBtn">Déjà un compte ? Se connecter</span>
-          </div>
-        </div>
-
-        <div id="forgot-view" class="hidden">
-          <h2>Mot de passe oublié</h2>
-          <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px; margin-top: 0">
-            Saisissez votre email pour recevoir un lien de réinitialisation.
-          </p>
-          <form id="forgotForm" class="form-group" style="gap: 12px">
-            <input type="email" id="forgotEmail" placeholder="votre@email.com" required />
-            <button type="submit" style="padding: 12px">Envoyer le lien</button>
-          </form>
-          <div style="margin-top: 16px; text-align: center">
-            <span class="text-link" id="backToLoginBtn">Retour à la connexion</span>
-          </div>
-        </div>
-
-        <div id="reset-view" class="hidden">
-          <h2>Nouveau mot de passe</h2>
-          <form id="resetForm" class="form-group" style="gap: 12px">
-            <div class="password-container">
-              <input type="password" id="newPassword" placeholder="Nouveau mot de passe" required />
-              <button type="button" class="password-toggle" tabindex="-1">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-              </button>
-            </div>
-            <button type="submit" style="padding: 12px">Enregistrer</button>
-          </form>
-        </div>
+      <div id="auth-section" class="setup-card" style="text-align: center; padding: 30px">
+        <h2>Bienvenue</h2>
+        <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 14px">
+          Entraînez-vous sur vos répertoires et ouvertures d'échecs. Connectez-vous avec votre
+          compte Lichess pour commencer.
+        </p>
+        <button
+          id="lichessLoginBtn"
+          class="primary"
+          style="
+            padding: 12px 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 600;
+            width: 100%;
+            max-width: 320px;
+          "
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path
+              d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-4 6c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3M8 18c0-2.21 1.79-4 4-4s4 1.79 4 4v1H8v-1z"
+            />
+          </svg>
+          Se connecter avec Lichess
+        </button>
       </div>
 
       <!-- LOGGED IN CONTENT -->

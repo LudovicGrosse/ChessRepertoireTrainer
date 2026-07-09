@@ -14,8 +14,8 @@ const initDB = async () => {
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 username VARCHAR(255) UNIQUE NOT NULL,
-                email VARCHAR(255) UNIQUE NOT NULL,
-                password_hash VARCHAR(255) NOT NULL,
+                email VARCHAR(255) UNIQUE,
+                password_hash VARCHAR(255),
                 is_verified INTEGER DEFAULT 0,
                 verification_token VARCHAR(255),
                 reset_token VARCHAR(255),
@@ -23,7 +23,7 @@ const initDB = async () => {
                 lichess_access_token VARCHAR(255),
                 lichess_refresh_token VARCHAR(255),
                 lichess_token_expiry TIMESTAMP,
-                lichess_username VARCHAR(255)
+                lichess_username VARCHAR(255) UNIQUE
             );
 
             DO $$ 
@@ -33,6 +33,11 @@ const initDB = async () => {
                 ALTER TABLE users ADD COLUMN IF NOT EXISTS lichess_refresh_token VARCHAR(255);
                 ALTER TABLE users ADD COLUMN IF NOT EXISTS lichess_token_expiry TIMESTAMP;
                 ALTER TABLE users ADD COLUMN IF NOT EXISTS lichess_username VARCHAR(255);
+                ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
+                ALTER TABLE users ALTER COLUMN email DROP NOT NULL;
+                IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'users_lichess_username_key') THEN
+                  ALTER TABLE users ADD CONSTRAINT users_lichess_username_key UNIQUE (lichess_username);
+                END IF;
               END IF;
             END $$;
 
