@@ -94,6 +94,43 @@ const renderPgnHtml = () => {
     : `<em>Aucun commentaire.</em>`;
 };
 
+const showContinueButton = (callback) => {
+  const existing = document.getElementById('continueBtn');
+  if (existing) {
+    existing.remove();
+  }
+
+  const btn = document.createElement('button');
+  btn.id = 'continueBtn';
+  btn.className = 'primary';
+  btn.innerHTML =
+    'Continuer <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; display: inline-block; vertical-align: middle;"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+
+  btn.style.width = '100%';
+  btn.style.marginTop = '10px';
+  btn.style.padding = '10px';
+  btn.style.fontSize = '14px';
+  btn.style.fontWeight = '600';
+  btn.style.display = 'flex';
+  btn.style.alignItems = 'center';
+  btn.style.justifyContent = 'center';
+  btn.style.borderRadius = '6px';
+  btn.style.cursor = 'pointer';
+  btn.style.backgroundColor = 'var(--primary)';
+  btn.style.color = '#fff';
+  btn.style.border = 'none';
+
+  // Bloquer temporairement le déplacement sur l'échiquier
+  state.cg.set({ movable: { dests: new Map() } });
+
+  btn.onclick = () => {
+    btn.remove();
+    callback();
+  };
+
+  document.getElementById('commentBox').appendChild(btn);
+};
+
 const updateNavigationButtons = () => {
   const isAtStart = state.viewIndex <= 0;
   const isAtEnd = state.viewIndex >= state.currentPath.length - 1;
@@ -230,9 +267,18 @@ const onUserMove = (orig, dest) => {
     markCompleted(state.currentNode);
     handleEnd();
   } else {
-    setTimeout(() => {
-      playOpponent();
-    }, 300);
+    const hasComment = state.currentNode.comment && state.currentNode.comment.trim() !== '';
+    const commentsVisible = document.getElementById('commentBox').style.display !== 'none';
+
+    if (hasComment && commentsVisible) {
+      showContinueButton(() => {
+        playOpponent();
+      });
+    } else {
+      setTimeout(() => {
+        playOpponent();
+      }, 300);
+    }
   }
 };
 
@@ -331,7 +377,16 @@ const handleEnd = () => {
       actions.appendChild(nextBtn);
     }
   } else {
-    setTimeout(startNextVariation, 800);
+    const hasComment = state.currentNode.comment && state.currentNode.comment.trim() !== '';
+    const commentsVisible = document.getElementById('commentBox').style.display !== 'none';
+
+    if (hasComment && commentsVisible) {
+      showContinueButton(() => {
+        startNextVariation();
+      });
+    } else {
+      setTimeout(startNextVariation, 800);
+    }
   }
 };
 
