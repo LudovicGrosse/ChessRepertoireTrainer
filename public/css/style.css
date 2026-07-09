@@ -804,7 +804,7 @@ header .user-badge span {
   color: #e2e8f0;
   line-height: 1.5;
   min-height: 48px;
-  white-space: pre-line;
+  white-space: pre-wrap !important;
 }
 
 /* PGN Badges */
