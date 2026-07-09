@@ -23,7 +23,8 @@ const initDB = async () => {
                 lichess_access_token VARCHAR(255),
                 lichess_refresh_token VARCHAR(255),
                 lichess_token_expiry TIMESTAMP,
-                lichess_username VARCHAR(255) UNIQUE
+                lichess_username VARCHAR(255) UNIQUE,
+                is_teacher BOOLEAN DEFAULT FALSE
             );
 
             DO $$ 
@@ -33,6 +34,7 @@ const initDB = async () => {
                 ALTER TABLE users ADD COLUMN IF NOT EXISTS lichess_refresh_token VARCHAR(255);
                 ALTER TABLE users ADD COLUMN IF NOT EXISTS lichess_token_expiry TIMESTAMP;
                 ALTER TABLE users ADD COLUMN IF NOT EXISTS lichess_username VARCHAR(255);
+                ALTER TABLE users ADD COLUMN IF NOT EXISTS is_teacher BOOLEAN DEFAULT FALSE;
                 ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
                 ALTER TABLE users ALTER COLUMN email DROP NOT NULL;
                 IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'users_lichess_username_key') THEN
@@ -102,6 +104,20 @@ const initDB = async () => {
                 FOREIGN KEY (repertoire_id) REFERENCES repertoires(id) ON DELETE CASCADE,
                 FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE,
                 UNIQUE(user_id, repertoire_id, chapter_id, color)
+            );
+
+            CREATE TABLE IF NOT EXISTS study_shares (
+                id SERIAL PRIMARY KEY,
+                teacher_id INTEGER NOT NULL,
+                repertoire_id VARCHAR(255) NOT NULL,
+                repertoire_title VARCHAR(255) NOT NULL,
+                target_username VARCHAR(255) NOT NULL,
+                color VARCHAR(50) NOT NULL,
+                status VARCHAR(50) DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (repertoire_id) REFERENCES repertoires(id) ON DELETE CASCADE,
+                UNIQUE(repertoire_id, target_username, color)
             );
 
             DO $$

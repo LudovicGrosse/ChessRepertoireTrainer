@@ -51,6 +51,7 @@ export const fetchHistory = async () => {
   } catch (err) {
     console.error('Failed to fetch dashboard data:', err);
   }
+  fetchPendingInvitations();
 };
 
 let currentlyOpenRepId = null;
@@ -634,4 +635,114 @@ export const initDashboard = () => {
     setTimeout(() => showToast('Erreur Lichess : ' + urlParams.get('lichess_error'), 'error'), 500);
     window.history.replaceState({}, document.title, window.location.pathname);
   }
+};
+
+const fetchPendingInvitations = async () => {
+  if (!state.authToken) {
+    return;
+  }
+  const container = document.getElementById('sharesNotifications');
+  if (!container) {
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/shares/pending', {
+      headers: { Authorization: `Bearer ${state.authToken}` },
+    });
+
+    if (res.ok) {
+      const invitations = await res.json();
+      renderPendingInvitations(invitations);
+    }
+  } catch (err) {
+    console.error('Failed to fetch pending share invitations:', err);
+  }
+};
+
+const renderPendingInvitations = (invitations) => {
+  const container = document.getElementById('sharesNotifications');
+  if (!container) {
+    return;
+  }
+
+  if (invitations.length === 0) {
+    container.innerHTML = '';
+    container.classList.add('hidden');
+    return;
+  }
+
+  container.classList.remove('hidden');
+  container.innerHTML = invitations
+    .map((inv) => {
+      const colorText = inv.color === 'white' ? 'Blancs' : 'Noirs';
+      return `
+        <div class="setup-card" style="border-left: 4px solid var(--primary); display: flex; flex-direction: column; gap: 12px; padding: 16px;">
+          <div style="font-size: 14px; line-height: 1.4;">
+            👨‍🏫 Le Professeur <strong>${inv.teacher_username}</strong> vous propose d'ajouter l'étude : 
+            <strong style="color: var(--primary);">${inv.repertoire_title}</strong> (${colorText}).
+          </div>
+          <div style="display: flex; gap: 8px; align-self: flex-start;">
+            <button class="primary accept-share-btn" data-id="${inv.id}" style="padding: 6px 12px; font-size: 12px;">
+              Accepter
+            </button>
+            <button class="secondary decline-share-btn" data-id="${inv.id}" style="padding: 6px 12px; font-size: 12px;">
+              Refuser
+            </button>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+
+  // Attach click handlers
+  container.querySelectorAll('.accept-share-btn').forEach((btn) => {
+    btn.onclick = async () => {
+      const id = btn.getAttribute('data-id');
+      btn.disabled = true;
+      btn.textContent = 'Acceptation...';
+      try {
+        const res = await fetch(`/api/shares/${id}/accept`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${state.authToken}` },
+        });
+        if (res.ok) {
+          showToast('Étude acceptée et ajoutée à vos répertoires !', 'success');
+          fetchHistory();
+        } else {
+          const err = await res.json();
+          throw new Error(err.error || "Erreur lors de l'acceptation.");
+        }
+      } catch (e) {
+        showToast(e.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Accepter';
+      }
+    };
+  });
+
+  container.querySelectorAll('.decline-share-btn').forEach((btn) => {
+    btn.onclick = async () => {
+      const id = btn.getAttribute('data-id');
+      btn.disabled = true;
+      btn.textContent = 'Refus...';
+      try {
+        const res = await fetch(`/api/shares/${id}/decline`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${state.authToken}` },
+        });
+        if (res.ok) {
+          showToast('Invitation déclinée.', 'info');
+          fetchHistory();
+        } else {
+          const err = await res.json();
+          throw new Error(err.error || 'Erreur lors du refus.');
+        }
+      } catch (e) {
+        showToast(e.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Refuser';
+      }
+    };
+  });
 };

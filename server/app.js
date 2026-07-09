@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const historyRoutes = require('./routes/historyRoutes');
 const repertoireRoutes = require('./routes/repertoireRoutes');
 const lichessRoutes = require('./routes/lichessRoutes');
+const shareRoutes = require('./routes/shareRoutes');
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.use('/api', authRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/repertoires', repertoireRoutes);
 app.use('/api/lichess', lichessRoutes);
+app.use('/api/shares', shareRoutes);
 
 // Fallback to index.html for SPA (Single Page Application) behavior
 app.get(/.*/, (req, res) => {

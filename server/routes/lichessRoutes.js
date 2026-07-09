@@ -141,12 +141,18 @@ router.get('/callback', async (req, res) => {
     }
 
     // Generate session JWT
-    const sessionToken = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, {
-      expiresIn: '7d',
-    });
+    const sessionToken = jwt.sign(
+      { id: user.id, username: user.username, is_teacher: !!user.is_teacher },
+      SECRET_KEY,
+      {
+        expiresIn: '7d',
+      }
+    );
 
-    // Redirect to frontend with token and username in URL
-    res.redirect(`/?token=${sessionToken}&username=${encodeURIComponent(user.username)}`);
+    // Redirect to frontend with token and username in URL (plus the is_teacher flag)
+    res.redirect(
+      `/?token=${sessionToken}&username=${encodeURIComponent(user.username)}&is_teacher=${user.is_teacher ? '1' : '0'}`
+    );
   } catch (err) {
     console.error('Lichess callback processing error:', err);
     res.redirect('/?lichess_error=internal_error');

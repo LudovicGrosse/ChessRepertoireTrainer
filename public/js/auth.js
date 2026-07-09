@@ -1,5 +1,6 @@
 import { showToast, state } from './utils.js';
 import { fetchHistory } from './dashboard.js';
+import { initTeacherSpace } from './teacher.js';
 
 const setupView = document.getElementById('setup-view');
 const mainSetupContent = document.getElementById('main-setup-content');
@@ -7,6 +8,9 @@ const topBar = document.getElementById('top-bar');
 const authSection = document.getElementById('auth-section');
 const displayUsername = document.getElementById('displayUsername');
 const trainingView = document.getElementById('training-view');
+const teacherTabBtn = document.getElementById('teacherTabBtn');
+const teacherView = document.getElementById('teacher-view');
+const backToDashboardBtn = document.getElementById('backToDashboardBtn');
 
 export const updateAuthUI = () => {
   if (state.authToken) {
@@ -23,11 +27,24 @@ export const updateAuthUI = () => {
     mainSetupContent.classList.add('fade-in');
     topBar.classList.remove('hidden');
     displayUsername.textContent = user.username || 'Utilisateur';
+
+    // Show/Hide Teacher Space Tab Button
+    if (teacherTabBtn) {
+      if (user.is_teacher) {
+        teacherTabBtn.classList.remove('hidden');
+      } else {
+        teacherTabBtn.classList.add('hidden');
+      }
+    }
+
     fetchHistory();
   } else {
     authSection.classList.remove('hidden');
     document.getElementById('main-title').classList.remove('hidden');
     mainSetupContent.classList.add('hidden');
+    if (teacherView) {
+      teacherView.classList.add('hidden');
+    }
     topBar.classList.add('hidden');
   }
 };
@@ -37,14 +54,42 @@ export const initAuth = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const lichessToken = urlParams.get('token');
   const lichessUsername = urlParams.get('username');
+  const lichessIsTeacher = urlParams.get('is_teacher');
 
   if (lichessToken && lichessUsername) {
     state.authToken = lichessToken;
     localStorage.setItem('chess_token', lichessToken);
-    localStorage.setItem('chess_user', JSON.stringify({ username: lichessUsername }));
+    localStorage.setItem(
+      'chess_user',
+      JSON.stringify({
+        username: lichessUsername,
+        is_teacher: lichessIsTeacher === '1',
+      })
+    );
     showToast('Connexion réussie', 'success');
     window.history.replaceState({}, document.title, window.location.pathname);
     updateAuthUI();
+  }
+
+  // Handle Teacher Tab navigation
+  if (teacherTabBtn) {
+    teacherTabBtn.onclick = () => {
+      mainSetupContent.classList.add('hidden');
+      if (teacherView) {
+        teacherView.classList.remove('hidden');
+      }
+      initTeacherSpace();
+    };
+  }
+
+  if (backToDashboardBtn) {
+    backToDashboardBtn.onclick = () => {
+      if (teacherView) {
+        teacherView.classList.add('hidden');
+      }
+      mainSetupContent.classList.remove('hidden');
+      mainSetupContent.classList.add('fade-in');
+    };
   }
 
   // Handle Lichess Login redirection
