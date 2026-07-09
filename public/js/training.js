@@ -50,6 +50,11 @@ const updateAnalysisLink = () => {
 };
 
 const renderPgnHtml = () => {
+  const existingBtn = document.getElementById('continueBtn');
+  if (existingBtn) {
+    existingBtn.remove();
+  }
+
   if (state.currentPath.length <= 1) {
     document.getElementById('activeLineDisplay').innerHTML =
       "<span style='color: var(--text-muted);'>Position initiale</span>";
@@ -108,6 +113,7 @@ const showContinueButton = (callback) => {
 
   btn.style.width = '100%';
   btn.style.marginTop = '10px';
+  btn.style.marginBottom = '10px';
   btn.style.padding = '10px';
   btn.style.fontSize = '14px';
   btn.style.fontWeight = '600';
@@ -128,7 +134,8 @@ const showContinueButton = (callback) => {
     callback();
   };
 
-  document.getElementById('commentBox').appendChild(btn);
+  const commentBox = document.getElementById('commentBox');
+  commentBox.parentNode.insertBefore(btn, commentBox);
 };
 
 const updateNavigationButtons = () => {
@@ -641,6 +648,11 @@ export const initTraining = () => {
       box.style.display = 'none';
       btn.innerHTML = COMMENT_CLOSED_SVG;
       btn.title = 'Afficher Notes';
+
+      const continueBtn = document.getElementById('continueBtn');
+      if (continueBtn) {
+        continueBtn.click();
+      }
     }
   };
 
