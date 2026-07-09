@@ -1,17 +1,26 @@
 import { showToast, getToggleState, initToggles } from './utils.js';
 
-const shareStudyForm = document.getElementById('shareStudyForm');
-const shareStudentUsernames = document.getElementById('shareStudentUsernames');
-const shareLichessUrls = document.getElementById('shareLichessUrls');
-const shareHistoryTableBody = document.getElementById('shareHistoryTableBody');
-const unregisteredInvitationBox = document.getElementById('unregisteredInvitationBox');
-const inviteTextTemplate = document.getElementById('inviteTextTemplate');
-const copyInviteTextBtn = document.getElementById('copyInviteTextBtn');
-const shareBtn = document.getElementById('shareBtn');
+let shareStudyForm;
+let shareStudentUsernames;
+let shareLichessUrls;
+let shareHistoryTableBody;
+let unregisteredInvitationBox;
+let inviteTextTemplate;
+let copyInviteTextBtn;
+let shareBtn;
 
 let inviteTemplateContent = '';
 
 export const initTeacherSpace = () => {
+  shareStudyForm = document.getElementById('shareStudyForm');
+  shareStudentUsernames = document.getElementById('shareStudentUsernames');
+  shareLichessUrls = document.getElementById('shareLichessUrls');
+  shareHistoryTableBody = document.getElementById('shareHistoryTableBody');
+  unregisteredInvitationBox = document.getElementById('unregisteredInvitationBox');
+  inviteTextTemplate = document.getElementById('inviteTextTemplate');
+  copyInviteTextBtn = document.getElementById('copyInviteTextBtn');
+  shareBtn = document.getElementById('shareBtn');
+
   if (!shareStudyForm) {
     return;
   }
@@ -119,6 +128,7 @@ export const initTeacherSpace = () => {
 };
 
 export const fetchShareHistory = async () => {
+  shareHistoryTableBody = document.getElementById('shareHistoryTableBody');
   if (!shareHistoryTableBody) {
     return;
   }
