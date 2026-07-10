@@ -17,23 +17,22 @@ const createStudyRow = (index) => {
   const row = document.createElement('div');
   row.className = 'share-study-row';
   row.dataset.index = index;
-  row.style.cssText =
-    'display: flex; gap: 12px; align-items: center; margin-bottom: 8px; width: 100%;';
-
   row.innerHTML = `
-    <input type="text" class="share-study-url" placeholder="Lien ou ID de l'étude Lichess" required style="flex: 1; min-width: 100px;">
-    <div class="toggle-container color-toggle share-color-toggle" id="shareColorToggle_${index}" data-state="left" style="width: 140px; flex-shrink: 0; margin: 0; display: inline-flex;">
-      <div class="toggle-slider"></div>
-      <div class="toggle-option active" data-val="white" style="flex: 1; text-align: center;">Blancs</div>
-      <div class="toggle-option" data-val="black" style="flex: 1; text-align: center;">Noirs</div>
+    <input type="text" class="share-study-url" placeholder="Lien ou ID de l'étude Lichess" required>
+    <div class="share-study-row-controls">
+      <div class="toggle-container color-toggle share-color-toggle" id="shareColorToggle_${index}" data-state="left" style="width: 140px; flex-shrink: 0; margin: 0; display: inline-flex;">
+        <div class="toggle-slider"></div>
+        <div class="toggle-option active" data-val="white" style="flex: 1; text-align: center;">Blancs</div>
+        <div class="toggle-option" data-val="black" style="flex: 1; text-align: center;">Noirs</div>
+      </div>
+      ${
+        index > 0
+          ? `<button type="button" class="secondary remove-study-row-btn" style="padding: 0; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 4px; cursor: pointer;" title="Supprimer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>`
+          : `<div style="width: 36px; flex-shrink: 0;"></div>`
+      }
     </div>
-    ${
-      index > 0
-        ? `<button type="button" class="secondary remove-study-row-btn" style="padding: 0; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 4px; cursor: pointer;" title="Supprimer">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>`
-        : `<div style="width: 36px; flex-shrink: 0;"></div>`
-    }
   `;
 
   // Attach dynamic toggle events matching utils.js toggle state behavior
@@ -285,13 +284,13 @@ const renderShareHistory = (shares) => {
 
       return `
         <tr style="border-bottom: 1px solid var(--border-color);">
-          <td style="padding: 10px 8px;">
+          <td data-label="Étude" style="padding: 10px 8px;">
             ${colorDot}<strong>${share.repertoire_title}</strong><br>
             <span style="font-size: 11px; color: var(--text-muted); margin-left: 18px;">ID: ${share.repertoire_id}</span>
           </td>
-          <td style="padding: 10px 8px;">${share.target_username}</td>
-          <td style="padding: 10px 8px;">${statusBadge}</td>
-          <td style="padding: 10px 8px; color: var(--text-muted);">${expirationText}</td>
+          <td data-label="Élève" style="padding: 10px 8px;">${share.target_username}</td>
+          <td data-label="Statut" style="padding: 10px 8px;">${statusBadge}</td>
+          <td data-label="Expiration" style="padding: 10px 8px; color: var(--text-muted);">${expirationText}</td>
           <td style="padding: 10px 8px; text-align: right; padding-right: 12px;">${actionButtons}</td>
         </tr>
       `;

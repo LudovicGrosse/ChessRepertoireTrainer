@@ -402,6 +402,25 @@ header .user-badge span {
   font-size: 13px;
 }
 
+/* Share Study Row Layout (Desktop) */
+.share-study-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+  width: 100%;
+}
+.share-study-row input {
+  flex: 1;
+  min-width: 100px;
+}
+.share-study-row-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
 /* =========================================
            SETUP VIEW (Dashboard)
         ========================================= */
@@ -1002,6 +1021,20 @@ cg-board square.move-dest {
   header .user-badge span {
     display: none;
   }
+  #teacherTabBtn span {
+    display: none;
+  }
+  #teacherTabBtn::before {
+    content: '👨‍🏫';
+    font-size: 15px;
+  }
+  #teacherTabBtn {
+    padding: 0 !important;
+    border-radius: 50% !important;
+    width: 28px !important;
+    height: 28px !important;
+    margin-right: 4px;
+  }
   header #logoutBtn {
     padding: 6px 10px;
     font-size: 11px;
@@ -1221,5 +1254,81 @@ cg-board square.move-dest {
   }
   .pc-navigation-row {
     display: none !important;
+  }
+
+  /* Responsive Teacher View */
+  .share-study-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    background: rgba(0, 0, 0, 0.015);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 12px;
+  }
+  .share-study-row .share-study-url {
+    width: 100% !important;
+  }
+  .share-study-row-controls {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  /* Teacher history table into clean cards on mobile */
+  #teacher-view table thead {
+    display: none !important;
+  }
+  #shareHistoryTableBody,
+  #shareHistoryTableBody tr,
+  #shareHistoryTableBody td {
+    display: block !important;
+    width: 100% !important;
+  }
+  #shareHistoryTableBody tr {
+    background: rgba(0, 0, 0, 0.015) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    margin-bottom: 12px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  }
+  #shareHistoryTableBody td {
+    padding: 6px 0 !important;
+    border: none !important;
+    text-align: left !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+  #shareHistoryTableBody td::before {
+    content: attr(data-label) ' : ' !important;
+    font-weight: 600 !important;
+    color: var(--text-muted) !important;
+    display: inline-block !important;
+    width: 100px !important;
+    font-size: 12px !important;
+    flex-shrink: 0 !important;
+  }
+  #shareHistoryTableBody td:last-child {
+    justify-content: flex-end !important;
+    margin-top: 10px !important;
+    border-top: 1px dashed var(--border-color) !important;
+    padding-top: 12px !important;
+  }
+  #shareHistoryTableBody td:last-child::before {
+    display: none !important;
+  }
+
+  /* Responsive header on teacher-view */
+  #teacher-view > div:first-child {
+    flex-direction: column-reverse !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  #teacher-view > div:first-child h1 {
+    font-size: 1.3rem !important;
   }
 }
