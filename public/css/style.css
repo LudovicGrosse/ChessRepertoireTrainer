@@ -420,6 +420,26 @@ header .user-badge span {
   gap: 12px;
   flex-shrink: 0;
 }
+.share-color-toggle .toggle-option {
+  padding: 8px 0 !important;
+}
+.share-color-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+.share-study-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 250px;
+}
 
 /* =========================================
            SETUP VIEW (Dashboard)
@@ -1311,6 +1331,17 @@ cg-board square.move-dest {
     width: 100px !important;
     font-size: 12px !important;
     flex-shrink: 0 !important;
+  }
+  #shareHistoryTableBody td[data-label='Étude']::before {
+    display: none !important;
+  }
+  #shareHistoryTableBody .share-color-dot {
+    width: 12px !important;
+    height: 12px !important;
+    flex-shrink: 0 !important;
+  }
+  #shareHistoryTableBody .share-study-title {
+    max-width: 170px !important;
   }
   #shareHistoryTableBody td:last-child {
     justify-content: flex-end !important;

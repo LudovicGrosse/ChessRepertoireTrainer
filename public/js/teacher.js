@@ -262,8 +262,8 @@ const renderShareHistory = (shares) => {
     .map((share) => {
       const colorDot =
         share.color === 'white'
-          ? '<span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ffffff; border: 1.5px solid #475569; margin-right: 8px; vertical-align: middle;" title="Blancs"></span>'
-          : '<span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #1e293b; border: 1.5px solid #1e293b; margin-right: 8px; vertical-align: middle;" title="Noirs"></span>';
+          ? '<span class="share-color-dot" style="background: #ffffff; border: 1.5px solid #ffffff;" title="Blancs"></span>'
+          : '<span class="share-color-dot" style="background: #090f19; border: 1.5px solid #94a3b8;" title="Noirs"></span>';
 
       let statusBadge;
       let actionButtons = '';
@@ -272,8 +272,12 @@ const renderShareHistory = (shares) => {
         statusBadge =
           '<span style="background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 12px; font-size: 12px;">En attente</span>';
         actionButtons = `
-          <button class="secondary renew-btn" data-id="${share.id}" style="padding: 4px 8px; font-size: 11px; margin-right: 6px; cursor: pointer; border-radius: 4px;">Renouveler</button>
-          <button class="danger-btn cancel-share-btn" data-id="${share.id}" style="padding: 4px 8px; font-size: 11px; cursor: pointer; background: var(--danger); color: white; border: none; border-radius: 4px;">Annuler</button>
+          <button class="secondary renew-btn" data-id="${share.id}" style="padding: 0; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; margin-right: 6px; cursor: pointer; border-radius: 4px;" title="Renouveler pour 7 jours">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+          </button>
+          <button class="danger-btn cancel-share-btn" data-id="${share.id}" style="padding: 0; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; background: var(--danger); color: white; border: none; border-radius: 4px;" title="Annuler l'invitation">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+          </button>
         `;
       } else {
         statusBadge =
@@ -284,9 +288,12 @@ const renderShareHistory = (shares) => {
 
       return `
         <tr style="border-bottom: 1px solid var(--border-color);">
-          <td data-label="Étude" style="padding: 10px 8px;">
-            ${colorDot}<strong>${share.repertoire_title}</strong><br>
-            <span style="font-size: 11px; color: var(--text-muted); margin-left: 18px;">ID: ${share.repertoire_id}</span>
+          <td data-label="Étude" style="padding: 10px 8px; display: flex; align-items: center; gap: 8px;">
+            ${colorDot}
+            <div style="min-width: 0; flex: 1; text-align: left;">
+              <strong class="share-study-title" style="font-size: 14px; font-weight: 600;">${share.repertoire_title}</strong>
+              <span class="share-study-id" style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 2px;">ID: ${share.repertoire_id}</span>
+            </div>
           </td>
           <td data-label="Élève" style="padding: 10px 8px;">${share.target_username}</td>
           <td data-label="Statut" style="padding: 10px 8px;">${statusBadge}</td>
@@ -302,7 +309,7 @@ const renderShareHistory = (shares) => {
     btn.onclick = async () => {
       const id = btn.dataset.id;
       btn.disabled = true;
-      btn.textContent = 'En cours...';
+      btn.style.opacity = '0.5';
       try {
         const token = localStorage.getItem('chess_token');
         const res = await fetch(`/api/shares/${id}/renew`, {
@@ -319,7 +326,7 @@ const renderShareHistory = (shares) => {
       } catch (e) {
         showToast(e.message, 'error');
         btn.disabled = false;
-        btn.textContent = 'Renouveler';
+        btn.style.opacity = '1';
       }
     };
   });
@@ -331,7 +338,7 @@ const renderShareHistory = (shares) => {
       }
       const id = btn.dataset.id;
       btn.disabled = true;
-      btn.textContent = 'En cours...';
+      btn.style.opacity = '0.5';
       try {
         const token = localStorage.getItem('chess_token');
         const res = await fetch(`/api/shares/${id}`, {
@@ -348,7 +355,7 @@ const renderShareHistory = (shares) => {
       } catch (e) {
         showToast(e.message, 'error');
         btn.disabled = false;
-        btn.textContent = 'Annuler';
+        btn.style.opacity = '1';
       }
     };
   });
