@@ -433,26 +433,21 @@
             </div>
 
             <div class="form-group">
-              <label for="shareLichessUrls">Études Lichess à partager</label>
-              <textarea
-                id="shareLichessUrls"
-                rows="3"
-                placeholder="Ex: https://lichess.org/study/xxxxxx (un lien ou ID par ligne)"
-                required
-              ></textarea>
-            </div>
-
-            <div class="form-group">
-              <label style="margin-bottom: 8px; display: block"
-                >Couleur d'entraînement imposée</label
+              <label>Études Lichess à partager</label>
+              <div
+                id="shareStudiesContainer"
+                style="display: flex; flex-direction: column; gap: 8px"
               >
-              <div class="toggle-row" style="margin-top: 0">
-                <div class="toggle-container color-toggle" id="shareColorToggle" data-state="left">
-                  <div class="toggle-slider"></div>
-                  <div class="toggle-option active" data-val="white">Blancs</div>
-                  <div class="toggle-option" data-val="black">Noirs</div>
-                </div>
+                <!-- Dynamic study rows will be added here -->
               </div>
+              <button
+                type="button"
+                id="addStudyRowBtn"
+                class="secondary"
+                style="padding: 8px 12px; font-size: 12px; align-self: flex-start; margin-top: 4px"
+              >
+                + Ajouter une étude
+              </button>
             </div>
 
             <button

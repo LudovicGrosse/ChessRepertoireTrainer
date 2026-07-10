@@ -54,20 +54,13 @@ const parseChaptersFromPgn = (rawPgn) => {
 
 // POST /api/shares - Shared study with students (Teacher only)
 router.post('/', authenticateToken, async (req, res) => {
-  const { target_usernames, lichess_study_urls, color } = req.body;
+  const { target_usernames, studies } = req.body;
 
   if (!target_usernames || !Array.isArray(target_usernames) || target_usernames.length === 0) {
     return res.status(400).json({ error: 'La liste des pseudos cibles est requise.' });
   }
-  if (
-    !lichess_study_urls ||
-    !Array.isArray(lichess_study_urls) ||
-    lichess_study_urls.length === 0
-  ) {
-    return res.status(400).json({ error: 'La liste des études Lichess est requise.' });
-  }
-  if (color !== 'white' && color !== 'black') {
-    return res.status(400).json({ error: 'Couleur invalide.' });
+  if (!studies || !Array.isArray(studies) || studies.length === 0) {
+    return res.status(400).json({ error: 'La liste des études est requise.' });
   }
 
   // 1. Check if requester is a teacher
@@ -104,8 +97,15 @@ router.post('/', authenticateToken, async (req, res) => {
       }
 
       // Process each study URL/ID
-      for (const studyUrlOrId of lichess_study_urls) {
-        const studyId = extractStudyId(studyUrlOrId);
+      for (const studyObj of studies) {
+        const { url, color } = studyObj;
+        if (!url || (color !== 'white' && color !== 'black')) {
+          throw new Error(
+            'Chaque étude doit comporter un lien valide et une couleur (Blancs ou Noirs).'
+          );
+        }
+
+        const studyId = extractStudyId(url);
         if (!studyId) {
           continue;
         }

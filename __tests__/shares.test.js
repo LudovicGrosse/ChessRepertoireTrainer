@@ -21,8 +21,7 @@ describe('Shares Endpoints', () => {
         .set('Authorization', `Bearer ${studentToken}`)
         .send({
           target_usernames: ['student2'],
-          lichess_study_urls: ['https://lichess.org/study/study_abc'],
-          color: 'white',
+          studies: [{ url: 'https://lichess.org/study/study_abc', color: 'white' }],
         });
       expect(res.statusCode).toBe(403);
       expect(res.body).toHaveProperty('error', 'Accès réservé aux professeurs.');
@@ -60,8 +59,7 @@ describe('Shares Endpoints', () => {
         .set('Authorization', `Bearer ${teacherToken}`)
         .send({
           target_usernames: ['student2'],
-          lichess_study_urls: ['https://lichess.org/study/study_abc'],
-          color: 'white',
+          studies: [{ url: 'https://lichess.org/study/study_abc', color: 'white' }],
         });
 
       expect(res.statusCode).toBe(201);

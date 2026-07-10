@@ -117,10 +117,16 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
       (a.last_revision ? new Date(a.last_revision) : 0)
   );
   const whiteReps = allReps.filter(
-    (r) => r.color === 'white' && r.dbChapters.reduce((acc, c) => acc + c.white_moves, 0) > 0
+    (r) =>
+      r.color === 'white' &&
+      (r.dbChapters.reduce((acc, c) => acc + c.white_moves, 0) > 0 ||
+        r.dbChapters.reduce((acc, c) => acc + c.white_moves + c.black_moves, 0) === 0)
   );
   const blackReps = allReps.filter(
-    (r) => r.color === 'black' && r.dbChapters.reduce((acc, c) => acc + c.black_moves, 0) > 0
+    (r) =>
+      r.color === 'black' &&
+      (r.dbChapters.reduce((acc, c) => acc + c.black_moves, 0) > 0 ||
+        r.dbChapters.reduce((acc, c) => acc + c.white_moves + c.black_moves, 0) === 0)
   );
 
   const createSectionHeader = (title) => {
@@ -157,7 +163,11 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
         totalRevisionMoves > 0 ? Math.round((totalSuccessMoves / totalRevisionMoves) * 100) : 0;
 
       if (totalRevisionMoves === 0) {
-        return; // Ne pas afficher les répertoires avec 0 coups
+        const hasAnyMoves =
+          rep.dbChapters.reduce((acc, c) => acc + c.white_moves + c.black_moves, 0) > 0;
+        if (hasAnyMoves) {
+          return;
+        }
       }
 
       const rateClass = globalRate >= 80 ? 'high' : globalRate < 50 ? 'low' : 'medium';
@@ -679,7 +689,7 @@ const renderPendingInvitations = (invitations) => {
       return `
         <div class="setup-card" style="border-left: 4px solid var(--primary); display: flex; flex-direction: column; gap: 12px; padding: 16px;">
           <div style="font-size: 14px; line-height: 1.4;">
-            👨‍🏫 Le Professeur <strong>${inv.teacher_username}</strong> vous propose d'ajouter l'étude : 
+            <strong>${inv.teacher_username}</strong> vous propose d'ajouter l'étude : 
             <strong style="color: var(--primary);">${inv.repertoire_title}</strong> (${colorText}).
           </div>
           <div style="display: flex; gap: 8px; align-self: flex-start;">

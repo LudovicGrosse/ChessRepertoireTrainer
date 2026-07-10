@@ -1,43 +1,110 @@
-import { showToast, getToggleState, initToggles } from './utils.js';
+import { showToast, getToggleState } from './utils.js';
 
 let shareStudyForm;
 let shareStudentUsernames;
-let shareLichessUrls;
 let shareHistoryTableBody;
 let unregisteredInvitationBox;
 let inviteTextTemplate;
 let copyInviteTextBtn;
 let shareBtn;
+let shareStudiesContainer;
+let addStudyRowBtn;
 
 let inviteTemplateContent = '';
+
+// Helper to create study input row dynamically
+const createStudyRow = (index) => {
+  const row = document.createElement('div');
+  row.className = 'share-study-row';
+  row.dataset.index = index;
+  row.style.cssText =
+    'display: flex; gap: 12px; align-items: center; margin-bottom: 8px; width: 100%;';
+
+  row.innerHTML = `
+    <input type="text" class="share-study-url" placeholder="Lien ou ID de l'étude Lichess" required style="flex: 1; min-width: 100px;">
+    <div class="toggle-container color-toggle share-color-toggle" id="shareColorToggle_${index}" data-state="left" style="width: 140px; flex-shrink: 0; margin: 0; display: inline-flex;">
+      <div class="toggle-slider"></div>
+      <div class="toggle-option active" data-val="white" style="flex: 1; text-align: center;">Blancs</div>
+      <div class="toggle-option" data-val="black" style="flex: 1; text-align: center;">Noirs</div>
+    </div>
+    <button type="button" class="secondary remove-study-row-btn" style="padding: 0; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 4px; cursor: pointer;" title="Supprimer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+  `;
+
+  // Attach dynamic toggle events matching utils.js toggle state behavior
+  const container = row.querySelector('.toggle-container');
+  container.querySelectorAll('.toggle-option').forEach((option) => {
+    option.onclick = (e) => {
+      const val = e.currentTarget.dataset.val;
+      const options = container.querySelectorAll('.toggle-option');
+      options.forEach((opt) => {
+        if (opt.dataset.val === val) {
+          opt.classList.add('active');
+          container.dataset.state = opt === options[0] ? 'left' : 'right';
+        } else {
+          opt.classList.remove('active');
+        }
+      });
+    };
+  });
+
+  // Remove row handler
+  row.querySelector('.remove-study-row-btn').onclick = () => {
+    const allRows = shareStudiesContainer.querySelectorAll('.share-study-row');
+    if (allRows.length > 1) {
+      row.remove();
+    } else {
+      showToast('Vous devez renseigner au moins une étude à partager.', 'error');
+    }
+  };
+
+  return row;
+};
 
 export const initTeacherSpace = () => {
   shareStudyForm = document.getElementById('shareStudyForm');
   shareStudentUsernames = document.getElementById('shareStudentUsernames');
-  shareLichessUrls = document.getElementById('shareLichessUrls');
   shareHistoryTableBody = document.getElementById('shareHistoryTableBody');
   unregisteredInvitationBox = document.getElementById('unregisteredInvitationBox');
   inviteTextTemplate = document.getElementById('inviteTextTemplate');
   copyInviteTextBtn = document.getElementById('copyInviteTextBtn');
   shareBtn = document.getElementById('shareBtn');
+  shareStudiesContainer = document.getElementById('shareStudiesContainer');
+  addStudyRowBtn = document.getElementById('addStudyRowBtn');
 
   if (!shareStudyForm) {
     return;
   }
 
-  // Initialize teacher color toggle
-  initToggles();
-
   // Load history
   fetchShareHistory();
+
+  // Initialize dynamic study inputs container
+  if (shareStudiesContainer && shareStudiesContainer.children.length === 0) {
+    shareStudiesContainer.appendChild(createStudyRow(0));
+  }
+
+  // Add study row click handler
+  if (addStudyRowBtn && shareStudiesContainer) {
+    addStudyRowBtn.onclick = () => {
+      const rows = shareStudiesContainer.querySelectorAll('.share-study-row');
+      let maxIdx = 0;
+      rows.forEach((r) => {
+        const idx = parseInt(r.dataset.index, 10);
+        if (idx > maxIdx) {
+          maxIdx = idx;
+        }
+      });
+      shareStudiesContainer.appendChild(createStudyRow(maxIdx + 1));
+    };
+  }
 
   // Form submission handler
   shareStudyForm.onsubmit = async (e) => {
     e.preventDefault();
 
     const rawUsernames = shareStudentUsernames.value;
-    const rawUrls = shareLichessUrls.value;
-    const color = getToggleState('shareColorToggle');
 
     // Parse usernames (split by comma or new lines, trim and filter out empties)
     const target_usernames = rawUsernames
@@ -45,18 +112,36 @@ export const initTeacherSpace = () => {
       .map((u) => u.trim())
       .filter((u) => u.length > 0);
 
-    // Parse urls
-    const lichess_study_urls = rawUrls
-      .split('\n')
-      .map((u) => u.trim())
-      .filter((u) => u.length > 0);
-
     if (target_usernames.length === 0) {
       showToast('Veuillez saisir au moins un pseudo élève.', 'error');
       return;
     }
-    if (lichess_study_urls.length === 0) {
-      showToast("Veuillez saisir au moins un lien d'étude Lichess.", 'error');
+
+    // Collect each study line input values
+    const studies = [];
+    const rows = shareStudiesContainer.querySelectorAll('.share-study-row');
+    let hasEmptyUrl = false;
+
+    rows.forEach((row) => {
+      const index = row.dataset.index;
+      const urlInput = row.querySelector('.share-study-url');
+      const url = urlInput ? urlInput.value.trim() : '';
+      const color = getToggleState(`shareColorToggle_${index}`);
+
+      if (!url) {
+        hasEmptyUrl = true;
+      } else {
+        studies.push({ url, color });
+      }
+    });
+
+    if (hasEmptyUrl) {
+      showToast("Veuillez renseigner le lien de l'étude pour chaque ligne.", 'error');
+      return;
+    }
+
+    if (studies.length === 0) {
+      showToast('Veuillez saisir au moins une étude Lichess.', 'error');
       return;
     }
 
@@ -73,8 +158,7 @@ export const initTeacherSpace = () => {
         },
         body: JSON.stringify({
           target_usernames,
-          lichess_study_urls,
-          color,
+          studies,
         }),
       });
 
@@ -83,14 +167,15 @@ export const initTeacherSpace = () => {
       if (res.ok) {
         showToast('Partage enregistré avec succès !', 'success');
         shareStudentUsernames.value = '';
-        shareLichessUrls.value = '';
 
-        // Handle unregistered users invite generation
+        // Reset dynamic container studies list to initial state
+        shareStudiesContainer.innerHTML = '';
+        shareStudiesContainer.appendChild(createStudyRow(0));
+
+        // Handle unregistered users invite generation (generic message without usernames)
         if (data.nonExistentUsers && data.nonExistentUsers.length > 0) {
-          const userListText = data.nonExistentUsers.join(', ');
           const currentOrigin = window.location.origin;
-
-          inviteTemplateContent = `Bonjour !\nJe viens de partager des répertoires d'ouvertures avec vous sur La Boîte à Ouvertures.\nPour y accéder, il vous suffit de vous connecter au site en un clic avec votre compte Lichess :\n👉 ${currentOrigin}\n\n(Pseudos concernés : ${userListText})`;
+          inviteTemplateContent = `Bonjour !\nJe viens de partager des répertoires d'ouvertures avec vous sur La Boîte à Ouvertures.\nPour y accéder, il vous suffit de vous connecter au site en un clic avec votre compte Lichess :\n👉 ${currentOrigin}`;
           inviteTextTemplate.textContent = inviteTemplateContent;
           unregisteredInvitationBox.classList.remove('hidden');
         } else {
