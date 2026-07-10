@@ -152,9 +152,9 @@ router.post('/', authenticateToken, async (req, res) => {
 
           // Case-insensitive mapping: store invitation with the exact target username matching
           await client.query(
-            `INSERT INTO study_shares (teacher_id, repertoire_id, repertoire_title, target_username, color, status)
-             VALUES ($1, $2, $3, $4, $5, 'pending')
-             ON CONFLICT (repertoire_id, target_username, color) DO UPDATE SET status = 'pending'`,
+            `INSERT INTO study_shares (teacher_id, repertoire_id, repertoire_title, target_username, color, status, expires_at)
+             VALUES ($1, $2, $3, $4, $5, 'pending', CURRENT_TIMESTAMP + INTERVAL '7 days')
+             ON CONFLICT (repertoire_id, target_username, color) DO UPDATE SET status = 'pending', expires_at = CURRENT_TIMESTAMP + INTERVAL '7 days'`,
             [req.user.id, studyId, studyTitle, cleanName, color]
           );
         }
@@ -180,6 +180,9 @@ router.post('/', authenticateToken, async (req, res) => {
 // GET /api/shares/pending - Get pending study sharing invitations (Student only)
 router.get('/pending', authenticateToken, async (req, res) => {
   try {
+    // 0. Auto clean expired invitations
+    await db.query('DELETE FROM study_shares WHERE expires_at < CURRENT_TIMESTAMP');
+
     // Get student's lichess_username from users
     const userRes = await db.query('SELECT lichess_username FROM users WHERE id = $1', [
       req.user.id,
@@ -190,7 +193,7 @@ router.get('/pending', authenticateToken, async (req, res) => {
     }
 
     const sharesRes = await db.query(
-      `SELECT s.id, s.repertoire_id, s.repertoire_title, s.color, s.created_at, u.username as teacher_username
+      `SELECT s.id, s.repertoire_id, s.repertoire_title, s.color, s.created_at, s.expires_at, u.username as teacher_username
        FROM study_shares s
        JOIN users u ON s.teacher_id = u.id
        WHERE LOWER(s.target_username) = LOWER($1) AND s.status = 'pending'`,
@@ -207,6 +210,9 @@ router.get('/pending', authenticateToken, async (req, res) => {
 // GET /api/shares/history - Get share history (Teacher only)
 router.get('/history', authenticateToken, async (req, res) => {
   try {
+    // 0. Auto clean expired invitations
+    await db.query('DELETE FROM study_shares WHERE expires_at < CURRENT_TIMESTAMP');
+
     const userRes = await db.query('SELECT is_teacher FROM users WHERE id = $1', [req.user.id]);
     const user = userRes.rows[0];
     if (!user || !user.is_teacher) {
@@ -214,7 +220,7 @@ router.get('/history', authenticateToken, async (req, res) => {
     }
 
     const historyRes = await db.query(
-      `SELECT id, repertoire_id, repertoire_title, target_username, color, status, created_at
+      `SELECT id, repertoire_id, repertoire_title, target_username, color, status, created_at, expires_at
        FROM study_shares
        WHERE teacher_id = $1
        ORDER BY created_at DESC`,
@@ -225,6 +231,76 @@ router.get('/history', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('GET SHARE HISTORY ERROR:', err);
     res.status(500).json({ error: "Erreur lors du chargement de l'historique des partages." });
+  }
+});
+
+// DELETE /api/shares/:id - Cancel/Delete sharing invitation (Teacher only)
+router.delete('/:id', authenticateToken, async (req, res) => {
+  const shareId = req.params.id;
+  try {
+    const userRes = await db.query('SELECT is_teacher FROM users WHERE id = $1', [req.user.id]);
+    const user = userRes.rows[0];
+    if (!user || !user.is_teacher) {
+      return res.status(403).json({ error: 'Accès réservé aux professeurs.' });
+    }
+
+    const shareRes = await db.query('SELECT teacher_id FROM study_shares WHERE id = $1', [shareId]);
+    const share = shareRes.rows[0];
+    if (!share) {
+      return res.status(404).json({ error: 'Invitation introuvable.' });
+    }
+    if (share.teacher_id !== req.user.id) {
+      return res
+        .status(403)
+        .json({ error: "Vous n'êtes pas autorisé à annuler cette invitation." });
+    }
+
+    await db.query('DELETE FROM study_shares WHERE id = $1', [shareId]);
+    res.json({ message: 'Invitation annulée avec succès.' });
+  } catch (err) {
+    console.error('DELETE SHARE ERROR:', err);
+    res.status(500).json({ error: "Erreur lors de l'annulation de l'invitation." });
+  }
+});
+
+// POST /api/shares/:id/renew - Renew sharing invitation for 7 more days (Teacher only)
+router.post('/:id/renew', authenticateToken, async (req, res) => {
+  const shareId = req.params.id;
+  try {
+    const userRes = await db.query('SELECT is_teacher FROM users WHERE id = $1', [req.user.id]);
+    const user = userRes.rows[0];
+    if (!user || !user.is_teacher) {
+      return res.status(403).json({ error: 'Accès réservé aux professeurs.' });
+    }
+
+    const shareRes = await db.query('SELECT teacher_id, status FROM study_shares WHERE id = $1', [
+      shareId,
+    ]);
+    const share = shareRes.rows[0];
+    if (!share) {
+      return res.status(404).json({ error: 'Invitation introuvable.' });
+    }
+    if (share.teacher_id !== req.user.id) {
+      return res
+        .status(403)
+        .json({ error: "Vous n'êtes pas autorisé à renouveler cette invitation." });
+    }
+    if (share.status !== 'pending') {
+      return res
+        .status(400)
+        .json({ error: 'Seules les invitations en attente peuvent être renouvelées.' });
+    }
+
+    await db.query(
+      `UPDATE study_shares 
+       SET expires_at = (CURRENT_TIMESTAMP + INTERVAL '7 days'), status = 'pending'
+       WHERE id = $1`,
+      [shareId]
+    );
+    res.json({ message: 'Invitation renouvelée pour 7 jours supplémentaires.' });
+  } catch (err) {
+    console.error('RENEW SHARE ERROR:', err);
+    res.status(500).json({ error: "Erreur lors du renouvellement de l'invitation." });
   }
 });
 

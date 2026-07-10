@@ -115,10 +115,18 @@ const initDB = async () => {
                 color VARCHAR(50) NOT NULL,
                 status VARCHAR(50) DEFAULT 'pending',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP + INTERVAL '7 days'),
                 FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE,
                 FOREIGN KEY (repertoire_id) REFERENCES repertoires(id) ON DELETE CASCADE,
                 UNIQUE(repertoire_id, target_username, color)
             );
+
+            DO $$ 
+            BEGIN
+              IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'study_shares') THEN
+                ALTER TABLE study_shares ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP + INTERVAL '7 days');
+              END IF;
+            END $$;
 
             DO $$
             BEGIN

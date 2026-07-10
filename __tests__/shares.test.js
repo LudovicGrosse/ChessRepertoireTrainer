@@ -70,6 +70,7 @@ describe('Shares Endpoints', () => {
 
   describe('GET /api/shares/pending', () => {
     it('should return pending invitations for the student', async () => {
+      db.query.mockResolvedValueOnce({}); // DELETE cleanup query
       db.query.mockResolvedValueOnce({ rows: [{ lichess_username: 'student' }] });
       db.query.mockResolvedValueOnce({
         rows: [
@@ -157,6 +158,39 @@ describe('Shares Endpoints', () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveProperty('message', 'Invitation déclinée.');
+    });
+  });
+
+  describe('DELETE /api/shares/:id', () => {
+    it('should cancel share invitation', async () => {
+      db.query.mockResolvedValueOnce({ rows: [{ is_teacher: true }] });
+      db.query.mockResolvedValueOnce({ rows: [{ teacher_id: 1 }] });
+      db.query.mockResolvedValueOnce({}); // DELETE query
+
+      const res = await request(app)
+        .delete('/api/shares/5')
+        .set('Authorization', `Bearer ${teacherToken}`);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveProperty('message', 'Invitation annulée avec succès.');
+    });
+  });
+
+  describe('POST /api/shares/:id/renew', () => {
+    it('should renew share invitation for 7 more days', async () => {
+      db.query.mockResolvedValueOnce({ rows: [{ is_teacher: true }] });
+      db.query.mockResolvedValueOnce({ rows: [{ teacher_id: 1, status: 'pending' }] });
+      db.query.mockResolvedValueOnce({}); // UPDATE query
+
+      const res = await request(app)
+        .post('/api/shares/5/renew')
+        .set('Authorization', `Bearer ${teacherToken}`);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveProperty(
+        'message',
+        'Invitation renouvelée pour 7 jours supplémentaires.'
+      );
     });
   });
 });

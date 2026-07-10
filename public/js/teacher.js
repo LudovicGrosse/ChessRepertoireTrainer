@@ -245,39 +245,112 @@ const renderShareHistory = (shares) => {
     return;
   }
 
+  const calculateExpirationText = (expiresAt) => {
+    const diffMs = new Date(expiresAt) - Date.now();
+    if (diffMs <= 0) {
+      return 'Expiré';
+    }
+    const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+    const diffHours = Math.floor((diffMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+
+    if (diffDays > 0) {
+      return `${diffDays}j ${diffHours}h`;
+    }
+    return `${diffHours}h`;
+  };
+
   shareHistoryTableBody.innerHTML = shares
     .map((share) => {
-      const formattedDate = new Date(share.created_at).toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-
-      const colorText = share.color === 'white' ? 'Blancs' : 'Noirs';
+      const colorDot =
+        share.color === 'white'
+          ? '<span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ffffff; border: 1.5px solid #475569; margin-right: 8px; vertical-align: middle;" title="Blancs"></span>'
+          : '<span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #1e293b; border: 1.5px solid #1e293b; margin-right: 8px; vertical-align: middle;" title="Noirs"></span>';
 
       let statusBadge;
+      let actionButtons = '';
+
       if (share.status === 'pending') {
         statusBadge =
           '<span style="background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 12px; font-size: 12px;">En attente</span>';
-      } else if (share.status === 'accepted') {
-        statusBadge =
-          '<span style="background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 12px; font-size: 12px;">Accepté</span>';
+        actionButtons = `
+          <button class="secondary renew-btn" data-id="${share.id}" style="padding: 4px 8px; font-size: 11px; margin-right: 6px; cursor: pointer; border-radius: 4px;">Renouveler</button>
+          <button class="danger-btn cancel-share-btn" data-id="${share.id}" style="padding: 4px 8px; font-size: 11px; cursor: pointer; background: var(--danger); color: white; border: none; border-radius: 4px;">Annuler</button>
+        `;
       } else {
         statusBadge =
-          '<span style="background: #f8d7da; color: #721c24; padding: 2px 8px; border-radius: 12px; font-size: 12px;">Refusé</span>';
+          '<span style="background: #e2e8f0; color: #475569; padding: 2px 8px; border-radius: 12px; font-size: 12px;">Traité</span>';
       }
+
+      const expirationText = calculateExpirationText(share.expires_at);
 
       return `
         <tr style="border-bottom: 1px solid var(--border-color);">
-          <td style="padding: 10px 8px;"><strong>${share.repertoire_title}</strong><br><span style="font-size: 11px; color: var(--text-muted)">ID: ${share.repertoire_id}</span></td>
+          <td style="padding: 10px 8px;">
+            ${colorDot}<strong>${share.repertoire_title}</strong><br>
+            <span style="font-size: 11px; color: var(--text-muted); margin-left: 18px;">ID: ${share.repertoire_id}</span>
+          </td>
           <td style="padding: 10px 8px;">${share.target_username}</td>
-          <td style="padding: 10px 8px;">${colorText}</td>
           <td style="padding: 10px 8px;">${statusBadge}</td>
-          <td style="padding: 10px 8px; color: var(--text-muted);">${formattedDate}</td>
+          <td style="padding: 10px 8px; color: var(--text-muted);">${expirationText}</td>
+          <td style="padding: 10px 8px; text-align: right; padding-right: 12px;">${actionButtons}</td>
         </tr>
       `;
     })
     .join('');
+
+  // Attach action buttons event listeners
+  shareHistoryTableBody.querySelectorAll('.renew-btn').forEach((btn) => {
+    btn.onclick = async () => {
+      const id = btn.dataset.id;
+      btn.disabled = true;
+      btn.textContent = 'En cours...';
+      try {
+        const token = localStorage.getItem('chess_token');
+        const res = await fetch(`/api/shares/${id}/renew`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          showToast('Invitation renouvelée pour 7 jours !', 'success');
+          fetchShareHistory();
+        } else {
+          const err = await res.json();
+          throw new Error(err.error || 'Erreur lors du renouvellement.');
+        }
+      } catch (e) {
+        showToast(e.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Renouveler';
+      }
+    };
+  });
+
+  shareHistoryTableBody.querySelectorAll('.cancel-share-btn').forEach((btn) => {
+    btn.onclick = async () => {
+      if (!confirm('Voulez-vous vraiment annuler et supprimer cette invitation ?')) {
+        return;
+      }
+      const id = btn.dataset.id;
+      btn.disabled = true;
+      btn.textContent = 'En cours...';
+      try {
+        const token = localStorage.getItem('chess_token');
+        const res = await fetch(`/api/shares/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          showToast('Invitation annulée avec succès.', 'success');
+          fetchShareHistory();
+        } else {
+          const err = await res.json();
+          throw new Error(err.error || 'Erreur lors de la suppression.');
+        }
+      } catch (e) {
+        showToast(e.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Annuler';
+      }
+    };
+  });
 };
