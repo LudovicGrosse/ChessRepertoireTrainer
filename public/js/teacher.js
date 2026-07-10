@@ -27,9 +27,13 @@ const createStudyRow = (index) => {
       <div class="toggle-option active" data-val="white" style="flex: 1; text-align: center;">Blancs</div>
       <div class="toggle-option" data-val="black" style="flex: 1; text-align: center;">Noirs</div>
     </div>
-    <button type="button" class="secondary remove-study-row-btn" style="padding: 0; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 4px; cursor: pointer;" title="Supprimer">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-    </button>
+    ${
+      index > 0
+        ? `<button type="button" class="secondary remove-study-row-btn" style="padding: 0; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 4px; cursor: pointer;" title="Supprimer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>`
+        : `<div style="width: 36px; flex-shrink: 0;"></div>`
+    }
   `;
 
   // Attach dynamic toggle events matching utils.js toggle state behavior
@@ -49,15 +53,13 @@ const createStudyRow = (index) => {
     };
   });
 
-  // Remove row handler
-  row.querySelector('.remove-study-row-btn').onclick = () => {
-    const allRows = shareStudiesContainer.querySelectorAll('.share-study-row');
-    if (allRows.length > 1) {
+  // Remove row handler if button exists
+  const removeBtn = row.querySelector('.remove-study-row-btn');
+  if (removeBtn) {
+    removeBtn.onclick = () => {
       row.remove();
-    } else {
-      showToast('Vous devez renseigner au moins une étude à partager.', 'error');
-    }
-  };
+    };
+  }
 
   return row;
 };
@@ -172,15 +174,11 @@ export const initTeacherSpace = () => {
         shareStudiesContainer.innerHTML = '';
         shareStudiesContainer.appendChild(createStudyRow(0));
 
-        // Handle unregistered users invite generation (generic message without usernames)
-        if (data.nonExistentUsers && data.nonExistentUsers.length > 0) {
-          const currentOrigin = window.location.origin;
-          inviteTemplateContent = `Bonjour !\nJe viens de partager des répertoires d'ouvertures avec vous sur La Boîte à Ouvertures.\nPour y accéder, il vous suffit de vous connecter au site en un clic avec votre compte Lichess :\n👉 ${currentOrigin}`;
-          inviteTextTemplate.textContent = inviteTemplateContent;
-          unregisteredInvitationBox.classList.remove('hidden');
-        } else {
-          unregisteredInvitationBox.classList.add('hidden');
-        }
+        // Always generate and show generic invite message
+        const currentOrigin = window.location.origin;
+        inviteTemplateContent = `Bonjour !\nJe viens de partager des répertoires d'ouvertures avec vous sur La Boîte à Ouvertures.\nPour y accéder, il vous suffit de vous connecter au site en un clic avec votre compte Lichess :\n👉 ${currentOrigin}`;
+        inviteTextTemplate.textContent = inviteTemplateContent;
+        unregisteredInvitationBox.classList.remove('hidden');
 
         fetchShareHistory();
       } else {

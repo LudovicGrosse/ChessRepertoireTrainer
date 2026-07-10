@@ -203,7 +203,12 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
         });
 
         const oneHour = 60 * 60 * 1000;
+        const totalMoves = rep.dbChapters.reduce(
+          (acc, c) => acc + c.white_moves + c.black_moves,
+          0
+        );
         const needsSync =
+          totalMoves === 0 ||
           !rep.lichess_updated_at ||
           Date.now() - new Date(rep.lichess_updated_at).getTime() > oneHour;
 
