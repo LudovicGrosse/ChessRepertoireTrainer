@@ -56,6 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (stopBtn) {
         stopBtn.click();
       }
+    } else if (!document.getElementById('teacher-view').classList.contains('hidden')) {
+      // Return to main setup if teacher space is open
+      const backBtn = document.getElementById('backToDashboardBtn');
+      if (backBtn) {
+        backBtn.click();
+      }
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }

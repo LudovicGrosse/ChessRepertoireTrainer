@@ -272,7 +272,7 @@ const renderShareHistory = (shares) => {
         statusBadge =
           '<span style="background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 12px; font-size: 12px;">En attente</span>';
         actionButtons = `
-          <button class="secondary renew-btn" data-id="${share.id}" style="padding: 0; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; margin-right: 6px; cursor: pointer; border-radius: 4px;" title="Renouveler pour 7 jours">
+          <button class="secondary renew-btn" data-id="${share.id}" style="padding: 0; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px;" title="Renouveler pour 7 jours">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
           </button>
           <button class="danger-btn cancel-share-btn" data-id="${share.id}" style="padding: 0; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; background: var(--danger); color: white; border: none; border-radius: 4px;" title="Annuler l'invitation">
@@ -298,7 +298,11 @@ const renderShareHistory = (shares) => {
           <td data-label="Élève" style="padding: 10px 8px;">${share.target_username}</td>
           <td data-label="Statut" style="padding: 10px 8px;">${statusBadge}</td>
           <td data-label="Expiration" style="padding: 10px 8px; color: var(--text-muted);">${expirationText}</td>
-          <td style="padding: 10px 8px; text-align: right; padding-right: 12px;">${actionButtons}</td>
+          <td style="padding: 10px 8px; text-align: right; padding-right: 12px;">
+            <div style="display: inline-flex; align-items: center; justify-content: flex-end; gap: 6px; width: 100%;">
+              ${actionButtons}
+            </div>
+          </td>
         </tr>
       `;
     })
