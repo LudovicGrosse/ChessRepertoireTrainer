@@ -290,27 +290,37 @@ const onUserMove = (orig, dest) => {
 };
 
 const playOpponent = () => {
-  const currentIndex = state.selectedVariationPath.indexOf(state.currentNode);
-  const next = state.selectedVariationPath[currentIndex + 1];
-  if (next) {
-    state.game.move(next.san);
-    state.cg.set({ fen: state.game.fen(), lastMove: [next.from, next.to] });
+  const nextOptions = state.currentNode.children.filter((c) => !c.isCompleted);
+  if (nextOptions.length === 0) {
+    return;
+  }
 
-    state.currentNode = next;
-    state.currentNode.isVisited = true;
-    state.currentPath.push(state.currentNode);
-    state.viewIndex = state.currentPath.length - 1;
+  let next;
+  const isRandom = localStorage.getItem('chess_random_mode') === 'on';
+  if (isRandom) {
+    const randomIndex = Math.floor(Math.random() * nextOptions.length);
+    next = nextOptions[randomIndex];
+  } else {
+    next = nextOptions[0];
+  }
 
-    renderPgnHtml();
-    updateAnalysisLink();
-    updateNavigationButtons();
+  state.game.move(next.san);
+  state.cg.set({ fen: state.game.fen(), lastMove: [next.from, next.to] });
 
-    if (state.currentNode.isLeaf) {
-      markCompleted(state.currentNode);
-      handleEnd();
-    } else {
-      preparePlayerTurn();
-    }
+  state.currentNode = next;
+  state.currentNode.isVisited = true;
+  state.currentPath.push(state.currentNode);
+  state.viewIndex = state.currentPath.length - 1;
+
+  renderPgnHtml();
+  updateAnalysisLink();
+  updateNavigationButtons();
+
+  if (state.currentNode.isLeaf) {
+    markCompleted(state.currentNode);
+    handleEnd();
+  } else {
+    preparePlayerTurn();
   }
 };
 
@@ -427,7 +437,6 @@ const startNextVariation = () => {
   if (!path) {
     return;
   }
-  state.selectedVariationPath = path;
 
   let common = path[0];
   for (let i = 1; i < path.length; i++) {
