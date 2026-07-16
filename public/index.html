@@ -156,7 +156,13 @@
               Préférences d'entraînement
             </h3>
             <div
-              style="display: flex; justify-content: space-between; align-items: center; gap: 12px"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 15px;
+              "
             >
               <div style="flex: 1">
                 <label style="font-weight: 600; display: block; margin-bottom: 4px"
@@ -201,6 +207,80 @@
                   Oui
                 </div>
               </div>
+            </div>
+
+            <!-- Thème de l'Échiquier -->
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 15px;
+              "
+            >
+              <div style="flex: 1">
+                <label style="font-weight: 600; display: block; margin-bottom: 4px"
+                  >Thème de l'échiquier</label
+                >
+                <span style="font-size: 12px; color: var(--text-muted)"
+                  >Modifier les couleurs des cases de l'échiquier.</span
+                >
+              </div>
+              <select
+                id="boardThemeSelect"
+                style="
+                  width: 140px;
+                  padding: 6px 10px;
+                  border-radius: 6px;
+                  background: var(--card-hover);
+                  color: var(--text-main);
+                  border: 1px solid var(--border-color);
+                  font-size: 12px;
+                  cursor: pointer;
+                  outline: none;
+                "
+              >
+                <option value="classic">Marron Classique</option>
+                <option value="blue">Bleu Moderne</option>
+                <option value="green">Vert Tournoi</option>
+                <option value="wood">Bois Précieux</option>
+                <option value="grey">Gris Épuré</option>
+              </select>
+            </div>
+
+            <!-- Thème des Pièces -->
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; gap: 12px"
+            >
+              <div style="flex: 1">
+                <label style="font-weight: 600; display: block; margin-bottom: 4px"
+                  >Style des pièces</label
+                >
+                <span style="font-size: 12px; color: var(--text-muted)"
+                  >Sélectionner le design des pièces d'échecs.</span
+                >
+              </div>
+              <select
+                id="piecesThemeSelect"
+                style="
+                  width: 140px;
+                  padding: 6px 10px;
+                  border-radius: 6px;
+                  background: var(--card-hover);
+                  color: var(--text-main);
+                  border: 1px solid var(--border-color);
+                  font-size: 12px;
+                  cursor: pointer;
+                  outline: none;
+                "
+              >
+                <option value="cburnett">Cburnett</option>
+                <option value="alpha">Alpha (Lichess)</option>
+                <option value="merida">Merida (Lichess)</option>
+                <option value="staunty">Staunty (Lichess)</option>
+                <option value="california">California (Lichess)</option>
+              </select>
             </div>
           </div>
 

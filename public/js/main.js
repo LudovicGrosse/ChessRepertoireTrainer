@@ -1,7 +1,13 @@
 import { initAuth, updateAuthUI } from './auth.js';
 import { initDashboard } from './dashboard.js';
 import { initTraining } from './training.js';
-import { setToggleState, getToggleState, showToast } from './utils.js';
+import {
+  setToggleState,
+  getToggleState,
+  showToast,
+  applyBoardTheme,
+  applyPiecesTheme,
+} from './utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Top bar buttons
@@ -78,10 +84,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize preferences (DB with localStorage fallback)
   const syncPreferences = async () => {
+    const boardSelect = document.getElementById('boardThemeSelect');
+    const piecesSelect = document.getElementById('piecesThemeSelect');
+
+    const applyLocalFallbacks = () => {
+      const savedRandomMode = localStorage.getItem('chess_random_mode') || 'off';
+      const savedBoardTheme = localStorage.getItem('chess_board_theme') || 'classic';
+      const savedPiecesTheme = localStorage.getItem('chess_pieces_theme') || 'cburnett';
+
+      setToggleState('randomModeToggle', savedRandomMode);
+      if (boardSelect) boardSelect.value = savedBoardTheme;
+      if (piecesSelect) piecesSelect.value = savedPiecesTheme;
+
+      applyBoardTheme(savedBoardTheme);
+      applyPiecesTheme(savedPiecesTheme);
+    };
+
     const token = localStorage.getItem('chess_token');
     if (!token) {
-      const savedRandomMode = localStorage.getItem('chess_random_mode') || 'off';
-      setToggleState('randomModeToggle', savedRandomMode);
+      applyLocalFallbacks();
       return;
     }
     try {
@@ -91,19 +112,58 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res.ok) {
         const data = await res.json();
         const mode = data.random_mode ? 'on' : 'off';
+        const boardTheme = data.board_theme || 'classic';
+        const piecesTheme = data.pieces_theme || 'cburnett';
+
         localStorage.setItem('chess_random_mode', mode);
+        localStorage.setItem('chess_board_theme', boardTheme);
+        localStorage.setItem('chess_pieces_theme', piecesTheme);
+
         setToggleState('randomModeToggle', mode);
+        if (boardSelect) boardSelect.value = boardTheme;
+        if (piecesSelect) piecesSelect.value = piecesTheme;
+
+        applyBoardTheme(boardTheme);
+        applyPiecesTheme(piecesTheme);
       } else {
-        const savedRandomMode = localStorage.getItem('chess_random_mode') || 'off';
-        setToggleState('randomModeToggle', savedRandomMode);
+        applyLocalFallbacks();
       }
     } catch (e) {
       console.error('Error fetching preferences:', e);
-      const savedRandomMode = localStorage.getItem('chess_random_mode') || 'off';
-      setToggleState('randomModeToggle', savedRandomMode);
+      applyLocalFallbacks();
     }
   };
   syncPreferences();
+
+  // Save Preferences to API helper
+  const savePreferencesCloud = async () => {
+    const token = localStorage.getItem('chess_token');
+    if (!token) return;
+
+    const currentMode = getToggleState('randomModeToggle');
+    const boardSelect = document.getElementById('boardThemeSelect');
+    const piecesSelect = document.getElementById('piecesThemeSelect');
+
+    const boardTheme = boardSelect ? boardSelect.value : 'classic';
+    const piecesTheme = piecesSelect ? piecesSelect.value : 'cburnett';
+
+    try {
+      await fetch('/api/preferences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          random_mode: currentMode === 'on',
+          board_theme: boardTheme,
+          pieces_theme: piecesTheme,
+        }),
+      });
+    } catch (e) {
+      console.error('Error saving preferences:', e);
+    }
+  };
 
   // Save Random Mode on change
   const randomToggle = document.getElementById('randomModeToggle');
@@ -118,23 +178,32 @@ document.addEventListener('DOMContentLoaded', () => {
           3000,
           'toast-random-mode'
         );
-
-        const token = localStorage.getItem('chess_token');
-        if (token) {
-          try {
-            await fetch('/api/preferences', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({ random_mode: currentMode === 'on' }),
-            });
-          } catch (e) {
-            console.error('Error saving preferences:', e);
-          }
-        }
+        await savePreferencesCloud();
       }, 0);
+    });
+  }
+
+  // Save Board Theme on change
+  const boardSelect = document.getElementById('boardThemeSelect');
+  if (boardSelect) {
+    boardSelect.addEventListener('change', async () => {
+      const theme = boardSelect.value;
+      localStorage.setItem('chess_board_theme', theme);
+      applyBoardTheme(theme);
+      showToast("Thème de l'échiquier mis à jour", 'success', 2000, 'toast-theme');
+      await savePreferencesCloud();
+    });
+  }
+
+  // Save Pieces Theme on change
+  const piecesSelect = document.getElementById('piecesThemeSelect');
+  if (piecesSelect) {
+    piecesSelect.addEventListener('change', async () => {
+      const theme = piecesSelect.value;
+      localStorage.setItem('chess_pieces_theme', theme);
+      applyPiecesTheme(theme);
+      showToast('Style des pièces mis à jour', 'success', 2000, 'toast-theme');
+      await savePreferencesCloud();
     });
   }
 });

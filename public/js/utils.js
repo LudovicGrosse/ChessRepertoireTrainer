@@ -180,3 +180,31 @@ export const showConfirmModal = (title, message) => {
     noBtn.onclick = () => cleanUp(false);
   });
 };
+
+export const applyBoardTheme = (theme) => {
+  const themes = {
+    classic: { light: '#f0d9b5', dark: '#b58863' },
+    blue: { light: '#dee3e6', dark: '#8ca2ad' },
+    green: { light: '#eeeed2', dark: '#769656' },
+    wood: { light: '#dca06c', dark: '#8b4c2b' },
+    grey: { light: '#e1e1e1', dark: '#a0a0a0' },
+  };
+  const colors = themes[theme] || themes.classic;
+  document.documentElement.style.setProperty('--light-sq', colors.light);
+  document.documentElement.style.setProperty('--dark-sq', colors.dark);
+};
+
+export const applyPiecesTheme = (theme) => {
+  const wrap = document.querySelector('.cg-wrap');
+  if (!wrap) {
+    return;
+  }
+  const toRemove = [];
+  wrap.classList.forEach((className) => {
+    if (className.startsWith('theme-pieces-')) {
+      toRemove.push(className);
+    }
+  });
+  toRemove.forEach((className) => wrap.classList.remove(className));
+  wrap.classList.add(`theme-pieces-${theme}`);
+};

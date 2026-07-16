@@ -18,13 +18,18 @@ router.delete('/account', authenticateToken, async (req, res) => {
 // Récupérer les préférences de l'utilisateur connecté
 router.get('/preferences', authenticateToken, async (req, res) => {
   try {
-    const { rows } = await db.query('SELECT random_mode FROM user_preferences WHERE user_id = $1', [
-      req.user.id,
-    ]);
+    const { rows } = await db.query(
+      'SELECT random_mode, board_theme, pieces_theme FROM user_preferences WHERE user_id = $1',
+      [req.user.id]
+    );
     if (rows.length === 0) {
-      return res.json({ random_mode: false });
+      return res.json({ random_mode: false, board_theme: 'classic', pieces_theme: 'cburnett' });
     }
-    res.json({ random_mode: rows[0].random_mode });
+    res.json({
+      random_mode: rows[0].random_mode,
+      board_theme: rows[0].board_theme || 'classic',
+      pieces_theme: rows[0].pieces_theme || 'cburnett',
+    });
   } catch (err) {
     console.error('GET PREFERENCES ERROR:', err);
     res.status(500).json({ error: 'Erreur serveur lors de la récupération des préférences.' });
@@ -33,19 +38,23 @@ router.get('/preferences', authenticateToken, async (req, res) => {
 
 // Enregistrer les préférences de l'utilisateur connecté
 router.post('/preferences', authenticateToken, async (req, res) => {
-  const { random_mode } = req.body;
+  const { random_mode, board_theme, pieces_theme } = req.body;
   if (random_mode === undefined) {
     return res.status(400).json({ error: 'Paramètre random_mode manquant.' });
   }
+  const bTheme = board_theme || 'classic';
+  const pTheme = pieces_theme || 'cburnett';
   try {
     await db.query(
-      `INSERT INTO user_preferences (user_id, random_mode)
-       VALUES ($1, $2)
+      `INSERT INTO user_preferences (user_id, random_mode, board_theme, pieces_theme)
+       VALUES ($1, $2, $3, $4)
        ON CONFLICT (user_id)
-       DO UPDATE SET random_mode = EXCLUDED.random_mode`,
-      [req.user.id, random_mode]
+       DO UPDATE SET random_mode = EXCLUDED.random_mode,
+                     board_theme = EXCLUDED.board_theme,
+                     pieces_theme = EXCLUDED.pieces_theme`,
+      [req.user.id, random_mode, bTheme, pTheme]
     );
-    res.json({ success: true, random_mode });
+    res.json({ success: true, random_mode, board_theme: bTheme, pieces_theme: pTheme });
   } catch (err) {
     console.error('POST PREFERENCES ERROR:', err);
     res.status(500).json({ error: "Erreur serveur lors de l'enregistrement des préférences." });

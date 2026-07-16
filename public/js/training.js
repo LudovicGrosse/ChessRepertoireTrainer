@@ -1,5 +1,5 @@
 import { Chessground } from 'https://cdn.jsdelivr.net/npm/chessground@9.0.5/+esm';
-import { state, showToast, showConfirmModal } from './utils.js';
+import { state, showToast, showConfirmModal, applyPiecesTheme } from './utils.js';
 import { buildRepertoireTree, parseMultiPgn } from './data.js';
 import { saveHistory } from './dashboard.js';
 
@@ -620,6 +620,7 @@ const launchTrainingUI = () => {
         },
       });
     }
+    applyPiecesTheme(localStorage.getItem('chess_pieces_theme') || 'cburnett');
     state.cg.set({ orientation: state.playerColor });
     state.game.load(state.rootNode.fen);
     showToast(

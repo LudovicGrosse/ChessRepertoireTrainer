@@ -34,16 +34,22 @@ describe('Auth Endpoints', () => {
         .get('/api/preferences')
         .set('Authorization', `Bearer ${token}`);
       expect(res.statusCode).toBe(200);
-      expect(res.body).toEqual({ random_mode: false });
+      expect(res.body).toEqual({
+        random_mode: false,
+        board_theme: 'classic',
+        pieces_theme: 'cburnett',
+      });
     });
 
     it('should return user preferences if present in DB', async () => {
-      db.query.mockResolvedValueOnce({ rows: [{ random_mode: true }] });
+      db.query.mockResolvedValueOnce({
+        rows: [{ random_mode: true, board_theme: 'blue', pieces_theme: 'alpha' }],
+      });
       const res = await request(app)
         .get('/api/preferences')
         .set('Authorization', `Bearer ${token}`);
       expect(res.statusCode).toBe(200);
-      expect(res.body).toEqual({ random_mode: true });
+      expect(res.body).toEqual({ random_mode: true, board_theme: 'blue', pieces_theme: 'alpha' });
     });
 
     it('should return 401 if unauthorized', async () => {
@@ -60,12 +66,17 @@ describe('Auth Endpoints', () => {
       const res = await request(app)
         .post('/api/preferences')
         .set('Authorization', `Bearer ${token}`)
-        .send({ random_mode: true });
+        .send({ random_mode: true, board_theme: 'blue', pieces_theme: 'alpha' });
       expect(res.statusCode).toBe(200);
-      expect(res.body).toEqual({ success: true, random_mode: true });
+      expect(res.body).toEqual({
+        success: true,
+        random_mode: true,
+        board_theme: 'blue',
+        pieces_theme: 'alpha',
+      });
       expect(db.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO user_preferences'),
-        [1, true]
+        [1, true, 'blue', 'alpha']
       );
     });
 
