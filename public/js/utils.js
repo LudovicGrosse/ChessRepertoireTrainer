@@ -22,10 +22,21 @@ export const state = {
   authToken: localStorage.getItem('chess_token'),
 };
 
-export const showToast = (message, type = 'info', duration = 3000) => {
+export const showToast = (message, type = 'info', duration = 3000, toastId = null) => {
   const container = document.getElementById('toast-container');
+
+  if (toastId) {
+    const existing = document.getElementById(toastId);
+    if (existing) {
+      existing.remove();
+    }
+  }
+
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
+  if (toastId) {
+    toast.id = toastId;
+  }
 
   let icon = 'ℹ️';
   if (type === 'success') {
@@ -42,10 +53,14 @@ export const showToast = (message, type = 'info', duration = 3000) => {
   container.appendChild(toast);
 
   setTimeout(() => {
-    toast.classList.add('fade-out');
-    setTimeout(() => {
-      toast.remove();
-    }, 300);
+    if (toast.parentNode) {
+      toast.classList.add('fade-out');
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.remove();
+        }
+      }, 300);
+    }
   }, duration);
 };
 

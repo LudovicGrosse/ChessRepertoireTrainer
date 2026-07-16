@@ -235,6 +235,64 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
   };
 
   const expandRepertoire = (rep, detail, normalizedId, autoSync = false) => {
+    const footer = document.createElement('div');
+    footer.style.cssText =
+      'display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 15px; paddingTop: 12px; borderTop: 1px solid var(--border-color);';
+
+    const lichessBtn = document.createElement('button');
+    lichessBtn.className = 'secondary';
+    lichessBtn.style.cssText =
+      'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
+    lichessBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 22 3 22 10"></polyline><line x1="14" y1="10" x2="22" y2="2"></line></svg> Lichess`;
+    lichessBtn.onclick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      window.open(`https://lichess.org/study/${normalizedId}`, '_blank');
+    };
+    footer.appendChild(lichessBtn);
+
+    const syncBtn = document.createElement('button');
+    syncBtn.className = 'secondary';
+    syncBtn.style.cssText =
+      'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
+    syncBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> Synchroniser`;
+    syncBtn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      syncFromLichess(true);
+    };
+    footer.appendChild(syncBtn);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'secondary';
+    delBtn.style.cssText =
+      'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
+    delBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg> Supprimer`;
+    delBtn.onclick = async (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (!confirm('Voulez-vous vraiment supprimer ce répertoire ?')) {
+        return;
+      }
+      try {
+        const res = await fetch(
+          `/api/repertoires?repertoire_id=${encodeURIComponent(normalizedId)}&color=${encodeURIComponent(rep.color)}`,
+          {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${state.authToken}` },
+          }
+        );
+        if (res.ok) {
+          currentlyOpenRepId = null;
+          showToast('Répertoire supprimé', 'success');
+          fetchHistory();
+        }
+      } catch (err) {
+        console.error('Delete repertoire error:', err);
+      }
+    };
+    footer.appendChild(delBtn);
+
     const renderChapters = () => {
       detail.innerHTML = '';
       rep.dbChapters.forEach((chap) => {
@@ -343,63 +401,6 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
         detail.appendChild(chapRow);
       });
 
-      const footer = document.createElement('div');
-      footer.style.cssText =
-        'display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 15px; paddingTop: 12px; borderTop: 1px solid var(--border-color);';
-
-      const lichessBtn = document.createElement('button');
-      lichessBtn.className = 'secondary';
-      lichessBtn.style.cssText =
-        'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
-      lichessBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 22 3 22 10"></polyline><line x1="14" y1="10" x2="22" y2="2"></line></svg> Lichess`;
-      lichessBtn.onclick = (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        window.open(`https://lichess.org/study/${normalizedId}`, '_blank');
-      };
-      footer.appendChild(lichessBtn);
-
-      const syncBtn = document.createElement('button');
-      syncBtn.className = 'secondary';
-      syncBtn.style.cssText =
-        'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
-      syncBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> Synchroniser`;
-      syncBtn.onclick = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        syncFromLichess(true);
-      };
-      footer.appendChild(syncBtn);
-
-      const delBtn = document.createElement('button');
-      delBtn.className = 'secondary';
-      delBtn.style.cssText =
-        'font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); box-shadow: none; border: none; cursor: pointer; transition: color 0.2s;';
-      delBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg> Supprimer`;
-      delBtn.onclick = async (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        if (!confirm('Voulez-vous vraiment supprimer ce répertoire ?')) {
-          return;
-        }
-        try {
-          const res = await fetch(
-            `/api/repertoires?repertoire_id=${encodeURIComponent(normalizedId)}&color=${encodeURIComponent(rep.color)}`,
-            {
-              method: 'DELETE',
-              headers: { Authorization: `Bearer ${state.authToken}` },
-            }
-          );
-          if (res.ok) {
-            currentlyOpenRepId = null;
-            showToast('Répertoire supprimé', 'success');
-            fetchHistory();
-          }
-        } catch (err) {
-          console.error('Delete repertoire error:', err);
-        }
-      };
-      footer.appendChild(delBtn);
       detail.appendChild(footer);
     };
 
@@ -473,7 +474,8 @@ const renderInteractiveDashboard = (apiRepertoires, history) => {
         fetchHistory();
       } catch (err) {
         console.error('Lichess sync error:', err);
-        detail.innerHTML = `<div style="padding: 15px; text-align: center; color: var(--danger);">Erreur lors de la synchronisation.</div>`;
+        detail.innerHTML = `<div style="padding: 15px; text-align: center; color: var(--danger); font-weight: 500;">Erreur lors de la synchronisation.</div>`;
+        detail.appendChild(footer);
       }
     };
     syncFromLichess();

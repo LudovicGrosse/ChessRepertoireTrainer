@@ -87,7 +87,12 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         const currentMode = getToggleState('randomModeToggle');
         localStorage.setItem('chess_random_mode', currentMode);
-        showToast(`Mode aléatoire : ${currentMode === 'on' ? 'activé' : 'désactivé'}`, 'info');
+        showToast(
+          `Mode aléatoire : ${currentMode === 'on' ? 'activé' : 'désactivé'}`,
+          'info',
+          3000,
+          'toast-random-mode'
+        );
       }, 0);
     });
   }
