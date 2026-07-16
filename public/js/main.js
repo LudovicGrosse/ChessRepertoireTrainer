@@ -1,6 +1,7 @@
 import { initAuth, updateAuthUI } from './auth.js';
 import { initDashboard } from './dashboard.js';
 import { initTraining } from './training.js';
+import { setToggleState, getToggleState, showToast } from './utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Top bar buttons
@@ -74,4 +75,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initial UI update
   updateAuthUI();
+
+  // Initialize Random Mode toggle from localStorage
+  const savedRandomMode = localStorage.getItem('chess_random_mode') || 'off';
+  setToggleState('randomModeToggle', savedRandomMode);
+
+  // Save Random Mode on change
+  const randomToggle = document.getElementById('randomModeToggle');
+  if (randomToggle) {
+    randomToggle.addEventListener('click', () => {
+      setTimeout(() => {
+        const currentMode = getToggleState('randomModeToggle');
+        localStorage.setItem('chess_random_mode', currentMode);
+        showToast(`Mode aléatoire : ${currentMode === 'on' ? 'activé' : 'désactivé'}`, 'info');
+      }, 0);
+    });
+  }
 });

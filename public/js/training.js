@@ -290,7 +290,8 @@ const onUserMove = (orig, dest) => {
 };
 
 const playOpponent = () => {
-  const next = state.currentNode.children.find((c) => !c.isCompleted);
+  const currentIndex = state.selectedVariationPath.indexOf(state.currentNode);
+  const next = state.selectedVariationPath[currentIndex + 1];
   if (next) {
     state.game.move(next.san);
     state.cg.set({ fen: state.game.fen(), lastMove: [next.from, next.to] });
@@ -404,14 +405,29 @@ const startNextVariation = () => {
     if (n.isLeaf && !n.isCompleted) {
       return [n];
     }
-    const next = n.children.find((c) => !c.isCompleted);
-    return next ? [n, ...getPath(next)] : null;
+    const nextOptions = n.children.filter((c) => !c.isCompleted);
+    if (nextOptions.length === 0) {
+      return null;
+    }
+
+    let next;
+    const isRandom = localStorage.getItem('chess_random_mode') === 'on';
+    if (isRandom) {
+      const randomIndex = Math.floor(Math.random() * nextOptions.length);
+      next = nextOptions[randomIndex];
+    } else {
+      next = nextOptions[0];
+    }
+
+    const subPath = getPath(next);
+    return subPath ? [n, ...subPath] : null;
   };
 
   const path = getPath(state.rootNode);
   if (!path) {
     return;
   }
+  state.selectedVariationPath = path;
 
   let common = path[0];
   for (let i = 1; i < path.length; i++) {

@@ -20,6 +20,7 @@ export const state = {
   errorCount: 0,
   currentMoveErrorLogged: false,
   authToken: localStorage.getItem('chess_token'),
+  selectedVariationPath: [],
 };
 
 export const showToast = (message, type = 'info', duration = 3000) => {
