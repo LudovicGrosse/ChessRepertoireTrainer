@@ -155,6 +155,7 @@
             >
               Préférences d'entraînement
             </h3>
+            <!-- Mode Aléatoire -->
             <div
               style="
                 display: flex;
@@ -209,6 +210,26 @@
               </div>
             </div>
 
+            <!-- Séparateur section Style & Apparence -->
+            <div
+              style="
+                border-top: 1px solid var(--border-color);
+                margin: 4px 0 16px;
+                padding-top: 14px;
+              "
+            >
+              <span
+                style="
+                  font-size: 11px;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  color: var(--text-muted);
+                  letter-spacing: 0.6px;
+                "
+                >Style &amp; Apparence</span
+              >
+            </div>
+
             <!-- Thème de l'Échiquier -->
             <div
               style="
@@ -251,7 +272,7 @@
                 justify-content: space-between;
                 align-items: center;
                 gap: 12px;
-                margin-bottom: 15px;
+                margin-bottom: 18px;
               "
             >
               <div style="flex: 1">
@@ -279,22 +300,22 @@
               </select>
             </div>
 
-            <!-- Aperçu de l'Échiquier en Direct -->
+            <!-- Aperçu en direct (lié aux deux options ci-dessus) -->
             <div
               style="
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                gap: 8px;
-                margin-top: 18px;
-                border-top: 1px dashed var(--border-color);
-                padding-top: 15px;
+                gap: 10px;
+                background: rgba(0, 0, 0, 0.15);
+                border-radius: 10px;
+                padding: 14px;
               "
             >
               <span
                 style="
                   font-size: 11px;
-                  font-weight: 600;
+                  font-weight: 700;
                   text-transform: uppercase;
                   color: var(--text-muted);
                   letter-spacing: 0.5px;
@@ -305,8 +326,8 @@
                 class="cg-wrap theme-pieces-cburnett"
                 id="themePreviewBoard"
                 style="
-                  width: 110px;
-                  height: 110px;
+                  width: 120px;
+                  height: 120px;
                   border-radius: 6px;
                   overflow: hidden;
                   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
@@ -322,55 +343,17 @@
                     height: 100%;
                   "
                 >
-                  <!-- Case 1 (claire) avec un pion blanc -->
-                  <div
-                    style="
-                      background-color: var(--light-sq);
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      position: relative;
-                    "
-                  >
-                    <piece
-                      class="wp"
-                      style="
-                        width: 75%;
-                        height: 75%;
-                        background-size: contain;
-                        background-repeat: no-repeat;
-                        background-position: center;
-                        pointer-events: none;
-                        position: absolute;
-                      "
-                    ></piece>
+                  <!-- Case clair-haut-gauche : pion blanc -->
+                  <div style="background-color: var(--light-sq); position: relative">
+                    <piece class="pawn white"></piece>
                   </div>
-                  <!-- Case 2 (foncée) -->
+                  <!-- Case foncée-haut-droite -->
                   <div style="background-color: var(--dark-sq)"></div>
-                  <!-- Case 3 (foncée) -->
+                  <!-- Case foncée-bas-gauche -->
                   <div style="background-color: var(--dark-sq)"></div>
-                  <!-- Case 4 (claire) avec un cavalier noir -->
-                  <div
-                    style="
-                      background-color: var(--light-sq);
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      position: relative;
-                    "
-                  >
-                    <piece
-                      class="bn"
-                      style="
-                        width: 75%;
-                        height: 75%;
-                        background-size: contain;
-                        background-repeat: no-repeat;
-                        background-position: center;
-                        pointer-events: none;
-                        position: absolute;
-                      "
-                    ></piece>
+                  <!-- Case clair-bas-droite : cavalier noir -->
+                  <div style="background-color: var(--light-sq); position: relative">
+                    <piece class="knight black"></piece>
                   </div>
                 </div>
               </div>
