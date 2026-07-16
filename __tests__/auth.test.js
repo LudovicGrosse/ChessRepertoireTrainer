@@ -24,4 +24,63 @@ describe('Auth Endpoints', () => {
       expect(res.statusCode).toBe(401);
     });
   });
+
+  describe('GET /api/preferences', () => {
+    const token = jwt.sign({ id: 1 }, process.env.JWT_SECRET || 'your_secret_key_here');
+
+    it('should return default preferences if none found in DB', async () => {
+      db.query.mockResolvedValueOnce({ rows: [] });
+      const res = await request(app)
+        .get('/api/preferences')
+        .set('Authorization', `Bearer ${token}`);
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({ random_mode: false });
+    });
+
+    it('should return user preferences if present in DB', async () => {
+      db.query.mockResolvedValueOnce({ rows: [{ random_mode: true }] });
+      const res = await request(app)
+        .get('/api/preferences')
+        .set('Authorization', `Bearer ${token}`);
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({ random_mode: true });
+    });
+
+    it('should return 401 if unauthorized', async () => {
+      const res = await request(app).get('/api/preferences');
+      expect(res.statusCode).toBe(401);
+    });
+  });
+
+  describe('POST /api/preferences', () => {
+    const token = jwt.sign({ id: 1 }, process.env.JWT_SECRET || 'your_secret_key_here');
+
+    it('should save preferences successfully', async () => {
+      db.query.mockResolvedValueOnce({ rowCount: 1 });
+      const res = await request(app)
+        .post('/api/preferences')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ random_mode: true });
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({ success: true, random_mode: true });
+      expect(db.query).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO user_preferences'),
+        [1, true]
+      );
+    });
+
+    it('should return 400 if random_mode parameter is missing', async () => {
+      const res = await request(app)
+        .post('/api/preferences')
+        .set('Authorization', `Bearer ${token}`)
+        .send({});
+      expect(res.statusCode).toBe(400);
+      expect(res.body).toHaveProperty('error', 'Paramètre random_mode manquant.');
+    });
+
+    it('should return 401 if unauthorized', async () => {
+      const res = await request(app).post('/api/preferences').send({ random_mode: true });
+      expect(res.statusCode).toBe(401);
+    });
+  });
 });

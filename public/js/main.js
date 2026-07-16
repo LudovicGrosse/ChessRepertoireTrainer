@@ -76,15 +76,40 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initial UI update
   updateAuthUI();
 
-  // Initialize Random Mode toggle from localStorage
-  const savedRandomMode = localStorage.getItem('chess_random_mode') || 'off';
-  setToggleState('randomModeToggle', savedRandomMode);
+  // Initialize preferences (DB with localStorage fallback)
+  const syncPreferences = async () => {
+    const token = localStorage.getItem('chess_token');
+    if (!token) {
+      const savedRandomMode = localStorage.getItem('chess_random_mode') || 'off';
+      setToggleState('randomModeToggle', savedRandomMode);
+      return;
+    }
+    try {
+      const res = await fetch('/api/preferences', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const mode = data.random_mode ? 'on' : 'off';
+        localStorage.setItem('chess_random_mode', mode);
+        setToggleState('randomModeToggle', mode);
+      } else {
+        const savedRandomMode = localStorage.getItem('chess_random_mode') || 'off';
+        setToggleState('randomModeToggle', savedRandomMode);
+      }
+    } catch (e) {
+      console.error('Error fetching preferences:', e);
+      const savedRandomMode = localStorage.getItem('chess_random_mode') || 'off';
+      setToggleState('randomModeToggle', savedRandomMode);
+    }
+  };
+  syncPreferences();
 
   // Save Random Mode on change
   const randomToggle = document.getElementById('randomModeToggle');
   if (randomToggle) {
     randomToggle.addEventListener('click', () => {
-      setTimeout(() => {
+      setTimeout(async () => {
         const currentMode = getToggleState('randomModeToggle');
         localStorage.setItem('chess_random_mode', currentMode);
         showToast(
@@ -93,6 +118,22 @@ document.addEventListener('DOMContentLoaded', () => {
           3000,
           'toast-random-mode'
         );
+
+        const token = localStorage.getItem('chess_token');
+        if (token) {
+          try {
+            await fetch('/api/preferences', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ random_mode: currentMode === 'on' }),
+            });
+          } catch (e) {
+            console.error('Error saving preferences:', e);
+          }
+        }
       }, 0);
     });
   }
