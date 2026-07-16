@@ -84,10 +84,21 @@ export const setToggleState = (id, value) => {
 
 export const initToggles = () => {
   document.querySelectorAll('.toggle-container').forEach((container) => {
-    container.querySelectorAll('.toggle-option').forEach((option) => {
-      option.addEventListener('click', (e) => {
-        setToggleState(container.id, e.target.dataset.val);
-      });
+    if (container.classList.contains('share-color-toggle')) {
+      return;
+    }
+    container.addEventListener('click', () => {
+      const activeOpt = container.querySelector('.toggle-option.active');
+      if (!activeOpt) {
+        return;
+      }
+      const currentVal = activeOpt.dataset.val;
+      const otherOpt = Array.from(container.querySelectorAll('.toggle-option')).find(
+        (opt) => opt.dataset.val !== currentVal
+      );
+      if (otherOpt) {
+        setToggleState(container.id, otherOpt.dataset.val);
+      }
     });
   });
 };

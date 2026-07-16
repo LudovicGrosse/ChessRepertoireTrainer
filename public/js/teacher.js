@@ -37,20 +37,25 @@ const createStudyRow = (index) => {
 
   // Attach dynamic toggle events matching utils.js toggle state behavior
   const container = row.querySelector('.toggle-container');
-  container.querySelectorAll('.toggle-option').forEach((option) => {
-    option.onclick = (e) => {
-      const val = e.currentTarget.dataset.val;
-      const options = container.querySelectorAll('.toggle-option');
+  container.onclick = () => {
+    const activeOpt = container.querySelector('.toggle-option.active');
+    if (!activeOpt) {
+      return;
+    }
+    const currentVal = activeOpt.dataset.val;
+    const options = container.querySelectorAll('.toggle-option');
+    const otherOpt = Array.from(options).find((opt) => opt.dataset.val !== currentVal);
+    if (otherOpt) {
       options.forEach((opt) => {
-        if (opt.dataset.val === val) {
+        if (opt === otherOpt) {
           opt.classList.add('active');
           container.dataset.state = opt === options[0] ? 'left' : 'right';
         } else {
           opt.classList.remove('active');
         }
       });
-    };
-  });
+    }
+  };
 
   // Remove row handler if button exists
   const removeBtn = row.querySelector('.remove-study-row-btn');

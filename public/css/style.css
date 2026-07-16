@@ -153,6 +153,8 @@ textarea:focus {
   padding: 4px;
   position: relative;
   border: 1px solid var(--border-color);
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
 }
 .toggle-option {
   flex: 1;
@@ -165,6 +167,8 @@ textarea:focus {
   font-weight: 600;
   font-size: 14px;
   color: var(--text-muted);
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
 }
 .toggle-option.active {
   color: #fff;
