@@ -195,16 +195,15 @@ export const applyBoardTheme = (theme) => {
 };
 
 export const applyPiecesTheme = (theme) => {
-  const wrap = document.querySelector('.cg-wrap');
-  if (!wrap) {
-    return;
-  }
-  const toRemove = [];
-  wrap.classList.forEach((className) => {
-    if (className.startsWith('theme-pieces-')) {
-      toRemove.push(className);
-    }
+  const wrappers = document.querySelectorAll('.cg-wrap');
+  wrappers.forEach((wrap) => {
+    const toRemove = [];
+    wrap.classList.forEach((className) => {
+      if (className.startsWith('theme-pieces-')) {
+        toRemove.push(className);
+      }
+    });
+    toRemove.forEach((className) => wrap.classList.remove(className));
+    wrap.classList.add(`theme-pieces-${theme}`);
   });
-  toRemove.forEach((className) => wrap.classList.remove(className));
-  wrap.classList.add(`theme-pieces-${theme}`);
 };
