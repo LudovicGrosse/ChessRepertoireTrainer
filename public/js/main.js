@@ -89,10 +89,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const applyLocalFallbacks = () => {
       const savedRandomMode = localStorage.getItem('chess_random_mode') || 'off';
+      const savedExpertMode = localStorage.getItem('chess_expert_mode') || 'off';
       const savedBoardTheme = localStorage.getItem('chess_board_theme') || 'classic';
       const savedPiecesTheme = localStorage.getItem('chess_pieces_theme') || 'cburnett';
 
       setToggleState('randomModeToggle', savedRandomMode);
+      setToggleState('expertModeToggle', savedExpertMode);
       if (boardSelect) boardSelect.value = savedBoardTheme;
       if (piecesSelect) piecesSelect.value = savedPiecesTheme;
 
@@ -112,14 +114,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res.ok) {
         const data = await res.json();
         const mode = data.random_mode ? 'on' : 'off';
+        const expertMode = data.expert_mode ? 'on' : 'off';
         const boardTheme = data.board_theme || 'classic';
         const piecesTheme = data.pieces_theme || 'cburnett';
 
         localStorage.setItem('chess_random_mode', mode);
+        localStorage.setItem('chess_expert_mode', expertMode);
         localStorage.setItem('chess_board_theme', boardTheme);
         localStorage.setItem('chess_pieces_theme', piecesTheme);
 
         setToggleState('randomModeToggle', mode);
+        setToggleState('expertModeToggle', expertMode);
         if (boardSelect) boardSelect.value = boardTheme;
         if (piecesSelect) piecesSelect.value = piecesTheme;
 
@@ -141,6 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!token) return;
 
     const currentMode = getToggleState('randomModeToggle');
+    const currentExpertMode = getToggleState('expertModeToggle');
     const boardSelect = document.getElementById('boardThemeSelect');
     const piecesSelect = document.getElementById('piecesThemeSelect');
 
@@ -156,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         body: JSON.stringify({
           random_mode: currentMode === 'on',
+          expert_mode: currentExpertMode === 'on',
           board_theme: boardTheme,
           pieces_theme: piecesTheme,
         }),
@@ -177,6 +184,24 @@ document.addEventListener('DOMContentLoaded', () => {
           'info',
           3000,
           'toast-random-mode'
+        );
+        await savePreferencesCloud();
+      }, 0);
+    });
+  }
+
+  // Save Expert Mode on change
+  const expertToggle = document.getElementById('expertModeToggle');
+  if (expertToggle) {
+    expertToggle.addEventListener('click', () => {
+      setTimeout(async () => {
+        const currentMode = getToggleState('expertModeToggle');
+        localStorage.setItem('chess_expert_mode', currentMode);
+        showToast(
+          `Mode expert : ${currentMode === 'on' ? 'activé' : 'désactivé'}`,
+          'info',
+          3000,
+          'toast-expert-mode'
         );
         await savePreferencesCloud();
       }, 0);

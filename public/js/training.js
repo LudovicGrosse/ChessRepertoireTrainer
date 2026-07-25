@@ -27,7 +27,169 @@ const initializeStats = (node) => {
   updateStatsUI();
 };
 
+let expertSession = null;
+
+const isExpertActive = () => {
+  return state.trainingMode === 'revision' && localStorage.getItem('chess_expert_mode') === 'on';
+};
+
+const collectExpertPositions = (rootNode, playerColor) => {
+  const positionsMap = new Map();
+
+  const traverse = (node) => {
+    if (!node) {
+      return;
+    }
+
+    const playerChildren = (node.children || []).filter((c) => c.color === playerColor);
+    if (playerChildren.length > 0) {
+      const fen = node.fen;
+      if (!positionsMap.has(fen)) {
+        positionsMap.set(fen, {
+          id: `exp_pos_${positionsMap.size}`,
+          fen: fen,
+          node: node,
+          validMovesMap: new Map(),
+          solvedMoves: new Set(),
+          isSolved: false,
+        });
+      }
+      const item = positionsMap.get(fen);
+      playerChildren.forEach((child) => {
+        item.validMovesMap.set(child.san, child);
+      });
+    }
+
+    (node.children || []).forEach(traverse);
+  };
+
+  traverse(rootNode);
+
+  return Array.from(positionsMap.values()).map((item) => ({
+    ...item,
+    validMoves: Array.from(item.validMovesMap.values()),
+  }));
+};
+
+const startExpertNextPosition = () => {
+  if (!expertSession) {
+    return;
+  }
+
+  state.cg.set({ drawable: { autoShapes: [] } });
+
+  const unsolved = expertSession.positions.filter((p) => !p.isSolved);
+  if (unsolved.length === 0) {
+    state.rootNode.isCompleted = true;
+    handleEnd();
+    return;
+  }
+
+  const randomIndex = Math.floor(Math.random() * unsolved.length);
+  const currentPosItem = unsolved[randomIndex];
+  expertSession.currentPosItem = currentPosItem;
+
+  state.currentNode = currentPosItem.node;
+  state.game.load(currentPosItem.fen);
+
+  state.cg.set({
+    fen: state.game.fen(),
+    lastMove: null,
+    drawable: { autoShapes: [] },
+  });
+
+  updateStatsUI();
+  renderPgnHtml();
+  updateAnalysisLink();
+  updateNavigationButtons();
+
+  preparePlayerTurn();
+};
+
+const handleExpertUserMove = (orig, dest) => {
+  const currentPosItem = expertSession?.currentPosItem;
+  if (!currentPosItem) {
+    return;
+  }
+
+  const move = state.game.moves({ verbose: true }).find((m) => m.from === orig && m.to === dest);
+  const matchedChild = move ? currentPosItem.validMoves.find((c) => c.san === move.san) : null;
+
+  if (!move || !matchedChild) {
+    if (!state.currentMoveErrorLogged) {
+      state.errorCount++;
+      state.currentMoveErrorLogged = true;
+      updateStatsUI();
+    }
+    showToast('Coup incorrect !', 'error', 1500);
+    setTimeout(() => {
+      state.game.load(currentPosItem.fen);
+      state.cg.set({ fen: currentPosItem.fen, lastMove: null });
+      preparePlayerTurn();
+    }, 600);
+    return;
+  }
+
+  if (currentPosItem.solvedMoves.has(matchedChild.san)) {
+    showToast('Coup déjà trouvé ! Trouvez l’autre variante.', 'info', 2000);
+    setTimeout(() => {
+      state.game.load(currentPosItem.fen);
+      state.cg.set({ fen: currentPosItem.fen, lastMove: null });
+      preparePlayerTurn();
+    }, 600);
+    return;
+  }
+
+  state.currentMoveErrorLogged = false;
+  currentPosItem.solvedMoves.add(matchedChild.san);
+
+  state.game.move(matchedChild.san);
+  state.cg.set({
+    fen: state.game.fen(),
+    lastMove: null,
+    movable: { dests: new Map() },
+    drawable: { autoShapes: [] },
+  });
+
+  const totalMovesCount = currentPosItem.validMoves.length;
+  const remainingCount = totalMovesCount - currentPosItem.solvedMoves.size;
+
+  if (remainingCount > 0) {
+    showToast(`Bon coup ! Il reste ${remainingCount} autre(s) coup(s) à trouver.`, 'success', 2000);
+    setTimeout(() => {
+      state.game.load(currentPosItem.fen);
+      state.cg.set({ fen: currentPosItem.fen, lastMove: null });
+      renderPgnHtml();
+      preparePlayerTurn();
+    }, 800);
+  } else {
+    currentPosItem.isSolved = true;
+    expertSession.solvedCount++;
+    currentPosItem.validMoves.forEach((c) => markCompleted(c));
+    updateStatsUI();
+    showToast('Position résolue !', 'success', 1500);
+
+    setTimeout(() => {
+      startExpertNextPosition();
+    }, 800);
+  }
+};
+
 const updateStatsUI = () => {
+  if (isExpertActive() && expertSession) {
+    document.getElementById('statMoves').textContent =
+      `${expertSession.solvedCount}/${expertSession.totalPositions}`;
+    document.getElementById('statErrors').textContent = state.errorCount;
+
+    let progress =
+      expertSession.totalPositions > 0
+        ? Math.round((expertSession.solvedCount / expertSession.totalPositions) * 100)
+        : 0;
+    document.getElementById('trainingProgress').style.width = `${progress}%`;
+    document.getElementById('progressText').textContent = `${progress}%`;
+    return;
+  }
+
   document.getElementById('statMoves').textContent = `${state.learnedMoves}/${state.totalMoves}`;
   document.getElementById('statErrors').textContent = state.errorCount;
 
@@ -53,6 +215,28 @@ const renderPgnHtml = () => {
   const existingBtn = document.getElementById('continueBtn');
   if (existingBtn) {
     existingBtn.remove();
+  }
+
+  if (isExpertActive() && expertSession) {
+    const currentPos = expertSession.currentPosItem;
+    const display = document.getElementById('activeLineDisplay');
+    if (currentPos) {
+      const totalMovesCount = currentPos.validMoves.length;
+      const foundCount = currentPos.solvedMoves.size;
+      let extraInfo = '';
+      if (totalMovesCount > 1) {
+        extraInfo = ` (${foundCount}/${totalMovesCount})`;
+      }
+      display.innerHTML = `<span style="color: var(--primary); font-weight: 600;">Position isolée${extraInfo}</span>`;
+    } else {
+      display.innerHTML = `<span style="color: var(--text-muted);">Mode Expert</span>`;
+    }
+
+    const node = currentPos?.node;
+    document.getElementById('commentBox').innerHTML = node?.comment
+      ? `<strong>Notes :</strong> ${node.comment}`
+      : `<em>Aucun commentaire.</em>`;
+    return;
   }
 
   if (state.currentPath.length <= 1) {
@@ -139,6 +323,14 @@ const showContinueButton = (callback) => {
 };
 
 const updateNavigationButtons = () => {
+  if (isExpertActive()) {
+    document.getElementById('prevBtn').disabled = true;
+    document.getElementById('prevBtnMobile').disabled = true;
+    document.getElementById('nextBtn').disabled = true;
+    document.getElementById('nextBtnMobile').disabled = true;
+    return;
+  }
+
   const isAtStart = state.viewIndex <= 0;
   const isAtEnd = state.viewIndex >= state.currentPath.length - 1;
   document.getElementById('prevBtn').disabled = isAtStart;
@@ -211,6 +403,11 @@ const preparePlayerTurn = () => {
 };
 
 const onUserMove = (orig, dest) => {
+  if (isExpertActive() && expertSession && expertSession.currentPosItem) {
+    handleExpertUserMove(orig, dest);
+    return;
+  }
+
   const move = state.game.moves({ verbose: true }).find((m) => m.from === orig && m.to === dest);
 
   const childNodeIfAny = state.currentNode.children.find((c) => c.san === move?.san);
@@ -623,11 +820,34 @@ const launchTrainingUI = () => {
     applyPiecesTheme(localStorage.getItem('chess_pieces_theme') || 'cburnett');
     state.cg.set({ orientation: state.playerColor });
     state.game.load(state.rootNode.fen);
-    showToast(
-      state.trainingMode === 'decouverte' ? 'Mode Découverte activé' : 'Mode Révision activé',
-      'info'
-    );
-    startNextVariation();
+
+    if (isExpertActive()) {
+      const positions = collectExpertPositions(state.rootNode, state.playerColor);
+      expertSession = {
+        positions,
+        currentPosItem: null,
+        totalPositions: positions.length,
+        solvedCount: 0,
+      };
+
+      if (positions.length === 0) {
+        showToast('Aucune position à réviser pour cette couleur.', 'warning', 3000);
+        setTimeout(() => {
+          handleEnd();
+        }, 1000);
+        return;
+      }
+
+      showToast('Mode Expert activé (Positions isolées)', 'info');
+      startExpertNextPosition();
+    } else {
+      expertSession = null;
+      showToast(
+        state.trainingMode === 'decouverte' ? 'Mode Découverte activé' : 'Mode Révision activé',
+        'info'
+      );
+      startNextVariation();
+    }
   }, 50);
 };
 
@@ -684,6 +904,29 @@ export const initTraining = () => {
 
   document.getElementById('hintBtn').onclick = () => {
     if (!state.isTraining || state.trainingMode === 'decouverte') {
+      return;
+    }
+
+    if (isExpertActive() && expertSession && expertSession.currentPosItem) {
+      const currentPosItem = expertSession.currentPosItem;
+      const nextUnsolvedChild = currentPosItem.validMoves.find(
+        (c) => !currentPosItem.solvedMoves.has(c.san)
+      );
+      if (nextUnsolvedChild) {
+        state.cg.set({
+          drawable: {
+            autoShapes: [
+              { orig: nextUnsolvedChild.from, dest: nextUnsolvedChild.to, brush: 'hint' },
+            ],
+          },
+        });
+        showToast('Solution affichée !', 'info', 1500);
+        if (!state.currentMoveErrorLogged) {
+          state.errorCount++;
+          state.currentMoveErrorLogged = true;
+          updateStatsUI();
+        }
+      }
       return;
     }
 
