@@ -35,6 +35,7 @@ describe('Auth Endpoints', () => {
         .set('Authorization', `Bearer ${token}`);
       expect(res.statusCode).toBe(200);
       expect(res.body).toEqual({
+        revision_mode: 'normal',
         random_mode: false,
         expert_mode: false,
         board_theme: 'classic',
@@ -53,6 +54,7 @@ describe('Auth Endpoints', () => {
         .set('Authorization', `Bearer ${token}`);
       expect(res.statusCode).toBe(200);
       expect(res.body).toEqual({
+        revision_mode: 'positions_expert',
         random_mode: true,
         expert_mode: true,
         board_theme: 'blue',
@@ -74,18 +76,19 @@ describe('Auth Endpoints', () => {
       const res = await request(app)
         .post('/api/preferences')
         .set('Authorization', `Bearer ${token}`)
-        .send({ random_mode: true, expert_mode: true, board_theme: 'blue', pieces_theme: 'alpha' });
+        .send({ revision_mode: 'positions_expert', board_theme: 'blue', pieces_theme: 'alpha' });
       expect(res.statusCode).toBe(200);
       expect(res.body).toEqual({
         success: true,
-        random_mode: true,
+        revision_mode: 'positions_expert',
+        random_mode: false,
         expert_mode: true,
         board_theme: 'blue',
         pieces_theme: 'alpha',
       });
       expect(db.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO user_preferences'),
-        [1, true, true, 'blue', 'alpha']
+        [1, false, true, 'blue', 'alpha']
       );
     });
 

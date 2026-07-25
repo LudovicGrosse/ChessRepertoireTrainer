@@ -24,15 +24,21 @@ router.get('/preferences', authenticateToken, async (req, res) => {
     );
     if (rows.length === 0) {
       return res.json({
+        revision_mode: 'normal',
         random_mode: false,
         expert_mode: false,
         board_theme: 'classic',
         pieces_theme: 'cburnett',
       });
     }
+    const rMode = rows[0].random_mode;
+    const eMode = rows[0].expert_mode;
+    const revMode = eMode ? 'positions_expert' : rMode ? 'random_variations' : 'normal';
+
     res.json({
-      random_mode: rows[0].random_mode,
-      expert_mode: rows[0].expert_mode || false,
+      revision_mode: revMode,
+      random_mode: Boolean(rMode),
+      expert_mode: Boolean(eMode),
       board_theme: rows[0].board_theme || 'classic',
       pieces_theme: rows[0].pieces_theme || 'cburnett',
     });
@@ -44,13 +50,21 @@ router.get('/preferences', authenticateToken, async (req, res) => {
 
 // Enregistrer les préférences de l'utilisateur connecté
 router.post('/preferences', authenticateToken, async (req, res) => {
-  const { random_mode, expert_mode, board_theme, pieces_theme } = req.body;
-  if (random_mode === undefined) {
+  const { revision_mode, random_mode, expert_mode, board_theme, pieces_theme } = req.body;
+  if (random_mode === undefined && revision_mode === undefined) {
     return res.status(400).json({ error: 'Paramètre random_mode manquant.' });
   }
-  const expMode = expert_mode !== undefined ? expert_mode : false;
+
+  let revMode = revision_mode;
+  if (!revMode) {
+    revMode = expert_mode ? 'positions_expert' : random_mode ? 'random_variations' : 'normal';
+  }
+
+  const isRandom = revMode === 'random_variations' || Boolean(random_mode);
+  const isExpert = revMode === 'positions_expert' || Boolean(expert_mode);
   const bTheme = board_theme || 'classic';
   const pTheme = pieces_theme || 'cburnett';
+
   try {
     await db.query(
       `INSERT INTO user_preferences (user_id, random_mode, expert_mode, board_theme, pieces_theme)
@@ -60,12 +74,13 @@ router.post('/preferences', authenticateToken, async (req, res) => {
                      expert_mode = EXCLUDED.expert_mode,
                      board_theme = EXCLUDED.board_theme,
                      pieces_theme = EXCLUDED.pieces_theme`,
-      [req.user.id, random_mode, expMode, bTheme, pTheme]
+      [req.user.id, isRandom, isExpert, bTheme, pTheme]
     );
     res.json({
       success: true,
-      random_mode,
-      expert_mode: expMode,
+      revision_mode: revMode,
+      random_mode: isRandom,
+      expert_mode: isExpert,
       board_theme: bTheme,
       pieces_theme: pTheme,
     });

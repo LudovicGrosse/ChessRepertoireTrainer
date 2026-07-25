@@ -1,13 +1,7 @@
 import { initAuth, updateAuthUI } from './auth.js';
 import { initDashboard } from './dashboard.js';
 import { initTraining } from './training.js';
-import {
-  setToggleState,
-  getToggleState,
-  showToast,
-  applyBoardTheme,
-  applyPiecesTheme,
-} from './utils.js';
+import { showToast, applyBoardTheme, applyPiecesTheme } from './utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Top bar buttons
@@ -86,15 +80,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const syncPreferences = async () => {
     const boardSelect = document.getElementById('boardThemeSelect');
     const piecesSelect = document.getElementById('piecesThemeSelect');
+    const revisionSelect = document.getElementById('revisionModeSelect');
 
     const applyLocalFallbacks = () => {
-      const savedRandomMode = localStorage.getItem('chess_random_mode') || 'off';
-      const savedExpertMode = localStorage.getItem('chess_expert_mode') || 'off';
+      let savedRevisionMode = localStorage.getItem('chess_revision_mode');
+      if (!savedRevisionMode) {
+        if (localStorage.getItem('chess_expert_mode') === 'on') {
+          savedRevisionMode = 'positions_expert';
+        } else if (localStorage.getItem('chess_random_mode') === 'on') {
+          savedRevisionMode = 'random_variations';
+        } else {
+          savedRevisionMode = 'normal';
+        }
+      }
       const savedBoardTheme = localStorage.getItem('chess_board_theme') || 'classic';
       const savedPiecesTheme = localStorage.getItem('chess_pieces_theme') || 'cburnett';
 
-      setToggleState('randomModeToggle', savedRandomMode);
-      setToggleState('expertModeToggle', savedExpertMode);
+      if (revisionSelect) revisionSelect.value = savedRevisionMode;
       if (boardSelect) boardSelect.value = savedBoardTheme;
       if (piecesSelect) piecesSelect.value = savedPiecesTheme;
 
@@ -113,18 +115,21 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (res.ok) {
         const data = await res.json();
-        const mode = data.random_mode ? 'on' : 'off';
-        const expertMode = data.expert_mode ? 'on' : 'off';
+        const revMode =
+          data.revision_mode ||
+          (data.expert_mode
+            ? 'positions_expert'
+            : data.random_mode
+              ? 'random_variations'
+              : 'normal');
         const boardTheme = data.board_theme || 'classic';
         const piecesTheme = data.pieces_theme || 'cburnett';
 
-        localStorage.setItem('chess_random_mode', mode);
-        localStorage.setItem('chess_expert_mode', expertMode);
+        localStorage.setItem('chess_revision_mode', revMode);
         localStorage.setItem('chess_board_theme', boardTheme);
         localStorage.setItem('chess_pieces_theme', piecesTheme);
 
-        setToggleState('randomModeToggle', mode);
-        setToggleState('expertModeToggle', expertMode);
+        if (revisionSelect) revisionSelect.value = revMode;
         if (boardSelect) boardSelect.value = boardTheme;
         if (piecesSelect) piecesSelect.value = piecesTheme;
 
@@ -145,8 +150,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('chess_token');
     if (!token) return;
 
-    const currentMode = getToggleState('randomModeToggle');
-    const currentExpertMode = getToggleState('expertModeToggle');
+    const revisionSelect = document.getElementById('revisionModeSelect');
+    const revMode = revisionSelect
+      ? revisionSelect.value
+      : localStorage.getItem('chess_revision_mode') || 'normal';
     const boardSelect = document.getElementById('boardThemeSelect');
     const piecesSelect = document.getElementById('piecesThemeSelect');
 
@@ -161,8 +168,9 @@ document.addEventListener('DOMContentLoaded', () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          random_mode: currentMode === 'on',
-          expert_mode: currentExpertMode === 'on',
+          revision_mode: revMode,
+          random_mode: revMode === 'random_variations',
+          expert_mode: revMode === 'positions_expert',
           board_theme: boardTheme,
           pieces_theme: piecesTheme,
         }),
@@ -172,39 +180,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Save Random Mode on change
-  const randomToggle = document.getElementById('randomModeToggle');
-  if (randomToggle) {
-    randomToggle.addEventListener('click', () => {
-      setTimeout(async () => {
-        const currentMode = getToggleState('randomModeToggle');
-        localStorage.setItem('chess_random_mode', currentMode);
-        showToast(
-          `Mode aléatoire : ${currentMode === 'on' ? 'activé' : 'désactivé'}`,
-          'info',
-          3000,
-          'toast-random-mode'
-        );
-        await savePreferencesCloud();
-      }, 0);
-    });
-  }
-
-  // Save Expert Mode on change
-  const expertToggle = document.getElementById('expertModeToggle');
-  if (expertToggle) {
-    expertToggle.addEventListener('click', () => {
-      setTimeout(async () => {
-        const currentMode = getToggleState('expertModeToggle');
-        localStorage.setItem('chess_expert_mode', currentMode);
-        showToast(
-          `Mode expert : ${currentMode === 'on' ? 'activé' : 'désactivé'}`,
-          'info',
-          3000,
-          'toast-expert-mode'
-        );
-        await savePreferencesCloud();
-      }, 0);
+  // Save Revision Mode on change
+  const revisionSelect = document.getElementById('revisionModeSelect');
+  if (revisionSelect) {
+    revisionSelect.addEventListener('change', async () => {
+      const val = revisionSelect.value;
+      localStorage.setItem('chess_revision_mode', val);
+      let label = 'Normal (Séquentiel)';
+      if (val === 'random_variations') {
+        label = 'Variantes aléatoires';
+      } else if (val === 'positions_expert') {
+        label = 'Positions aléatoires (Expert)';
+      }
+      showToast(`Mode de révision : ${label}`, 'info', 2500, 'toast-revision-mode');
+      await savePreferencesCloud();
     });
   }
 

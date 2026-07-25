@@ -29,8 +29,41 @@ const initializeStats = (node) => {
 
 let expertSession = null;
 
+const getRevisionMode = () => {
+  return localStorage.getItem('chess_revision_mode') || 'normal';
+};
+
 const isExpertActive = () => {
-  return state.trainingMode === 'revision' && localStorage.getItem('chess_expert_mode') === 'on';
+  return state.trainingMode === 'revision' && getRevisionMode() === 'positions_expert';
+};
+
+const isRandomVariationsActive = () => {
+  return (
+    state.trainingMode === 'revision' &&
+    (getRevisionMode() === 'random_variations' ||
+      localStorage.getItem('chess_random_mode') === 'on')
+  );
+};
+
+const updateRevisionUIVisibility = () => {
+  const navRowMobile = document.querySelector('.pgn-navigation-row');
+  const navRowPc = document.querySelector('.pc-navigation-row');
+
+  if (isExpertActive()) {
+    if (navRowMobile) {
+      navRowMobile.style.display = 'none';
+    }
+    if (navRowPc) {
+      navRowPc.style.display = 'none';
+    }
+  } else {
+    if (navRowMobile) {
+      navRowMobile.style.display = 'flex';
+    }
+    if (navRowPc) {
+      navRowPc.style.display = 'flex';
+    }
+  }
 };
 
 const collectExpertPositions = (rootNode, playerColor) => {
@@ -131,7 +164,7 @@ const handleExpertUserMove = (orig, dest) => {
   }
 
   if (currentPosItem.solvedMoves.has(matchedChild.san)) {
-    showToast('Coup déjà trouvé ! Trouvez l’autre variante.', 'info', 2000);
+    showToast('Variante déjà couverte', 'info', 1500);
     setTimeout(() => {
       state.game.load(currentPosItem.fen);
       state.cg.set({ fen: currentPosItem.fen, lastMove: null });
@@ -155,7 +188,6 @@ const handleExpertUserMove = (orig, dest) => {
   const remainingCount = totalMovesCount - currentPosItem.solvedMoves.size;
 
   if (remainingCount > 0) {
-    showToast(`Bon coup ! Il reste ${remainingCount} autre(s) coup(s) à trouver.`, 'success', 2000);
     setTimeout(() => {
       state.game.load(currentPosItem.fen);
       state.cg.set({ fen: currentPosItem.fen, lastMove: null });
@@ -167,7 +199,6 @@ const handleExpertUserMove = (orig, dest) => {
     expertSession.solvedCount++;
     currentPosItem.validMoves.forEach((c) => markCompleted(c));
     updateStatsUI();
-    showToast('Position résolue !', 'success', 1500);
 
     setTimeout(() => {
       startExpertNextPosition();
@@ -212,6 +243,8 @@ const updateAnalysisLink = () => {
 };
 
 const renderPgnHtml = () => {
+  updateRevisionUIVisibility();
+
   const existingBtn = document.getElementById('continueBtn');
   if (existingBtn) {
     existingBtn.remove();
@@ -219,19 +252,6 @@ const renderPgnHtml = () => {
 
   if (isExpertActive() && expertSession) {
     const currentPos = expertSession.currentPosItem;
-    const display = document.getElementById('activeLineDisplay');
-    if (currentPos) {
-      const totalMovesCount = currentPos.validMoves.length;
-      const foundCount = currentPos.solvedMoves.size;
-      let extraInfo = '';
-      if (totalMovesCount > 1) {
-        extraInfo = ` (${foundCount}/${totalMovesCount})`;
-      }
-      display.innerHTML = `<span style="color: var(--primary); font-weight: 600;">Position isolée${extraInfo}</span>`;
-    } else {
-      display.innerHTML = `<span style="color: var(--text-muted);">Mode Expert</span>`;
-    }
-
     const node = currentPos?.node;
     document.getElementById('commentBox').innerHTML = node?.comment
       ? `<strong>Notes :</strong> ${node.comment}`
@@ -493,8 +513,7 @@ const playOpponent = () => {
   }
 
   let next;
-  const isRandom = localStorage.getItem('chess_random_mode') === 'on';
-  if (isRandom) {
+  if (isRandomVariationsActive()) {
     const randomIndex = Math.floor(Math.random() * nextOptions.length);
     next = nextOptions[randomIndex];
   } else {
@@ -618,8 +637,7 @@ const startNextVariation = () => {
     }
 
     let next;
-    const isRandom = localStorage.getItem('chess_random_mode') === 'on';
-    if (isRandom) {
+    if (isRandomVariationsActive()) {
       const randomIndex = Math.floor(Math.random() * nextOptions.length);
       next = nextOptions[randomIndex];
     } else {
@@ -881,6 +899,7 @@ export const initTraining = () => {
     setupView.classList.add('fade-in');
     state.game.reset();
     state.cg.set({ drawable: { autoShapes: [] } });
+    updateRevisionUIVisibility();
   };
 
   document.getElementById('toggleCommentsBtn').onclick = () => {

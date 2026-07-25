@@ -155,7 +155,7 @@
             >
               Préférences d'entraînement
             </h3>
-            <!-- Mode Aléatoire -->
+            <!-- Mode de Révision -->
             <div
               style="
                 display: flex;
@@ -167,102 +167,30 @@
             >
               <div style="flex: 1">
                 <label style="font-weight: 600; display: block; margin-bottom: 4px"
-                  >Mode Aléatoire</label
+                  >Mode de révision</label
                 >
                 <span style="font-size: 12px; color: var(--text-muted)"
-                  >Parcourir les variantes d'un chapitre dans un ordre aléatoire à chaque
-                  session.</span
+                  >Choisir la méthode d'entraînement pour le mode révision.</span
                 >
               </div>
-              <div
-                class="toggle-container"
-                id="randomModeToggle"
-                data-state="left"
-                style="width: 100px; flex-shrink: 0; margin: 0; display: inline-flex"
+              <select
+                id="revisionModeSelect"
+                style="
+                  width: 170px;
+                  padding: 6px 10px;
+                  border-radius: 6px;
+                  background: var(--card-hover);
+                  color: var(--text-main);
+                  border: 1px solid var(--border-color);
+                  font-size: 12px;
+                  cursor: pointer;
+                  outline: none;
+                "
               >
-                <div class="toggle-slider"></div>
-                <div
-                  class="toggle-option active"
-                  data-val="off"
-                  style="
-                    flex: 1;
-                    text-align: center;
-                    font-size: 12px;
-                    padding: 6px 0;
-                    cursor: pointer;
-                  "
-                >
-                  Non
-                </div>
-                <div
-                  class="toggle-option"
-                  data-val="on"
-                  style="
-                    flex: 1;
-                    text-align: center;
-                    font-size: 12px;
-                    padding: 6px 0;
-                    cursor: pointer;
-                  "
-                >
-                  Oui
-                </div>
-              </div>
-            </div>
-
-            <!-- Mode Expert -->
-            <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 12px;
-                margin-bottom: 15px;
-              "
-            >
-              <div style="flex: 1">
-                <label style="font-weight: 600; display: block; margin-bottom: 4px"
-                  >Mode Expert</label
-                >
-                <span style="font-size: 12px; color: var(--text-muted)"
-                  >En révision, deviner des positions isolées tirées au sort sans l'historique des
-                  coups.</span
-                >
-              </div>
-              <div
-                class="toggle-container"
-                id="expertModeToggle"
-                data-state="left"
-                style="width: 100px; flex-shrink: 0; margin: 0; display: inline-flex"
-              >
-                <div class="toggle-slider"></div>
-                <div
-                  class="toggle-option active"
-                  data-val="off"
-                  style="
-                    flex: 1;
-                    text-align: center;
-                    font-size: 12px;
-                    padding: 6px 0;
-                    cursor: pointer;
-                  "
-                >
-                  Non
-                </div>
-                <div
-                  class="toggle-option"
-                  data-val="on"
-                  style="
-                    flex: 1;
-                    text-align: center;
-                    font-size: 12px;
-                    padding: 6px 0;
-                    cursor: pointer;
-                  "
-                >
-                  Oui
-                </div>
-              </div>
+                <option value="normal">Normal (Séquentiel)</option>
+                <option value="random_variations">Variantes aléatoires</option>
+                <option value="positions_expert">Positions aléatoires (Expert)</option>
+              </select>
             </div>
 
             <!-- Séparateur section Style & Apparence -->
