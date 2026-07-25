@@ -36,8 +36,6 @@ describe('Auth Endpoints', () => {
       expect(res.statusCode).toBe(200);
       expect(res.body).toEqual({
         revision_mode: 'normal',
-        random_mode: false,
-        expert_mode: false,
         board_theme: 'classic',
         pieces_theme: 'cburnett',
       });
@@ -45,9 +43,7 @@ describe('Auth Endpoints', () => {
 
     it('should return user preferences if present in DB', async () => {
       db.query.mockResolvedValueOnce({
-        rows: [
-          { random_mode: true, expert_mode: true, board_theme: 'blue', pieces_theme: 'alpha' },
-        ],
+        rows: [{ revision_mode: 'positions_expert', board_theme: 'blue', pieces_theme: 'alpha' }],
       });
       const res = await request(app)
         .get('/api/preferences')
@@ -55,8 +51,6 @@ describe('Auth Endpoints', () => {
       expect(res.statusCode).toBe(200);
       expect(res.body).toEqual({
         revision_mode: 'positions_expert',
-        random_mode: true,
-        expert_mode: true,
         board_theme: 'blue',
         pieces_theme: 'alpha',
       });
@@ -81,28 +75,26 @@ describe('Auth Endpoints', () => {
       expect(res.body).toEqual({
         success: true,
         revision_mode: 'positions_expert',
-        random_mode: false,
-        expert_mode: true,
         board_theme: 'blue',
         pieces_theme: 'alpha',
       });
       expect(db.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO user_preferences'),
-        [1, false, true, 'blue', 'alpha']
+        [1, 'positions_expert', 'blue', 'alpha']
       );
     });
 
-    it('should return 400 if random_mode parameter is missing', async () => {
+    it('should return 400 if revision_mode parameter is missing', async () => {
       const res = await request(app)
         .post('/api/preferences')
         .set('Authorization', `Bearer ${token}`)
         .send({});
       expect(res.statusCode).toBe(400);
-      expect(res.body).toHaveProperty('error', 'Paramètre random_mode manquant.');
+      expect(res.body).toHaveProperty('error', 'Paramètre revision_mode manquant.');
     });
 
     it('should return 401 if unauthorized', async () => {
-      const res = await request(app).post('/api/preferences').send({ random_mode: true });
+      const res = await request(app).post('/api/preferences').send({ revision_mode: 'normal' });
       expect(res.statusCode).toBe(401);
     });
   });
